@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Rent Jewellery - Mahalakshmi</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<script src="config.js"></script>
+<script src="cart-manager.js"></script>
+<style>
+:root{--gold:#C9963A;--gold-light:#F0C96B;--gold-dark:#8B6220;--maroon:#6B1A1A;--maroon-deep:#3D0A0A;--cream:#FAF4E8;--cream-dark:#F0E6CC;--text-dark:#1A0A00;--text-mid:#4A2C0A;--green:#1a5c1a;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Alegreya Sans',sans-serif;background:var(--cream);color:var(--text-dark);overflow-x:hidden;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.97);backdrop-filter:blur(8px);border-bottom:1px solid rgba(201,150,58,0.3);display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;animation:slideDown .6s ease both;}
+@keyframes slideDown{from{transform:translateY(-100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--gold-light);letter-spacing:.04em;text-decoration:none;display:flex;align-items:center;gap:10px;}
+.nav-links{display:flex;gap:28px;list-style:none;align-items:center;}
+.nav-links a{color:rgba(240,201,107,0.8);text-decoration:none;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;transition:color .2s;position:relative;}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--gold);transform:scaleX(0);transform-origin:center;transition:transform .25s;}
+.nav-links a:hover{color:var(--gold-light);}
+.nav-links a:hover::after{transform:scaleX(1);}
+.cart-btn{position:relative;background:transparent;border:1px solid rgba(201,150,58,0.4);color:var(--gold-light);padding:8px 16px;cursor:pointer;font-family:'Alegreya Sans',sans-serif;font-size:.85rem;letter-spacing:.08em;display:flex;align-items:center;gap:8px;transition:border-color .2s,background .2s;}
+.cart-btn:hover{border-color:var(--gold);background:rgba(201,150,58,0.1);}
+.cart-badge{position:absolute;top:-8px;right:-8px;background:var(--gold);color:var(--maroon-deep);border-radius:50%;width:20px;height:20px;font-size:.7rem;font-weight:700;display:none;}
+.cart-badge.visible{display:flex;align-items:center;justify-content:center;}
+
+/* HERO */
+.hero{min-height:60vh;background:var(--maroon-deep);display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:100px 20px 60px;}
+.hero-bg-pattern{position:absolute;inset:0;background-image:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(107,26,26,0.8) 0%,transparent 70%),repeating-linear-gradient(45deg,rgba(201,150,58,0.04) 0px,rgba(201,150,58,0.04) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(-45deg,rgba(201,150,58,0.04) 0px,rgba(201,150,58,0.04) 1px,transparent 1px,transparent 40px);pointer-events:none;}
+.hero-border{position:absolute;inset:20px;border:1px solid rgba(201,150,58,0.2);pointer-events:none;}
+.hero-border::before,.hero-border::after{content:'❖';position:absolute;color:var(--gold);font-size:1.2rem;background:var(--maroon-deep);padding:4px 8px;}
+.hero-border::before{top:-16px;left:50%;transform:translateX(-50%);}
+.hero-border::after{bottom:-16px;left:50%;transform:translateX(-50%);}
+.hero-content{position:relative;z-index:2;max-width:780px;}
+.hero-tag{display:inline-block;border:1px solid var(--gold);color:var(--gold-light);font-size:.72rem;letter-spacing:.25em;text-transform:uppercase;padding:5px 18px;margin-bottom:20px;animation:fadeUp .8s ease .3s both;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,7vw,4.5rem);font-weight:700;color:#fff;line-height:1.1;animation:fadeUp .8s ease .5s both;}
+.hero-title em{color:var(--gold-light);font-style:italic;}
+.hero-sub{margin:20px auto;color:rgba(240,201,107,0.7);font-size:1.1rem;font-weight:300;letter-spacing:.06em;line-height:1.7;max-width:500px;animation:fadeUp .8s ease .7s both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+
+/* PRODUCTS */
+.products-section{padding:80px 40px;}
+.section-label{text-align:center;font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3rem);font-weight:700;text-align:center;color:var(--maroon-deep);line-height:1.2;margin-bottom:16px;}
+.section-title em{color:var(--gold-dark);font-style:italic;}
+.section-sub{text-align:center;color:var(--text-mid);max-width:520px;margin:0 auto 56px;line-height:1.7;}
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:24px;max-width:1200px;margin:0 auto;}
+.product-card{background:#fff;border:1px solid rgba(201,150,58,0.15);overflow:hidden;transition:transform .25s,box-shadow .25s;position:relative;}
+.product-card:hover{transform:translateY(-6px);box-shadow:0 20px 56px rgba(107,26,26,0.13);}
+.product-img{width:100%;height:220px;background:linear-gradient(135deg,#f5e6c8,#e8d0a0);display:flex;align-items:center;justify-content:center;font-size:5rem;position:relative;}
+.avail-tag{position:absolute;top:12px;right:12px;font-size:.65rem;padding:3px 8px;text-transform:uppercase;}
+.avail-yes{background:rgba(26,92,26,0.85);color:#8eff8e;}
+.avail-no{background:rgba(120,20,20,0.85);color:#ffaaaa;}
+.avail-low{background:rgba(140,90,0,0.88);color:#ffcc66;}
+.product-info{padding:20px;}
+.product-name{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:600;color:var(--maroon-deep);margin-bottom:4px;}
+.product-material{font-size:.78rem;color:var(--gold-dark);margin-bottom:12px;}
+.product-price{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--maroon);font-weight:700;margin-bottom:14px;}
+.btn-rent{background:var(--maroon);color:var(--gold-light);border:none;padding:12px;width:100%;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;}
+.btn-rent:hover{background:var(--maroon-deep);}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:14px 28px;opacity:0;transition:opacity .4s;z-index:500;}
+.toast.show{opacity:1;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:400;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--maroon-deep);border:1px solid rgba(201,150,58,0.3);padding:40px;max-width:560px;width:100%;position:relative;}
+.modal-close{position:absolute;top:16px;right:20px;background:none;border:none;color:var(--gold);font-size:1.4rem;cursor:pointer;}
+.modal h2{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--gold-light);margin-bottom:8px;}
+.modal-subtitle{color:rgba(240,201,107,0.5);font-size:.85rem;margin-bottom:24px;}
+.form-group{margin-bottom:16px;}
+.form-group label{display:block;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,201,107,0.6);margin-bottom:6px;}
+.form-group input{background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px;width:100%;font-size:.95rem;}
+.rental-dates{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.rental-info{background:rgba(201,150,58,0.1);border:1px solid rgba(201,150,58,0.2);padding:12px;text-align:center;color:var(--gold-light);font-size:.85rem;margin-bottom:16px;}
+.modal-btns{display:flex;gap:12px;margin-top:20px;}
+.modal-btn{flex:1;padding:12px;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:background .2s;}
+.modal-btn-cancel{background:transparent;border:1px solid rgba(201,150,58,0.3);color:rgba(240,201,107,0.6);}
+.modal-btn-add{background:var(--gold);color:var(--maroon-deep);border:none;font-weight:700;}
+
+/* CART DRAWER */
+.cart-overlay-drawer{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:200;opacity:0;pointer-events:none;transition:opacity .3s;}
+.cart-overlay-drawer.open{opacity:1;pointer-events:all;}
+.cart-drawer{position:fixed;top:0;right:0;bottom:0;width:min(450px,90vw);background:var(--maroon-deep);z-index:201;transform:translateX(100%);transition:transform .3s;display:flex;flex-direction:column;}
+.cart-drawer.open{transform:translateX(0);}
+.cart-header{padding:20px 24px;border-bottom:1px solid rgba(201,150,58,0.2);display:flex;justify-content:space-between;align-items:center;}
+.cart-header h2{font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-size:1.8rem;}
+.cart-close-btn{background:transparent;border:1px solid rgba(201,150,58,0.3);color:var(--gold-light);padding:8px 16px;cursor:pointer;font-size:.85rem;}
+.cart-body{flex:1;overflow-y:auto;padding:20px 24px;}
+.cart-item{background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.15);padding:16px;margin-bottom:12px;display:flex;gap:12px;}
+.cart-item-icon{font-size:2.5rem;}
+.cart-item-info{flex:1;}
+.cart-item-name{font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-size:1.1rem;margin-bottom:4px;}
+.cart-item-mode{font-size:.75rem;color:rgba(240,201,107,0.6);text-transform:uppercase;letter-spacing:.1em;}
+.cart-item-price{color:#fff;font-weight:600;margin-top:8px;}
+.cart-item-remove{background:rgba(200,50,50,0.3);border:1px solid rgba(255,100,100,0.3);color:#ffaaaa;padding:6px 12px;cursor:pointer;font-size:.75rem;}
+.cart-empty{text-align:center;color:rgba(240,201,107,0.5);padding:60px 20px;}
+.cart-footer{padding:20px 24px;border-top:1px solid rgba(201,150,58,0.2);}
+.cart-total{display:flex;justify-content:space-between;margin-bottom:16px;font-size:1.3rem;color:var(--gold-light);font-family:'Cormorant Garamond',serif;font-weight:700;}
+.cart-checkout-btn{background:var(--gold);color:var(--maroon-deep);border:none;padding:14px;width:100%;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;cursor:pointer;}
+.cart-checkout-btn:hover{background:var(--gold-light);}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="mahalakshmi-client.html" class="nav-logo">🪷 Mahalakshmi</a>
+  <ul class="nav-links">
+    <li><a href="mahalakshmi-client.html">Home</a></li>
+    <li><a href="buy.html">💍 Buy Jewellery</a></li>
+    <li><a href="rental.html">📅 Rent Jewellery</a></li>
+    <li><a href="mahalakshmi-client.html#contact">Contact</a></li>
+  </ul>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <button class="cart-btn" id="loginBtn" onclick="window.location.href='mahalakshmi-client.html'" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
+      👤 Login
+    </button>
+    <button class="cart-btn" onclick="window.location.href='mahalakshmi-client.html#orders'" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
+      📋 My Orders
+    </button>
+    <button class="cart-btn" onclick="openCart()">
+      🛒 Cart
+      <span class="cart-badge" id="cartBadge">0</span>
+    </button>
+  </div>
+</nav>
+
+<!-- CART DRAWER -->
+<div class="cart-overlay-drawer" id="cartOverlayDrawer" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <h2>🛒 Your Cart</h2>
+    <button class="cart-close-btn" onclick="closeCart()">✕ Close</button>
+  </div>
+  <div class="cart-body" id="cartBody">
+    <!-- Cart items will be rendered here -->
+  </div>
+  <div class="cart-footer" id="cartFooter" style="display:none;">
+    <div class="cart-total">
+      <span>Total:</span>
+      <span id="cartTotal">₹0</span>
+    </div>
+    <button class="cart-checkout-btn" onclick="goToCheckout()">✦ Proceed to Checkout</button>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-bg-pattern"></div>
+  <div class="hero-border"></div>
+  <div class="hero-content">
+    <span class="hero-tag">📅 RENTAL COLLECTION</span>
+    <h1 class="hero-title">Rent <em>Jewellery</em></h1>
+    <p class="hero-sub">Rent stunning bridal jewellery for your special occasion. Affordable daily rates with deposit-based security.</p>
+  </div>
+</div>
+
+<div class="products-section">
+  <div class="section-label">📅 AVAILABLE FOR RENTAL</div>
+  <h2 class="section-title">Our <em>Rental</em> Collection</h2>
+  <p class="section-sub">Exquisite pieces for your special day. Rent premium jewellery at affordable daily rates.</p>
+  <div class="products-grid" id="productsGrid"></div>
+</div>
+
+<div class="modal-overlay" id="rentalModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>📅 Book Rental</h2>
+    <p class="modal-subtitle" id="productName">Select your rental dates</p>
+    <div class="rental-dates">
+      <div class="form-group">
+        <label>From Date</label>
+        <input type="date" id="dateFrom" onchange="calcDays()"/>
+      </div>
+      <div class="form-group">
+        <label>To Date</label>
+        <input type="date" id="dateTo" onchange="calcDays()"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Quantity</label>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button onclick="updateQty(-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:36px;height:36px;cursor:pointer;font-size:1.2rem;">−</button>
+        <input type="number" id="rentalQty" value="1" min="1" readonly style="width:60px;text-align:center;background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:8px;"/>
+        <button onclick="updateQty(1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:36px;height:36px;cursor:pointer;font-size:1.2rem;">+</button>
+        <span id="availInfo" style="color:rgba(240,201,107,0.6);font-size:.85rem;"></span>
+      </div>
+    </div>
+    <div class="rental-info" id="rentalInfo">Select dates to see rental cost</div>
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn modal-btn-add" onclick="confirmRental()">✦ Add to Cart</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Footer with Admin Link -->
+<footer style="background:var(--maroon-deep);padding:20px;text-align:center;border-top:1px solid rgba(201,150,58,0.3);">
+  <p style="color:rgba(240,201,107,0.5);font-size:.85rem;">
+    © 2026 Mahalakshmi Jewellery | 
+    <a href="mahalakshmi-admin.html" style="color:var(--gold-light);text-decoration:none;margin-left:8px;">🔐 Admin Panel</a>
+  </p>
+</footer>
+
+<script>
+let products = [];
+let cart = CartManager.getCart(); // Load from centralized cart manager
+let selectedProduct = null;
+
+async function loadProducts() {
+  try {
+    if(typeof api !== 'undefined') {
+      const allProducts = await api.getProducts();
+      products = allProducts.filter(p => p.type === 'rent' || p.type === 'both');
+    } else {
+      products = [
+        {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"📿",rentPerDay:150,availableQty:5,isAvailable:true},
+        {id:2,name:"Bridal Maang Tikka",material:"Kundan & Meenakari",icon:"👑",rentPerDay:80,availableQty:5,isAvailable:true},
+        {id:3,name:"Temple Necklace",material:"Gold-Plated Copper",icon:"💛",rentPerDay:120,availableQty:5,isAvailable:true},
+        {id:4,name:"Jimikki Earrings",material:"South Indian Style",icon:"👂",rentPerDay:50,availableQty:5,isAvailable:true},
+        {id:5,name:"Full Bridal Set",material:"Antique Gold 12-Piece",icon:"🌸",rentPerDay:600,availableQty:3,isAvailable:true}
+      ];
+    }
+    renderProducts();
+  } catch (error) {
+    console.error('Error loading products:', error);
+  }
+}
+
+function renderProducts() {
+  const grid = document.getElementById('productsGrid');
+  grid.innerHTML = products.map(p => {
+    const availQty = p.availableQty || 0;
+    const isAvail = p.isAvailable && availQty > 0;
+    
+    let availClass, availText;
+    if(!isAvail || availQty===0){ availClass='avail-no'; availText='Sold'; }
+    else if(availQty<=2){ availClass='avail-low'; availText=`Only ${availQty} left!`; }
+    else{ availClass='avail-yes'; availText=`${availQty} Available`; }
+    
+    let rentBtn = isAvail 
+      ? `<button class="btn-rent" onclick="openRentalModal(${p.id})">📅 Book Rental</button>`
+      : `<button class="btn-rent" style="opacity:.5;cursor:not-allowed;background:#3a1010;">✗ Unavailable</button>`;
+    
+    return `
+      <div class="product-card">
+        <div class="product-img" style="position:relative;${p.image_url ? `background-image:url('http://localhost:5000${p.image_url}');background-size:cover;background-position:center;` : ''}">
+          ${!p.image_url ? p.icon : ''}
+          <span class="avail-tag ${availClass}">${availText}</span>
+        </div>
+        <div class="product-info">
+          <div class="product-name">${p.name}</div>
+          <div class="product-material">${p.material}</div>
+          <div class="product-price">₹${p.rentPerDay}/day</div>
+          ${rentBtn}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openRentalModal(id) {
+  selectedProduct = products.find(p => p.id === id);
+  if(!selectedProduct) return;
+  
+  document.getElementById('productName').textContent = `${selectedProduct.icon} ${selectedProduct.name} — ₹${selectedProduct.rentPerDay}/day`;
+  document.getElementById('rentalQty').value = 1;
+  document.getElementById('availInfo').textContent = `${selectedProduct.availableQty} available`;
+  
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dateFrom').min = today;
+  document.getElementById('dateTo').min = today;
+  document.getElementById('dateFrom').value = '';
+  document.getElementById('dateTo').value = '';
+  document.getElementById('rentalInfo').textContent = 'Select dates to see rental cost';
+  
+  document.getElementById('rentalModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('rentalModal').classList.remove('open');
+}
+
+function updateQty(change) {
+  const input = document.getElementById('rentalQty');
+  const newQty = Math.max(1, parseInt(input.value) + change);
+  
+  if(newQty > selectedProduct.availableQty){
+    showToast(`Only ${selectedProduct.availableQty} available!`);
+    return;
+  }
+  
+  input.value = newQty;
+  calcDays();
+}
+
+function calcDays() {
+  const from = document.getElementById('dateFrom').value;
+  const to = document.getElementById('dateTo').value;
+  const qty = parseInt(document.getElementById('rentalQty').value) || 1;
+  const info = document.getElementById('rentalInfo');
+  
+  if(!from || !to){
+    info.textContent = 'Select both dates';
+    return;
+  }
+  
+  const d1 = new Date(from);
+  const d2 = new Date(to);
+  
+  if(d2 <= d1){
+    info.textContent = '⚠️ End date must be after start date';
+    return;
+  }
+  
+  const days = Math.ceil((d2 - d1) / (1000*60*60*24));
+  const unitTotal = days * selectedProduct.rentPerDay;
+  const total = unitTotal * qty;
+  
+  info.innerHTML = `📅 <strong>${days} day${days>1?'s':''}</strong> × ₹${selectedProduct.rentPerDay}/day ${qty>1?`× ${qty} items`:''} = <strong>₹${total.toLocaleString()}</strong>`;
+}
+
+function confirmRental() {
+  const from = document.getElementById('dateFrom').value;
+  const to = document.getElementById('dateTo').value;
+  const qty = parseInt(document.getElementById('rentalQty').value) || 1;
+  
+  if(!from || !to){
+    showToast('Please select rental dates');
+    return;
+  }
+  
+  const d1 = new Date(from);
+  const d2 = new Date(to);
+  
+  if(d2 <= d1){
+    showToast('End date must be after start date');
+    return;
+  }
+  
+  const days = Math.ceil((d2 - d1) / (1000*60*60*24));
+  const unitTotal = days * selectedProduct.rentPerDay;
+  
+  for(let i=0; i<qty; i++){
+    cart.push({
+      id: selectedProduct.id,
+      name: selectedProduct.name,
+      icon: selectedProduct.icon,
+      mode: 'rent',
+      quantity: 1,
+      unitPrice: unitTotal,
+      price: unitTotal,
+      rentalData: {from, to, days, total: unitTotal}
+    });
+  }
+  
+  CartManager.saveCart(cart); // Save using cart manager
+  updateCartBadge();
+  closeModal();
+  showToast(`✓ "${selectedProduct.name}" added to cart!`);
+}
+
+function updateCartBadge() {
+  const badge = document.getElementById('cartBadge');
+  const total = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  if(total > 0){
+    badge.textContent = total;
+    badge.classList.add('visible');
+  } else {
+    badge.classList.remove('visible');
+  }
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function goToCart() {
+  openCart();
+}
+
+function openCart() {
+  document.getElementById('cartOverlayDrawer').classList.add('open');
+  document.getElementById('cartDrawer').classList.add('open');
+  renderCart();
+}
+
+function closeCart() {
+  document.getElementById('cartOverlayDrawer').classList.remove('open');
+  document.getElementById('cartDrawer').classList.remove('open');
+}
+
+function renderCart() {
+  const body = document.getElementById('cartBody');
+  const footer = document.getElementById('cartFooter');
+  
+  if (cart.length === 0) {
+    body.innerHTML = '<div class="cart-empty">🛒<br><br>Your cart is empty<br><small>Add items to get started</small></div>';
+    footer.style.display = 'none';
+    return;
+  }
+  
+  footer.style.display = 'block';
+  
+  // Separate items by mode
+  const buyItems = cart.filter(item => item.mode === 'buy');
+  const rentItems = cart.filter(item => item.mode === 'rent');
+  
+  let html = '';
+  let total = 0;
+  
+  // Buy Items Section
+  if (buyItems.length > 0) {
+    html += `<div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(201,150,58,0.1);border-left:3px solid #C9963A;margin-bottom:12px;">
+        <span style="font-size:1.1rem;">💰</span>
+        <span style="font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#F0C96B;flex:1;">Buy Items</span>
+        <span style="font-size:.7rem;color:rgba(240,201,107,0.6);background:rgba(201,150,58,0.2);padding:2px 8px;border-radius:10px;">${buyItems.length}</span>
+      </div>`;
+    
+    buyItems.forEach(item => {
+      const idx = cart.indexOf(item);
+      total += item.price;
+      html += `<div class="cart-item">
+        <div class="cart-item-icon">${item.icon}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-mode">💰 Purchase</div>
+          <div class="cart-item-price">Qty: ${item.quantity} × ₹${item.unitPrice.toLocaleString()} = ₹${item.price.toLocaleString()}</div>
+        </div>
+        <button class="cart-item-remove" onclick="removeFromCart(${idx})">✕</button>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  
+  // Rent Items Section
+  if (rentItems.length > 0) {
+    html += `<div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(201,150,58,0.1);border-left:3px solid #C9963A;margin-bottom:12px;">
+        <span style="font-size:1.1rem;">📅</span>
+        <span style="font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#F0C96B;flex:1;">Rental Items</span>
+        <span style="font-size:.7rem;color:rgba(240,201,107,0.6);background:rgba(201,150,58,0.2);padding:2px 8px;border-radius:10px;">${rentItems.length}</span>
+      </div>`;
+    
+    rentItems.forEach(item => {
+      const idx = cart.indexOf(item);
+      total += item.price;
+      html += `<div class="cart-item">
+        <div class="cart-item-icon">${item.icon}</div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-mode">📅 Rental</div>
+          ${item.rentalData ? `<div style="font-size:.75rem;color:rgba(240,201,107,0.5);margin-top:4px;">
+            ${item.rentalData.from} → ${item.rentalData.to} (${item.rentalData.days} days)
+          </div>` : ''}
+          <div class="cart-item-price">Qty: ${item.quantity} × ₹${item.unitPrice.toLocaleString()}/day = ₹${item.price.toLocaleString()}</div>
+        </div>
+        <button class="cart-item-remove" onclick="removeFromCart(${idx})">✕</button>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  
+  body.innerHTML = html;
+  document.getElementById('cartTotal').textContent = '₹' + total.toLocaleString();
+}
+
+function removeFromCart(idx) {
+  cart.splice(idx, 1);
+  CartManager.saveCart(cart);
+  updateCartBadge();
+  renderCart();
+  renderProducts();
+}
+
+function goToCheckout() {
+  CartManager.saveCart(cart);
+  window.location.href = 'mahalakshmi-client.html#checkout';
+}
+
+loadProducts();
+updateCartBadge();
+</script>
+
+</body>
+</html>

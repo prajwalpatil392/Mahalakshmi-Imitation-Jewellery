@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mahalakshmi Rentals & Sellers – Bridal Jewellery</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="config.js"></script>
+<script src="cart-manager.js"></script>
+<style>
+:root{--gold:#C9963A;--gold-light:#F0C96B;--gold-dark:#8B6220;--maroon:#6B1A1A;--maroon-deep:#3D0A0A;--cream:#FAF4E8;--cream-dark:#F0E6CC;--text-dark:#1A0A00;--text-mid:#4A2C0A;--green:#1a5c1a;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;scroll-padding-top:80px;}
+body{font-family:'Alegreya Sans',sans-serif;background:var(--cream);color:var(--text-dark);overflow-x:hidden;}
+.ornament{display:inline-block;width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);vertical-align:middle;margin:0 12px;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.97);backdrop-filter:blur(8px);border-bottom:1px solid rgba(201,150,58,0.3);display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;animation:slideDown .6s ease both;}
+@keyframes slideDown{from{transform:translateY(-100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--gold-light);letter-spacing:.04em;text-decoration:none;display:flex;align-items:center;gap:10px;}
+.nav-links{display:flex;gap:28px;list-style:none;align-items:center;}
+.nav-links a{color:rgba(240,201,107,0.8);text-decoration:none;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;transition:color .2s;position:relative;}
+.nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--gold);transform:scaleX(0);transform-origin:center;transition:transform .25s;}
+.nav-links a:hover{color:var(--gold-light);}
+.nav-links a:hover::after{transform:scaleX(1);}
+.nav-cta{background:var(--gold)!important;color:var(--maroon-deep)!important;padding:8px 20px!important;font-weight:500;}
+.nav-cta:hover{background:var(--gold-light)!important;}
+.nav-cta::after{display:none!important;}
+
+/* CART ICON */
+.cart-btn{position:relative;background:transparent;border:1px solid rgba(201,150,58,0.4);color:var(--gold-light);padding:8px 16px;cursor:pointer;font-family:'Alegreya Sans',sans-serif;font-size:.85rem;letter-spacing:.08em;display:flex;align-items:center;gap:8px;transition:border-color .2s,background .2s;}
+.cart-btn:hover{border-color:var(--gold);background:rgba(201,150,58,0.1);}
+.cart-badge{position:absolute;top:-8px;right:-8px;background:var(--gold);color:var(--maroon-deep);border-radius:50%;width:20px;height:20px;font-size:.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;display:none;}
+.cart-badge.visible{display:flex;}
+
+/* HERO */
+#hero{min-height:100vh;background:var(--maroon-deep);display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:100px 20px 60px;}
+.hero-bg-pattern{position:absolute;inset:0;background-image:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(107,26,26,0.8) 0%,transparent 70%),repeating-linear-gradient(45deg,rgba(201,150,58,0.04) 0px,rgba(201,150,58,0.04) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(-45deg,rgba(201,150,58,0.04) 0px,rgba(201,150,58,0.04) 1px,transparent 1px,transparent 40px);pointer-events:none;}
+.hero-border{position:absolute;inset:20px;border:1px solid rgba(201,150,58,0.2);pointer-events:none;}
+.hero-border::before,.hero-border::after{content:'❖';position:absolute;color:var(--gold);font-size:1.2rem;background:var(--maroon-deep);padding:4px 8px;}
+.hero-border::before{top:-16px;left:50%;transform:translateX(-50%);}
+.hero-border::after{bottom:-16px;left:50%;transform:translateX(-50%);}
+.hero-content{position:relative;z-index:2;max-width:780px;}
+.hero-tag{display:inline-block;border:1px solid var(--gold);color:var(--gold-light);font-size:.72rem;letter-spacing:.25em;text-transform:uppercase;padding:5px 18px;margin-bottom:28px;animation:fadeUp .8s ease .3s both;}
+.hero-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,7vw,5.5rem);font-weight:700;color:#fff;line-height:1.1;animation:fadeUp .8s ease .5s both;}
+.hero-title em{color:var(--gold-light);font-style:italic;display:block;}
+.hero-sub{margin:24px auto;color:rgba(240,201,107,0.7);font-size:1.1rem;font-weight:300;letter-spacing:.06em;line-height:1.7;max-width:500px;animation:fadeUp .8s ease .7s both;}
+.hero-divider{display:flex;align-items:center;justify-content:center;gap:12px;color:var(--gold);font-size:1.2rem;margin:28px 0;animation:fadeUp .8s ease .8s both;}
+.hero-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;animation:fadeUp .8s ease .9s both;}
+.btn-primary{background:var(--gold);color:var(--maroon-deep);padding:14px 36px;font-family:'Alegreya Sans',sans-serif;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;border:none;cursor:pointer;text-decoration:none;transition:background .2s,transform .2s;display:inline-block;}
+.btn-primary:hover{background:var(--gold-light);transform:translateY(-2px);}
+.btn-outline{background:transparent;color:var(--gold-light);border:1px solid var(--gold);padding:14px 36px;font-family:'Alegreya Sans',sans-serif;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;text-decoration:none;transition:background .2s,color .2s,transform .2s;display:inline-block;}
+.btn-outline:hover{background:rgba(201,150,58,0.15);transform:translateY(-2px);}
+.hero-stats{display:flex;gap:48px;justify-content:center;flex-wrap:wrap;margin-top:60px;animation:fadeUp .8s ease 1.1s both;}
+.stat{text-align:center;}
+.stat-num{font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:700;color:var(--gold-light);line-height:1;}
+.stat-label{color:rgba(240,201,107,0.55);font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;margin-top:4px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+
+/* SECTIONS */
+section{padding:90px 40px;}
+.section-label{text-align:center;font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,4vw,3rem);font-weight:700;text-align:center;color:var(--maroon-deep);line-height:1.2;margin-bottom:16px;}
+.section-title em{color:var(--gold-dark);font-style:italic;}
+.section-sub{text-align:center;color:var(--text-mid);max-width:520px;margin:0 auto 56px;line-height:1.7;}
+
+/* HOW IT WORKS */
+#how{background:var(--maroon-deep);position:relative;}
+#how .section-title{color:#fff;}
+#how .section-sub{color:rgba(240,201,107,0.6);}
+.steps-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2px;max-width:1100px;margin:0 auto;}
+.step{background:rgba(255,255,255,0.03);border:1px solid rgba(201,150,58,0.15);padding:44px 32px;text-align:center;position:relative;transition:background .3s;}
+.step:hover{background:rgba(201,150,58,0.07);}
+.step-num{font-family:'Cormorant Garamond',serif;font-size:4rem;font-weight:700;color:rgba(201,150,58,0.15);line-height:1;position:absolute;top:16px;right:20px;}
+.step-icon{font-size:2.2rem;margin-bottom:20px;display:block;}
+.step-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--gold-light);margin-bottom:12px;}
+.step-desc{color:rgba(240,201,107,0.55);font-size:.9rem;line-height:1.7;}
+
+/* CATEGORIES */
+#categories{background:var(--cream);}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;max-width:1100px;margin:0 auto;}
+.cat-card{background:#fff;border:1px solid rgba(201,150,58,0.2);padding:36px 20px;text-align:center;cursor:pointer;transition:transform .25s,box-shadow .25s,border-color .25s;position:relative;overflow:hidden;}
+.cat-card::before{content:'';position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .3s;}
+.cat-card:hover{transform:translateY(-6px);box-shadow:0 16px 48px rgba(107,26,26,0.12);border-color:var(--gold);}
+.cat-card:hover::before{transform:scaleX(1);}
+.cat-icon{font-size:2.6rem;margin-bottom:14px;}
+.cat-name{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--maroon);margin-bottom:6px;}
+.cat-count{font-size:.8rem;color:var(--gold-dark);letter-spacing:.08em;}
+
+/* PRODUCTS */
+#products{background:var(--cream-dark);}
+.filter-tabs{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:44px;}
+.tab{padding:8px 24px;border:1px solid rgba(107,26,26,0.2);background:transparent;color:var(--maroon);font-family:'Alegreya Sans',sans-serif;font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.tab.active,.tab:hover{background:var(--maroon);color:var(--gold-light);border-color:var(--maroon);}
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:24px;max-width:1200px;margin:0 auto;}
+
+/* PRODUCT CARD */
+.product-card{
+  background:#fff;
+  border:1px solid rgba(201,150,58,0.15);
+  border-radius:8px;
+  overflow:hidden;
+  transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor:pointer;
+  position:relative;
+}
+.product-card:hover{
+  transform:translateY(-8px);
+  box-shadow:0 24px 64px rgba(107,26,26,0.15), 0 8px 16px rgba(201,150,58,0.1);
+  border-color:rgba(201,150,58,0.3);
+}
+.product-img{
+  width:100%;
+  height:240px;
+  background:linear-gradient(135deg,#f5e6c8 0%,#e8d0a0 50%,#d4b886 100%);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:5rem;
+  position:relative;
+  overflow:hidden;
+}
+.product-img::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.05) 100%);
+  pointer-events:none;
+}
+.product-badge{
+  position:absolute;
+  top:12px;
+  left:12px;
+  color:var(--gold-light);
+  font-size:.68rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  padding:6px 12px;
+  backdrop-filter:blur(8px);
+  border-radius:4px;
+  font-weight:600;
+  box-shadow:0 2px 8px rgba(0,0,0,0.15);
+}
+.badge-rent{background:rgba(107,26,26,0.95);}
+.badge-buy{background:var(--gold-dark);}
+.badge-both{background:#2d5a1e;}
+.avail-tag{position:absolute;top:12px;right:12px;font-size:.65rem;padding:3px 8px;letter-spacing:.08em;text-transform:uppercase;}
+.avail-yes{background:rgba(26,92,26,0.85);color:#8eff8e;}
+.avail-no{background:rgba(120,20,20,0.9);color:#ffaaaa;}
+.avail-low{background:rgba(140,90,0,0.9);color:#ffcc66;}
+.product-info{
+  padding:20px 24px 24px;
+  background:linear-gradient(to bottom, #fff 0%, #fffef8 100%);
+}
+.product-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.25rem;
+  font-weight:600;
+  color:var(--maroon-deep);
+  margin-bottom:6px;
+  line-height:1.3;
+  min-height:2.6rem;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.product-material{
+  font-size:.8rem;
+  color:var(--gold-dark);
+  letter-spacing:.08em;
+  margin-bottom:14px;
+  font-weight:500;
+}
+.product-pricing{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  border-top:1px solid rgba(201,150,58,0.15);
+  padding-top:16px;
+  margin-bottom:16px;
+  gap:12px;
+}
+.price-label{font-size:.68rem;color:#999;text-transform:uppercase;letter-spacing:.1em;}
+.price-val{font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;color:var(--maroon);}
+.price-divider{width:1px;height:36px;background:rgba(201,150,58,0.2);}
+
+/* PRODUCT ACTION BTNS */
+.product-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.btn-cart{
+  background:var(--maroon);
+  color:var(--gold-light);
+  border:none;
+  padding:12px 10px;
+  font-family:'Alegreya Sans',sans-serif;
+  font-size:.75rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all .3s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  font-weight:600;
+  border-radius:4px;
+  box-shadow:0 2px 8px rgba(107,26,26,0.2);
+}
+.btn-cart:hover{
+  background:var(--maroon-deep);
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(107,26,26,0.3);
+}
+.btn-rent{
+  background:transparent;
+  color:var(--maroon);
+  border:2px solid var(--maroon);
+  padding:10px 10px;
+  font-family:'Alegreya Sans',sans-serif;
+  font-size:.75rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all .3s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  font-weight:600;
+  border-radius:4px;
+}
+.btn-rent:hover{
+  background:var(--maroon);
+  color:var(--gold-light);
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(107,26,26,0.3);
+}
+.btn-full{
+  grid-column:1/-1;
+  background:var(--maroon);
+  color:var(--gold-light);
+  border:none;
+  padding:12px;
+  font-family:'Alegreya Sans',sans-serif;
+  font-size:.75rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all .3s;
+  font-weight:600;
+  border-radius:4px;
+  box-shadow:0 2px 8px rgba(107,26,26,0.2);
+}
+.btn-full:hover{
+  background:var(--maroon-deep);
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(107,26,26,0.3);
+}
+.btn-added{
+  background:var(--green)!important;
+  color:#fff!important;
+}
+
+/* TRUST */
+#trust{background:var(--gold);padding:32px 40px;display:flex;align-items:center;justify-content:center;gap:60px;flex-wrap:wrap;}
+.trust-item{display:flex;align-items:center;gap:10px;color:var(--maroon-deep);}
+.trust-icon{font-size:1.6rem;}
+.trust-text{font-size:.85rem;font-weight:500;letter-spacing:.08em;}
+
+/* REVIEWS */
+#reviews{background:var(--cream);}
+.reviews-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:1000px;margin:0 auto;}
+.review-card{background:#fff;border:1px solid rgba(201,150,58,0.15);padding:32px;}
+.review-stars{color:var(--gold);font-size:1rem;margin-bottom:16px;letter-spacing:4px;}
+.review-text{font-style:italic;color:var(--text-mid);line-height:1.8;margin-bottom:20px;font-size:.95rem;}
+.review-author{display:flex;align-items:center;gap:12px;}
+.review-avatar{width:40px;height:40px;border-radius:50%;background:var(--cream-dark);display:flex;align-items:center;justify-content:center;font-size:1.2rem;}
+.review-name{font-weight:500;color:var(--maroon);font-size:.9rem;}
+.review-occasion{font-size:.75rem;color:var(--gold-dark);}
+
+/* CONTACT */
+#contact{background:var(--maroon-deep);}
+#contact .section-title{color:#fff;}
+#contact .section-sub{color:rgba(240,201,107,0.6);}
+.contact-wrap{display:grid;grid-template-columns:1fr 1fr;gap:60px;max-width:1000px;margin:0 auto;}
+.contact-info{display:flex;flex-direction:column;gap:20px;}
+.contact-method{display:flex;gap:16px;align-items:flex-start;padding:20px;border:1px solid rgba(201,150,58,0.15);transition:border-color .2s,background .2s;text-decoration:none;}
+.contact-method:hover{border-color:var(--gold);background:rgba(201,150,58,0.05);}
+.cm-icon{font-size:1.8rem;min-width:40px;}
+.cm-label{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:4px;}
+.cm-val{color:#fff;font-size:1rem;}
+.portal-form{display:flex;flex-direction:column;gap:14px;}
+.portal-form h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold-light);margin-bottom:4px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-group label{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,201,107,0.6);}
+.form-group input,.form-group select,.form-group textarea{background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px 16px;font-family:'Alegreya Sans',sans-serif;font-size:.95rem;outline:none;transition:border-color .2s;width:100%;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--gold);background:rgba(201,150,58,0.05);}
+.form-group select option{background:var(--maroon-deep);color:#fff;}
+.form-group textarea{resize:vertical;min-height:90px;}
+.form-submit{background:var(--gold);color:var(--maroon-deep);border:none;padding:14px;font-family:'Alegreya Sans',sans-serif;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;cursor:pointer;transition:background .2s,transform .2s;}
+.form-submit:hover{background:var(--gold-light);transform:translateY(-2px);}
+.form-note{font-size:.78rem;color:rgba(240,201,107,0.4);text-align:center;}
+
+/* FOOTER */
+footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,150,58,0.2);}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:60px;max-width:1100px;margin:0 auto 48px;}
+.footer-brand-name{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--gold-light);margin-bottom:16px;}
+.footer-desc{color:rgba(240,201,107,0.45);font-size:.88rem;line-height:1.8;}
+.footer-col h4{font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:20px;}
+.footer-col ul{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.footer-col ul a{color:rgba(240,201,107,0.5);text-decoration:none;font-size:.88rem;transition:color .2s;}
+.footer-col ul a:hover{color:var(--gold-light);}
+.footer-bottom{text-align:center;color:rgba(240,201,107,0.25);font-size:.78rem;border-top:1px solid rgba(201,150,58,0.1);padding-top:28px;}
+
+/* FLOATING */
+.float-btns{position:fixed;bottom:30px;right:24px;display:flex;flex-direction:column;gap:12px;z-index:200;}
+.float-btn{width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;font-size:1.4rem;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.3);transition:transform .2s;text-decoration:none;}
+.float-btn:hover{transform:scale(1.1);}
+.float-wa{background:#25D366;color:#fff;}
+.float-call{background:var(--gold);color:var(--maroon-deep);}
+
+/* ===== CART DRAWER ===== */
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:300;pointer-events:none;transition:background .3s;}
+.cart-overlay.open{background:rgba(0,0,0,0.6);pointer-events:all;}
+.cart-drawer{position:fixed;top:0;right:-480px;width:460px;max-width:95vw;height:100vh;background:var(--maroon-deep);border-left:1px solid rgba(201,150,58,0.3);z-index:301;display:flex;flex-direction:column;transition:right .35s cubic-bezier(.4,0,.2,1);}
+.cart-drawer.open{right:0;}
+.cart-header{padding:24px 28px;border-bottom:1px solid rgba(201,150,58,0.2);display:flex;align-items:center;justify-content:space-between;}
+.cart-header h2{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--gold-light);}
+.cart-close{background:none;border:none;color:var(--gold);font-size:1.5rem;cursor:pointer;transition:color .2s;}
+.cart-close:hover{color:#fff;}
+.cart-items{flex:1;overflow-y:auto;padding:20px 28px;}
+.cart-empty{text-align:center;padding:60px 0;color:rgba(240,201,107,0.4);}
+.cart-empty .empty-icon{font-size:3rem;margin-bottom:16px;}
+.cart-empty p{font-size:.9rem;letter-spacing:.08em;}
+.cart-item{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid rgba(201,150,58,0.1);align-items:flex-start;}
+.ci-icon{width:56px;height:56px;background:linear-gradient(135deg,#f5e6c8,#e8d0a0);display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;}
+.ci-info{flex:1;}
+.ci-name{font-family:'Cormorant Garamond',serif;font-size:1.05rem;font-weight:600;color:#fff;margin-bottom:2px;}
+.ci-type{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;display:inline-block;margin-bottom:6px;}
+.ci-type.rent{background:var(--maroon);color:var(--gold-light);}
+.ci-type.buy{background:var(--gold-dark);color:#fff;}
+.ci-dates{font-size:.78rem;color:rgba(240,201,107,0.5);margin-bottom:4px;}
+.ci-price{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold-light);font-weight:700;}
+.ci-remove{background:none;border:none;color:rgba(240,201,107,0.3);cursor:pointer;font-size:1rem;transition:color .2s;padding:4px;}
+.ci-remove:hover{color:#ff6b6b;}
+.cart-footer{padding:20px 28px;border-top:1px solid rgba(201,150,58,0.2);}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.cart-total-label{color:rgba(240,201,107,0.6);font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;}
+.cart-total-val{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--gold-light);font-weight:700;}
+.btn-checkout{width:100%;background:var(--gold);color:var(--maroon-deep);border:none;padding:16px;font-family:'Alegreya Sans',sans-serif;font-size:.9rem;letter-spacing:.15em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:background .2s;margin-bottom:10px;}
+.btn-checkout:hover{background:var(--gold-light);}
+.btn-clear{width:100%;background:transparent;color:rgba(240,201,107,0.4);border:1px solid rgba(201,150,58,0.2);padding:10px;font-family:'Alegreya Sans',sans-serif;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.btn-clear:hover{border-color:rgba(240,201,107,0.5);color:rgba(240,201,107,0.7);}
+
+.payment-option-label:hover {
+  border-color: var(--gold) !important;
+  background: rgba(201,150,58,0.08) !important;
+}
+.payment-option-label:has(input:checked) {
+  border-color: var(--gold) !important;
+  background: rgba(201,150,58,0.12) !important;
+}
+
+/* ===== BOOKING MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:400;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--maroon-deep);border:1px solid rgba(201,150,58,0.3);padding:40px;max-width:560px;width:100%;position:relative;max-height:90vh;overflow-y:auto;animation:fadeUp .4s ease both;}
+.modal-close{position:absolute;top:16px;right:20px;background:none;border:none;color:var(--gold);font-size:1.4rem;cursor:pointer;}
+.modal h2{font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--gold-light);margin-bottom:8px;}
+.modal-subtitle{color:rgba(240,201,107,0.5);font-size:.85rem;margin-bottom:24px;}
+.rental-dates{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.rental-days-info{background:rgba(201,150,58,0.1);border:1px solid rgba(201,150,58,0.2);padding:12px 16px;text-align:center;color:var(--gold-light);font-size:.85rem;margin-bottom:16px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px);}to{opacity:1;transform:translateY(0);}}
+
+/* ===== CHECKOUT MODAL ===== */
+.checkout-steps{display:flex;gap:0;margin-bottom:28px;border:1px solid rgba(201,150,58,0.2);}
+.cstep{flex:1;text-align:center;padding:12px;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,201,107,0.4);border-right:1px solid rgba(201,150,58,0.2);transition:all .3s;}
+.cstep:last-child{border-right:none;}
+.cstep.active{background:rgba(201,150,58,0.15);color:var(--gold-light);}
+.cstep.done{background:rgba(26,92,26,0.2);color:#8eff8e;}
+.checkout-panel{display:none;}
+.checkout-panel.active{display:block;}
+.order-summary-items{margin-bottom:20px;}
+.osi{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(201,150,58,0.1);}
+.osi-name{color:#fff;font-size:.9rem;}
+.osi-type{font-size:.65rem;padding:2px 7px;letter-spacing:.08em;text-transform:uppercase;margin-left:6px;}
+.osi-price{color:var(--gold-light);font-family:'Cormorant Garamond',serif;font-size:1.1rem;}
+.summary-total{display:flex;justify-content:space-between;padding:16px 0;border-top:1px solid rgba(201,150,58,0.3);}
+.summary-total span:first-child{color:rgba(240,201,107,0.6);text-transform:uppercase;letter-spacing:.1em;font-size:.82rem;}
+.summary-total span:last-child{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold-light);font-weight:700;}
+.modal-btns{display:flex;gap:12px;margin-top:20px;}
+.modal-btn-back{flex:1;background:transparent;border:1px solid rgba(201,150,58,0.3);color:rgba(240,201,107,0.6);padding:12px;font-family:'Alegreya Sans',sans-serif;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;}
+.modal-btn-back:hover{border-color:var(--gold);color:var(--gold-light);}
+.modal-btn-next{flex:2;background:var(--gold);color:var(--maroon-deep);border:none;padding:12px;font-family:'Alegreya Sans',sans-serif;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;font-weight:700;cursor:pointer;transition:background .2s;}
+.modal-btn-next:hover{background:var(--gold-light);}
+
+/* SUCCESS */
+.success-screen{text-align:center;padding:20px 0;}
+.success-icon{font-size:4rem;margin-bottom:16px;}
+.success-screen h3{font-family:'Cormorant Garamond',serif;font-size:2rem;color:var(--gold-light);margin-bottom:12px;}
+.success-screen p{color:rgba(240,201,107,0.6);line-height:1.7;margin-bottom:8px;}
+.order-id{background:rgba(201,150,58,0.1);border:1px solid rgba(201,150,58,0.3);padding:12px;margin:16px 0;font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--gold-light);letter-spacing:.1em;}
+
+/* TOAST */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#fff;padding:14px 28px;border-radius:2px;opacity:0;transition:all .4s;z-index:500;font-size:.9rem;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.error-toast{background:#8B1A1A;}
+
+/* RESPONSIVE */
+@media(max-width:768px){nav{padding:0 16px;}.nav-links{display:none;}section{padding:64px 20px;}.contact-wrap{grid-template-columns:1fr;gap:40px;}.footer-grid{grid-template-columns:1fr;gap:36px;}.form-row{grid-template-columns:1fr;}#trust{gap:28px;padding:24px 20px;}.products-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:480px){.products-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="mahalakshmi-client.html" class="nav-logo">🪷 Mahalakshmi</a>
+  <ul class="nav-links">
+    <li><a href="mahalakshmi-client.html">Home</a></li>
+    <li><a href="buy.html">💍 Buy Jewellery</a></li>
+    <li><a href="rental.html">📅 Rent Jewellery</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div style="display:flex;gap:12px;align-items:center;">
+    <button class="cart-btn" id="loginBtn" onclick="openLoginModal()" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
+      👤 Login
+    </button>
+    <button class="cart-btn" onclick="openMyOrders()" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
+      📋 My Orders
+    </button>
+    <button class="cart-btn" onclick="openCart()">
+      🛒 Cart
+      <span class="cart-badge" id="cartBadge">0</span>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg-pattern"></div>
+  <div class="hero-border"></div>
+  <div class="hero-content">
+    <div class="hero-tag">✦ Tirunelveli's Finest ✦</div>
+    <h1 class="hero-title">Bridal Jewellery<em>Reimagined.</em></h1>
+    <p class="hero-sub">Premium duplicate gold jewellery — rent for your special occasion or own it forever. Temple-inspired craftsmanship at a fraction of the cost.</p>
+    <div class="hero-divider"><span class="ornament"></span>❖<span class="ornament"></span></div>
+    <div class="hero-btns">
+      <a href="#products" class="btn-primary">Browse Collection</a>
+      <a href="#contact" class="btn-outline">Send Enquiry</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">500+</div><div class="stat-label">Jewellery Pieces</div></div>
+      <div class="stat"><div class="stat-num">2000+</div><div class="stat-label">Happy Customers</div></div>
+      <div class="stat"><div class="stat-num">10+</div><div class="stat-label">Years of Trust</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<div id="trust">
+  <div class="trust-item"><span class="trust-icon">🔒</span><span class="trust-text">Deposit-Based Safe Rental</span></div>
+  <div class="trust-item"><span class="trust-icon">🚚</span><span class="trust-text">Home Delivery Available</span></div>
+  <div class="trust-item"><span class="trust-icon">💎</span><span class="trust-text">Temple-Grade Quality</span></div>
+  <div class="trust-item"><span class="trust-icon">📸</span><span class="trust-text">Photos Before Delivery</span></div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-label">✦ Simple Process ✦</div>
+  <h2 class="section-title">How It <em>Works</em></h2>
+  <p class="section-sub">Renting or buying jewellery has never been this easy. Four steps to shimmer on your special day.</p>
+  <div class="steps-grid">
+    <div class="step"><span class="step-num">01</span><span class="step-icon">🔍</span><div class="step-title">Browse & Select</div><p class="step-desc">Explore our collection. Filter by type, occasion, or price. Add to cart.</p></div>
+    <div class="step"><span class="step-num">02</span><span class="step-icon">🛒</span><div class="step-title">Add to Cart</div><p class="step-desc">Select Buy or Book Rental. For rentals, choose your event dates.</p></div>
+    <div class="step"><span class="step-num">03</span><span class="step-icon">✅</span><div class="step-title">Checkout & Confirm</div><p class="step-desc">Enter your details and submit. Admin sees your order in real-time.</p></div>
+    <div class="step"><span class="step-num">04</span><span class="step-icon">📦</span><div class="step-title">Receive & Enjoy</div><p class="step-desc">Pick up or get home delivery. Return rentals after your occasion.</p></div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section id="categories">
+  <div class="section-label">✦ Our Collections ✦</div>
+  <h2 class="section-title">Browse by <em>Category</em></h2>
+  <p class="section-sub">From head to toe — every piece you need to complete your bridal or celebration look.</p>
+  <div class="cat-grid">
+    <div class="cat-card" onclick="filterByCategory('Maang Tikka')"><div class="cat-icon">👑</div><div class="cat-name">Maang Tikka</div><div class="cat-count">42 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Necklace')"><div class="cat-icon">📿</div><div class="cat-name">Necklace Sets</div><div class="cat-count">86 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Haram')"><div class="cat-icon">💛</div><div class="cat-name">Haram</div><div class="cat-count">38 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Bangles')"><div class="cat-icon">⭕</div><div class="cat-name">Bangles & Kadas</div><div class="cat-count">65 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Rings')"><div class="cat-icon">💍</div><div class="cat-name">Finger Rings</div><div class="cat-count">54 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Earrings')"><div class="cat-icon">👂</div><div class="cat-name">Earrings / Jimikki</div><div class="cat-count">72 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Anklets')"><div class="cat-icon">🦶</div><div class="cat-name">Anklets / Payal</div><div class="cat-count">30 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Bridal')"><div class="cat-icon">🌸</div><div class="cat-name">Full Bridal Sets</div><div class="cat-count">24 Sets</div></div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="products">
+  <div class="section-label">✦ Featured Items ✦</div>
+  <h2 class="section-title">Popular <em>Pieces</em></h2>
+  <p class="section-sub">Add to cart to buy or book a rental. All orders appear live in admin dashboard.</p>
+  <div class="filter-tabs">
+    <button class="tab active" onclick="filterProducts('all',this)">All</button>
+    <button class="tab" onclick="filterProducts('rent',this)">Rent Only</button>
+    <button class="tab" onclick="filterProducts('buy',this)">Buy Only</button>
+    <button class="tab" onclick="filterProducts('both',this)">Rent & Buy</button>
+  </div>
+  <div class="products-grid" id="productsGrid"></div>
+</section>
+
+<!-- REVIEWS -->
+<section id="reviews">
+  <div class="section-label">✦ Customer Love ✦</div>
+  <h2 class="section-title">What They <em>Say</em></h2>
+  <p class="section-sub">Thousands of brides and families have trusted Mahalakshmi for their most precious moments.</p>
+  <div class="reviews-grid">
+    <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Rented the full bridal set for my daughter's wedding. The quality was stunning — everyone kept asking if it was real gold. Returned smoothly and deposit back the same day."</p><div class="review-author"><div class="review-avatar">🙍‍♀️</div><div><div class="review-name">Kavitha Sundaram</div><div class="review-occasion">Bride's Mother – Chennai</div></div></div></div>
+    <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Bought a Haram set for my wife's anniversary. Delivery was on time, packaging beautiful. The craftsmanship is excellent. Booking through the cart was so easy!"</p><div class="review-author"><div class="review-avatar">👨</div><div><div class="review-name">Rajesh Kumar</div><div class="review-occasion">Purchase – Tirunelveli</div></div></div></div>
+    <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Used the portal at midnight and the admin confirmed by morning! Added items to cart, booked rental dates — the whole process was seamless and professional."</p><div class="review-author"><div class="review-avatar">🙍‍♀️</div><div><div class="review-name">Priya Devi</div><div class="review-occasion">Rental – Madurai</div></div></div></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-label">✦ Get In Touch ✦</div>
+  <h2 class="section-title" style="color:#fff;">Contact <em>Us</em></h2>
+  <p class="section-sub">Send a direct request and admin sees it live. We reply within the hour.</p>
+  <div class="contact-wrap">
+    <div class="contact-info">
+      <a href="https://wa.me/919876543210" class="contact-method" target="_blank"><div class="cm-icon">💬</div><div><div class="cm-label">WhatsApp</div><div class="cm-val">+91 98765 43210</div></div></a>
+      <a href="tel:+919876543210" class="contact-method"><div class="cm-icon">📞</div><div><div class="cm-label">Phone Call</div><div class="cm-val">+91 98765 43210</div></div></a>
+      <a href="/cdn-cgi/l/email-protection#7910171f1639141811181518120a1114100b1c170d18150a571017" class="contact-method"><div class="cm-icon">✉️</div><div><div class="cm-label">Email Us</div><div class="cm-val"><span class="__cf_email__" data-cfemail="99f0f7fff6d9f4f8f1f8f5f8f2eaf1f4f0ebfcf7edf8f5eab7f0f7">[email&#160;protected]</span></div></div></a>
+      <div class="contact-method" style="cursor:default;"><div class="cm-icon">📍</div><div><div class="cm-label">Visit Store</div><div class="cm-val">Main Bazaar Street, Tirunelveli – 627001</div></div></div>
+    </div>
+    <div class="portal-form">
+      <h3>🪷 Direct Portal Request</h3>
+      <p style="color:rgba(240,201,107,0.5);font-size:.82rem;margin-bottom:4px;">Admin sees this in real-time ✓</p>
+      <div class="form-row">
+        <div class="form-group"><label>Your Name</label><input type="text" id="f-name" placeholder="e.g. Priya Devi"/></div>
+        <div class="form-group"><label>Phone Number</label><input type="tel" id="f-phone" placeholder="+91 XXXXX XXXXX"/></div>
+      </div>
+      <div class="form-group"><label>Email (optional)</label><input type="email" id="f-email" placeholder="priya@example.com"/></div>
+      <div class="form-row">
+        <div class="form-group"><label>Request Type</label><select id="f-type"><option value="">Select...</option><option>Rental Enquiry</option><option>Purchase Enquiry</option><option>Product Availability</option><option>Price Quote</option><option>General Query</option></select></div>
+        <div class="form-group"><label>Event / Occasion</label><input type="text" id="f-event" placeholder="e.g. Wedding, Seemantham"/></div>
+      </div>
+      <div class="form-group"><label>Message / Details</label><textarea id="f-msg" placeholder="Describe the jewellery you're looking for, event date, quantity needed..."></textarea></div>
+      <button class="form-submit" onclick="submitEnquiry()">✦ Send Request to Admin</button>
+      <p class="form-note">📲 We respond within 1 hour during business hours (9 AM – 8 PM)</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-grid">
+    <div><div class="footer-brand-name">🪷 Mahalakshmi Rentals & Sellers</div><p class="footer-desc">Tirunelveli's most trusted destination for premium duplicate gold jewellery. Serving brides and families since 2014 with honesty, quality, and care.</p></div>
+    <div class="footer-col"><h4>Quick Links</h4><ul><li><a href="#how">How It Works</a></li><li><a href="#categories">Collections</a></li><li><a href="#products">Products</a></li><li><a href="#reviews">Reviews</a></li><li><a href="#contact">Contact</a></li></ul></div>
+    <div class="footer-col"><h4>Categories</h4><ul><li><a href="#">Full Bridal Sets</a></li><li><a href="#">Necklace Sets</a></li><li><a href="#">Haram</a></li><li><a href="#">Bangles</a></li><li><a href="#">Earrings</a></li></ul></div>
+  </div>
+  <div class="footer-bottom">© 2025 Mahalakshmi Rentals & Sellers. All rights reserved. | Tirunelveli, Tamil Nadu.</div>
+</footer>
+
+<!-- FLOATING BUTTONS -->
+<div class="float-btns">
+  <a href="https://wa.me/919876543210" class="float-btn float-wa" target="_blank">💬</a>
+  <a href="tel:+919876543210" class="float-btn float-call">📞</a>
+</div>
+
+<!-- CART DRAWER -->
+<div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-header">
+    <h2>🛒 Your Cart</h2>
+    <button class="cart-close" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-footer" id="cartFooter" style="display:none;">
+    <div class="cart-total-row">
+      <span class="cart-total-label">Total Amount</span>
+      <span class="cart-total-val" id="cartTotal">₹0</span>
+    </div>
+    <button class="btn-checkout" onclick="openCheckout()">✦ Proceed to Checkout</button>
+    <button class="btn-clear" onclick="clearCart()">Clear Cart</button>
+  </div>
+</div>
+
+<!-- RENTAL DATE MODAL -->
+<div class="modal-overlay" id="rentalModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeRentalModal()">✕</button>
+    <h2>📅 Book Rental</h2>
+    <p class="modal-subtitle" id="rentalProductName">Select your rental dates</p>
+    <div class="rental-dates">
+      <div class="form-group"><label>From Date</label><input type="date" id="rent-from" onchange="calcDays()"/></div>
+      <div class="form-group"><label>To Date</label><input type="date" id="rent-to" onchange="calcDays()"/></div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>Quantity</label>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button onclick="updateRentalQty(-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:36px;height:36px;cursor:pointer;font-size:1.2rem;">−</button>
+        <input type="number" id="rental-qty" value="1" min="1" readonly style="width:60px;text-align:center;background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:8px;font-size:1rem;"/>
+        <button onclick="updateRentalQty(1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:36px;height:36px;cursor:pointer;font-size:1.2rem;">+</button>
+        <span id="rental-avail-info" style="color:rgba(240,201,107,0.6);font-size:.85rem;"></span>
+      </div>
+    </div>
+    <div class="rental-days-info" id="rentalDaysInfo">Select dates to see rental duration & cost</div>
+    <div class="form-group" style="margin-bottom:14px;"><label>Special Note (optional)</label><textarea id="rent-note" placeholder="Any special requirements..." style="min-height:70px;background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px;font-family:'Alegreya Sans',sans-serif;font-size:.9rem;outline:none;width:100%;resize:vertical;"></textarea></div>
+    <div class="modal-btns">
+      <button class="modal-btn-back" onclick="closeRentalModal()">Cancel</button>
+      <button class="modal-btn-next" onclick="confirmRental()">✦ Add to Cart</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="checkoutModal">
+  <div class="modal" style="max-width:600px;">
+    <button class="modal-close" onclick="closeCheckout()">✕</button>
+    <h2>Checkout</h2>
+    <div class="checkout-steps">
+      <div class="cstep active" id="cstep1">① Order Review</div>
+      <div class="cstep" id="cstep2">② Your Details</div>
+      <div class="cstep" id="cstep3">③ Confirm</div>
+    </div>
+
+    <!-- STEP 1: Order Review -->
+    <div class="checkout-panel active" id="cpanel1">
+      <h3 style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-size:1.3rem;margin-bottom:16px;">Order Summary</h3>
+      <div class="order-summary-items" id="orderSummaryItems"></div>
+      <div class="summary-total"><span>Total</span><span id="summaryTotal">₹0</span></div>
+      <div class="modal-btns"><button class="modal-btn-next" onclick="goStep(2)" style="flex:1;">Continue →</button></div>
+    </div>
+
+    <!-- STEP 2: Customer Details -->
+    <div class="checkout-panel" id="cpanel2">
+      <h3 style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-size:1.3rem;margin-bottom:16px;">Your Details</h3>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div class="form-row">
+          <div class="form-group"><label>Full Name *</label><input type="text" id="co-name" placeholder="Your full name"/></div>
+          <div class="form-group"><label>Phone Number *</label><input type="tel" id="co-phone" placeholder="+91 XXXXXXXXXX"/></div>
+        </div>
+        <div class="form-group"><label>Email Address</label><input type="email" id="co-email" placeholder="your@email.com"/></div>
+        <div class="form-group"><label>Delivery Address</label><textarea id="co-address" placeholder="Enter your full address for delivery (or write 'Store Pickup')" style="min-height:80px;background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px;font-family:'Alegreya Sans',sans-serif;font-size:.9rem;outline:none;width:100%;resize:vertical;"></textarea></div>
+        <div class="form-group"><label>Event / Occasion</label><input type="text" id="co-event" placeholder="e.g. Wedding – 15th March 2025"/></div>
+        <div class="form-group"><label>Additional Notes</label><textarea id="co-notes" placeholder="Any special requests or instructions..." style="min-height:70px;background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px;font-family:'Alegreya Sans',sans-serif;font-size:.9rem;outline:none;width:100%;resize:vertical;"></textarea></div>
+      </div>
+      <div class="modal-btns" style="margin-top:20px;">
+        <button class="modal-btn-back" onclick="goStep(1)">← Back</button>
+        <button class="modal-btn-next" onclick="goStep(3)">Review Order →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Confirm -->
+    <div class="checkout-panel" id="cpanel3">
+      <h3 style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-size:1.3rem;margin-bottom:16px;">Confirm Your Order</h3>
+      <div id="confirmSummary" style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,150,58,0.15);padding:20px;margin-bottom:20px;font-size:.9rem;color:rgba(240,201,107,0.7);line-height:2;"></div>
+      
+      <!-- PAYMENT METHOD SELECTION -->
+      <h4 style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-size:1.1rem;margin-bottom:12px;">💳 Select Payment Method</h4>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
+        <label class="payment-option-label" style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(201,150,58,0.2);background:rgba(255,255,255,0.03);cursor:pointer;transition:all .2s;">
+          <input type="radio" name="paymentMethod" value="cod" checked style="width:18px;height:18px;cursor:pointer;">
+          <div style="flex:1;">
+            <div style="color:var(--gold-light);font-weight:600;margin-bottom:2px;">💵 Cash on Delivery</div>
+            <div style="font-size:.75rem;color:rgba(240,201,107,0.5);">Pay when you receive the items</div>
+          </div>
+        </label>
+        <label class="payment-option-label" style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(201,150,58,0.2);background:rgba(255,255,255,0.03);cursor:pointer;transition:all .2s;">
+          <input type="radio" name="paymentMethod" value="cash_at_shop" style="width:18px;height:18px;cursor:pointer;">
+          <div style="flex:1;">
+            <div style="color:var(--gold-light);font-weight:600;margin-bottom:2px;">🏪 Cash at Shop</div>
+            <div style="font-size:.75rem;color:rgba(240,201,107,0.5);">Pay when you pick up from our store</div>
+          </div>
+        </label>
+        <label class="payment-option-label" id="onlinePaymentOption" style="display:none;align-items:center;gap:12px;padding:12px;border:1px solid rgba(201,150,58,0.2);background:rgba(255,255,255,0.03);cursor:pointer;transition:all .2s;">
+          <input type="radio" name="paymentMethod" value="online" style="width:18px;height:18px;cursor:pointer;">
+          <div style="flex:1;">
+            <div style="color:var(--gold-light);font-weight:600;margin-bottom:2px;">💳 Pay Online</div>
+            <div style="font-size:.75rem;color:rgba(240,201,107,0.5);">Secure payment via Razorpay (Cards, UPI, Wallets)</div>
+          </div>
+        </label>
+      </div>
+      
+      <div style="background:rgba(201,150,58,0.08);border:1px solid rgba(201,150,58,0.2);padding:14px;font-size:.8rem;color:rgba(240,201,107,0.5);margin-bottom:20px;">
+        ℹ️ For rentals, a refundable deposit will be collected separately. Admin will confirm your order via phone/WhatsApp.
+      </div>
+      <div class="modal-btns">
+        <button class="modal-btn-back" onclick="goStep(2)">← Back</button>
+        <button class="modal-btn-next" onclick="placeOrder()" id="placeOrderBtn">✦ Place Order</button>
+      </div>
+    </div>
+
+    <!-- SUCCESS -->
+    <div class="checkout-panel" id="cpanelSuccess">
+      <div class="success-screen">
+        <div class="success-icon">🎉</div>
+        <h3>Order Placed Successfully!</h3>
+        <p>Your order has been sent to the admin dashboard. They will contact you shortly to confirm.</p>
+        <div class="order-id" id="successOrderId">Order ID: #MLR-0000</div>
+        <p style="color:rgba(240,201,107,0.4);font-size:.82rem;">Keep this order ID for reference. Admin will call/WhatsApp you within 1 hour.</p>
+        <button class="btn-checkout" onclick="closeCheckout()" style="margin-top:20px;">Continue Shopping</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- LOGIN/SIGNUP MODAL -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal" style="max-width:450px;">
+    <button class="modal-close" onclick="closeLoginModal()">✕</button>
+    <h2 id="loginTitle">👤 Customer Login</h2>
+    <p class="modal-subtitle">Login is optional. You can checkout as guest or login to track orders easily.</p>
+    
+    <div id="loginForm">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label style="font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,201,107,0.6);display:block;margin-bottom:6px;">Phone Number</label>
+        <input type="tel" id="loginPhone" placeholder="Enter your phone number" style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px 16px;font-size:.95rem;outline:none;width:100%;"/>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label style="font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,201,107,0.6);display:block;margin-bottom:6px;">Name (for new users)</label>
+        <input type="text" id="loginName" placeholder="Your name (optional)" style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px 16px;font-size:.95rem;outline:none;width:100%;"/>
+      </div>
+      <button onclick="doCustomerLogin()" style="width:100%;background:var(--gold);color:var(--maroon-deep);border:none;padding:14px;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;cursor:pointer;margin-bottom:10px;">
+        ✦ Login / Sign Up
+      </button>
+      <button onclick="closeLoginModal()" style="width:100%;background:transparent;color:rgba(240,201,107,0.6);border:1px solid rgba(201,150,58,0.2);padding:10px;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;">
+        Continue as Guest
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MY ORDERS MODAL -->
+<div class="modal-overlay" id="myOrdersModal">
+  <div class="modal" style="max-width:800px;max-height:90vh;display:flex;flex-direction:column;">
+    <button class="modal-close" onclick="closeMyOrders()">✕</button>
+    <h2>📋 My Orders</h2>
+    <p class="modal-subtitle">Track your orders and rental history</p>
+    
+    <div id="myOrdersList" style="flex:1;overflow-y:auto;margin-top:20px;">
+      <!-- Orders will be loaded here -->
+    </div>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ── PRODUCTS DATA (loaded from API) ───────────────────────────────────────
+let products = [];
+
+// Fallback products if API is not available
+const fallbackProducts = [
+  {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"📿",rentPerDay:150,buy:3200,type:"both",category:"Haram",availableQty:5,isAvailable:true},
+  {id:2,name:"Bridal Maang Tikka",material:"Kundan & Meenakari",icon:"👑",rentPerDay:80,buy:1800,type:"both",category:"Maang Tikka",availableQty:5,isAvailable:true},
+  {id:3,name:"Temple Necklace",material:"Gold-Plated Copper",icon:"💛",rentPerDay:120,buy:2400,type:"both",category:"Necklace",availableQty:5,isAvailable:true},
+  {id:4,name:"Jimikki Earrings",material:"South Indian Style",icon:"👂",rentPerDay:50,buy:950,type:"both",category:"Earrings",availableQty:5,isAvailable:true},
+  {id:5,name:"Full Bridal Set",material:"Antique Gold 12-Piece",icon:"🌸",rentPerDay:600,buy:null,type:"rent",category:"Bridal",availableQty:3,isAvailable:true},
+  {id:6,name:"Kangan Bangles (Set 4)",material:"Gold-Plated Brass",icon:"⭕",rentPerDay:null,buy:1200,type:"buy",category:"Bangles",availableQty:8,isAvailable:true},
+  {id:7,name:"Navaratna Necklace",material:"Stone-Studded",icon:"🔮",rentPerDay:180,buy:2800,type:"both",category:"Necklace",availableQty:4,isAvailable:true},
+  {id:8,name:"Antique Toe Ring Pair",material:"Sterling Silver Finish",icon:"🦶",rentPerDay:null,buy:450,type:"buy",category:"Anklets",availableQty:10,isAvailable:true}
+];
+
+// ── CART STATE ────────────────────────────────────────────────────────────
+let cart = CartManager.getCart(); // Load from localStorage
+let currentFilter = 'all';
+let rentalProductId = null;
+let currentStep = 1;
+
+// Load products from API
+async function loadProducts() {
+  try {
+    // Check if api is defined
+    if(typeof api === 'undefined') {
+      console.warn('API not available, using fallback products');
+      products = fallbackProducts;
+      renderProducts(currentFilter);
+      return;
+    }
+    
+    products = await api.getProducts();
+    renderProducts(currentFilter);
+    console.log('✅ Products loaded from API:', products.length);
+  } catch (error) {
+    console.error('❌ Error loading products from API:', error);
+    console.log('Using fallback products');
+    products = fallbackProducts;
+    renderProducts(currentFilter);
+    showToast('Using offline mode - some features may be limited', 'error');
+  }
+}
+// ── RENDER PRODUCTS ───────────────────────────────────────────────────────
+function renderProducts(filter='all'){
+  const grid = document.getElementById('productsGrid');
+  let list = filter==='all' ? products : products.filter(p=>p.type===filter);
+  grid.innerHTML = list.map(p=>{
+    const availQty = p.availableQty || 0;
+    const isAvail = p.isAvailable;
+    const badgeClass = p.type==='both'?'badge-both':p.type==='rent'?'badge-rent':'badge-buy';
+    const badgeText = p.type==='both'?'Rent & Buy':p.type==='rent'?'For Rent':'For Sale';
+
+    // Availability display
+    let availClass, availText;
+    if(!isAvail || availQty===0){ availClass='avail-no'; availText='Sold'; }
+    else if(availQty<=2){ availClass='avail-low'; availText=`Only ${availQty} left!`; }
+    else{ availClass='avail-yes'; availText=`${availQty} Available`; }
+
+    const canAct = isAvail && availQty > 0;
+    
+    // Check if item is in cart
+    const cartItem = cart.find(c=>c.id===p.id&&c.mode==='buy');
+    const inCartQty = cartItem ? cartItem.quantity : 0;
+    
+    const rentBtn = (p.type==='rent'||p.type==='both') && canAct
+      ? `<button class="btn-rent" onclick="openRentalModal(${p.id})">📅 Book Rental</button>`
+      : '';
+    
+    let buyBtn = '';
+    if(p.type==='buy'||p.type==='both'){
+      if(!canAct){
+        buyBtn = '';
+      } else if(inCartQty > 0){
+        // Show quantity controls if in cart
+        buyBtn = `<div class="btn-cart btn-added" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:8px;">
+          <button onclick="event.stopPropagation();decreaseFromProduct(${p.id})" style="background:var(--gold-dark);color:#fff;border:none;width:28px;height:28px;cursor:pointer;font-size:1.1rem;border-radius:2px;">−</button>
+          <span style="font-weight:700;min-width:30px;text-align:center;">${inCartQty}</span>
+          <button onclick="event.stopPropagation();addToCart(${p.id},'buy')" style="background:var(--gold-dark);color:#fff;border:none;width:28px;height:28px;cursor:pointer;font-size:1.1rem;border-radius:2px;">+</button>
+        </div>`;
+      } else {
+        buyBtn = `<button class="btn-cart" id="bcart-${p.id}" onclick="addToCart(${p.id},'buy')">🛒 Add to Cart</button>`;
+      }
+    }
+    
+    let actions = '';
+    if(!canAct){
+      actions = `<button class="btn-full" style="opacity:.5;cursor:not-allowed;background:#3a1010;color:#ff8888;border:1px solid #8B1A1A;">✗ Sold</button>`;
+    } else if(rentBtn && buyBtn){
+      actions = `<div class="product-actions">${buyBtn}${rentBtn}</div>`;
+    } else if(rentBtn){
+      actions = `<div class="product-actions">${rentBtn}</div>`;
+    } else if(buyBtn){
+      actions = `<div class="product-actions">${buyBtn}</div>`;
+    }
+    return `
+    <div class="product-card">
+      <div class="product-img" style="${p.image_url ? `background-image:url('http://localhost:5000${p.image_url}');background-size:cover;background-position:center;` : ''}">
+        ${!p.image_url ? p.icon : ''}
+        <span class="product-badge ${badgeClass}">${badgeText}</span>
+        <span class="avail-tag ${availClass}">${availText}</span>
+      </div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-material">${p.material}</div>
+        <div class="product-pricing">
+          ${p.rentPerDay?`<div><div class="price-label">Rent/Day</div><div class="price-val">₹${p.rentPerDay}</div></div>`:''}
+          ${p.rentPerDay&&p.buy?'<div class="price-divider"></div>':''}
+          ${p.buy?`<div><div class="price-label">Buy</div><div class="price-val">₹${p.buy}</div></div>`:''}
+        </div>
+        ${actions}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function decreaseFromProduct(id){
+  const cartItem = cart.find(c=>c.id===id&&c.mode==='buy');
+  if(!cartItem) return;
+  
+  if(cartItem.quantity <= 1){
+    // Remove from cart
+    const idx = cart.indexOf(cartItem);
+    cart.splice(idx, 1);
+  } else {
+    cartItem.quantity--;
+    cartItem.price = cartItem.unitPrice * cartItem.quantity;
+  }
+  
+  updateCartUI();
+  renderProducts(currentFilter);
+  loadProducts();
+}
+
+function filterProducts(type, btn){
+  currentFilter = type; // Store current filter
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts(type);
+}
+
+function filterByCategory(cat){
+  document.getElementById('products').scrollIntoView({behavior:'smooth'});
+  setTimeout(()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab')[0].classList.add('active');
+    const grid = document.getElementById('productsGrid');
+    const list = products.filter(p=>p.category===cat||p.name.includes(cat));
+    renderProducts('all');
+  },400);
+}
+
+// ── CART LOGIC ────────────────────────────────────────────────────────────
+function addToCart(id, mode, rentalData=null){
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  
+  // Check available stock
+  const availableQty = p.availableQty || 0;
+  const existing = cart.find(c=>c.id===id&&c.mode===mode&&JSON.stringify(c.rentalData)===JSON.stringify(rentalData));
+  const currentQtyInCart = existing ? existing.quantity : 0;
+  
+  // Validate stock before adding
+  if(currentQtyInCart >= availableQty){
+    showToast(`Only ${availableQty} available!`, 'error');
+    return;
+  }
+  
+  if(existing){ 
+    existing.quantity = (existing.quantity || 1) + 1;
+    existing.price = mode==='buy' ? p.buy * existing.quantity : (rentalData ? rentalData.total * existing.quantity : p.rentPerDay * existing.quantity);
+  } else {
+    const item = {
+      id, name:p.name, icon:p.icon, mode,
+      quantity: 1,
+      unitPrice: mode==='buy' ? p.buy : (rentalData ? rentalData.total : p.rentPerDay),
+      price: mode==='buy' ? p.buy : (rentalData ? rentalData.total : p.rentPerDay),
+      rentalData: rentalData||null
+    };
+    cart.push(item);
+  }
+  
+  updateCartUI();
+  loadProducts();
+  if(mode==='buy'){
+    const btn = document.getElementById(`bcart-${id}`);
+    if(btn){ 
+      const qty = cart.find(c=>c.id===id&&c.mode===mode)?.quantity || 1;
+      btn.innerHTML = `✓ In Cart (${qty})`;
+      btn.classList.add('btn-added');
+    }
+  }
+  showToast(`✓ "${p.name}" added to cart!`);
+}
+
+function removeFromCart(idx){
+  cart.splice(idx,1);
+  updateCartUI();
+  renderCartItems();
+  loadProducts(); // Reload products to update availability
+}
+
+function clearCart(){
+  cart=[];
+  updateCartUI();
+  renderCartItems();
+  loadProducts(); // Reload products to update availability
+}
+
+function updateCartUI(){
+  const badge = document.getElementById('cartBadge');
+  const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  if(totalItems>0){ badge.textContent=totalItems; badge.classList.add('visible'); }
+  else{ badge.classList.remove('visible'); }
+  
+  // Save cart to localStorage
+  CartManager.saveCart(cart);
+  
+  // Update all buy buttons
+  cart.forEach(item => {
+    if(item.mode === 'buy') {
+      const btn = document.getElementById(`bcart-${item.id}`);
+      if(btn) {
+        btn.innerHTML = `✓ In Cart (${item.quantity})`;
+        btn.classList.add('btn-added');
+      }
+    }
+  });
+}
+
+function openCart(){
+  document.getElementById('cartOverlay').classList.add('open');
+  document.getElementById('cartDrawer').classList.add('open');
+  renderCartItems();
+}
+function closeCart(){
+  document.getElementById('cartOverlay').classList.remove('open');
+  document.getElementById('cartDrawer').classList.remove('open');
+}
+
+function renderCartItems(){
+  const el = document.getElementById('cartItems');
+  const footer = document.getElementById('cartFooter');
+  if(cart.length===0){
+    el.innerHTML=`<div class="cart-empty"><div class="empty-icon">🛒</div><p>Your cart is empty</p><p style="margin-top:8px;font-size:.8rem;">Browse our collection and add items!</p></div>`;
+    footer.style.display='none'; return;
+  }
+  footer.style.display='block';
+  
+  // Separate items by mode
+  const buyItems = cart.filter(item => item.mode === 'buy');
+  const rentItems = cart.filter(item => item.mode === 'rent');
+  
+  let html = '';
+  let total = 0;
+  
+  // Buy Items Section
+  if (buyItems.length > 0) {
+    html += `<div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(201,150,58,0.1);border-left:3px solid var(--gold);margin-bottom:12px;">
+        <span style="font-size:1.1rem;">💰</span>
+        <span style="font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-light);flex:1;">Buy Items</span>
+        <span style="font-size:.7rem;color:rgba(240,201,107,0.6);background:rgba(201,150,58,0.2);padding:2px 8px;border-radius:10px;">${buyItems.length}</span>
+      </div>`;
+    
+    buyItems.forEach(item => {
+      const idx = cart.indexOf(item);
+      const itemTotal = item.price;
+      total += itemTotal;
+      const qty = item.quantity || 1;
+      
+      html += `<div class="cart-item">
+        <div class="ci-icon">${item.icon}</div>
+        <div class="ci-info">
+          <div class="ci-name">${item.name}</div>
+          <span class="ci-type buy">Purchase</span>
+          <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
+            <button onclick="updateQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;">−</button>
+            <span style="color:var(--gold-light);font-weight:600;min-width:20px;text-align:center;">${qty}</span>
+            <button onclick="updateQuantity(${idx},1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;">+</button>
+          </div>
+          <div class="ci-price">₹${itemTotal.toLocaleString()} ${qty>1?`(₹${item.unitPrice} × ${qty})`:''}</div>
+        </div>
+        <button class="ci-remove" onclick="removeFromCart(${idx})">✕</button>
+      </div>`;
+    });
+    
+    html += `</div>`;
+  }
+  
+  // Rent Items Section
+  if (rentItems.length > 0) {
+    html += `<div style="margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(201,150,58,0.1);border-left:3px solid var(--gold);margin-bottom:12px;">
+        <span style="font-size:1.1rem;">📅</span>
+        <span style="font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-light);flex:1;">Rental Items</span>
+        <span style="font-size:.7rem;color:rgba(240,201,107,0.6);background:rgba(201,150,58,0.2);padding:2px 8px;border-radius:10px;">${rentItems.length}</span>
+      </div>`;
+    
+    rentItems.forEach(item => {
+      const idx = cart.indexOf(item);
+      const itemTotal = item.price;
+      total += itemTotal;
+      const qty = item.quantity || 1;
+      const datesHtml = item.rentalData ? `<div class="ci-dates">📅 ${item.rentalData.from} → ${item.rentalData.to} (${item.rentalData.days} days)</div>`:'';
+      
+      html += `<div class="cart-item">
+        <div class="ci-icon">${item.icon}</div>
+        <div class="ci-info">
+          <div class="ci-name">${item.name}</div>
+          <span class="ci-type rent">Rental</span>
+          ${datesHtml}
+          <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
+            <button onclick="updateQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;">−</button>
+            <span style="color:var(--gold-light);font-weight:600;min-width:20px;text-align:center;">${qty}</span>
+            <button onclick="updateQuantity(${idx},1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;">+</button>
+          </div>
+          <div class="ci-price">₹${itemTotal.toLocaleString()} ${qty>1?`(₹${item.unitPrice}/day × ${qty})`:''}</div>
+        </div>
+        <button class="ci-remove" onclick="removeFromCart(${idx})">✕</button>
+      </div>`;
+    });
+    
+    html += `</div>`;
+  }
+  
+  el.innerHTML = html;
+  document.getElementById('cartTotal').textContent='₹'+total.toLocaleString();
+}
+
+function updateQuantity(idx, change) {
+  const item = cart[idx];
+  const newQty = (item.quantity || 1) + change;
+  
+  if(newQty <= 0) {
+    removeFromCart(idx);
+    return;
+  }
+  
+  const product = products.find(p => p.id === item.id);
+  if(!product) return;
+  
+  // Check if enough stock available
+  if(newQty > product.availableQty) {
+    showToast(`Only ${product.availableQty} available!`, 'error');
+    return;
+  }
+  
+  item.quantity = newQty;
+  item.price = item.unitPrice * newQty;
+  
+  updateCartUI();
+  renderCartItems();
+  loadProducts();
+}
+
+// ── RENTAL MODAL ──────────────────────────────────────────────────────────
+function openRentalModal(id){
+  rentalProductId=id;
+  const p=products.find(x=>x.id===id);
+  document.getElementById('rentalProductName').textContent=`📿 ${p.name} — ₹${p.rentPerDay}/day`;
+  document.getElementById('rental-qty').value = 1;
+  document.getElementById('rental-avail-info').textContent = `${p.availableQty} available`;
+  const today=new Date().toISOString().split('T')[0];
+  document.getElementById('rent-from').min=today;
+  document.getElementById('rent-to').min=today;
+  document.getElementById('rent-from').value='';
+  document.getElementById('rent-to').value='';
+  document.getElementById('rentalDaysInfo').textContent='Select dates to see rental duration & cost';
+  document.getElementById('rentalModal').classList.add('open');
+}
+function closeRentalModal(){ document.getElementById('rentalModal').classList.remove('open'); }
+
+function updateRentalQty(change) {
+  const input = document.getElementById('rental-qty');
+  const p = products.find(x=>x.id===rentalProductId);
+  const newQty = Math.max(1, parseInt(input.value) + change);
+  
+  if(newQty > p.availableQty) {
+    showToast(`Only ${p.availableQty} available!`, 'error');
+    return;
+  }
+  
+  input.value = newQty;
+  calcDays();
+}
+
+function calcDays(){
+  const from=document.getElementById('rent-from').value;
+  const to=document.getElementById('rent-to').value;
+  const qty = parseInt(document.getElementById('rental-qty').value) || 1;
+  const info=document.getElementById('rentalDaysInfo');
+  if(!from||!to){ info.textContent='Select both dates'; return; }
+  const d1=new Date(from), d2=new Date(to);
+  if(d2<=d1){ info.textContent='⚠️ End date must be after start date'; return; }
+  const days=Math.ceil((d2-d1)/(1000*60*60*24));
+  const p=products.find(x=>x.id===rentalProductId);
+  const unitTotal=days*p.rentPerDay;
+  const total=unitTotal*qty;
+  info.innerHTML=`📅 <strong>${days} day${days>1?'s':''}</strong> rental &nbsp;|&nbsp; ₹${p.rentPerDay}/day × ${days} ${qty>1?`× ${qty} items`:''} = <strong>₹${total.toLocaleString()}</strong>`;
+}
+
+function confirmRental(){
+  const from=document.getElementById('rent-from').value;
+  const to=document.getElementById('rent-to').value;
+  const qty = parseInt(document.getElementById('rental-qty').value) || 1;
+  if(!from||!to){ showToast('Please select rental dates','error'); return; }
+  const d1=new Date(from), d2=new Date(to);
+  if(d2<=d1){ showToast('End date must be after start date','error'); return; }
+  const days=Math.ceil((d2-d1)/(1000*60*60*24));
+  const p=products.find(x=>x.id===rentalProductId);
+  const unitTotal=days*p.rentPerDay;
+  const total=unitTotal*qty;
+  
+  // Add to cart with quantity
+  for(let i=0; i<qty; i++) {
+    addToCart(rentalProductId,'rent',{from,to,days,total:unitTotal});
+  }
+  
+  closeRentalModal();
+}
+
+// ── CHECKOUT ──────────────────────────────────────────────────────────────
+function openCheckout(){
+  if(cart.length===0){ showToast('Your cart is empty!','error'); return; }
+  closeCart();
+  
+  // Pre-fill customer details if logged in
+  if(currentUser){
+    document.getElementById('co-name').value = currentUser.name;
+    document.getElementById('co-phone').value = currentUser.phone;
+  }
+  
+  currentStep=1;
+  updateStepUI();
+  populateOrderSummary();
+  
+  // Small delay to ensure cart drawer closes first
+  setTimeout(() => {
+    document.getElementById('checkoutModal').classList.add('open');
+  }, 100);
+}
+function closeCheckout(){
+  document.getElementById('checkoutModal').classList.remove('open');
+  // Reset after success
+  if(currentStep===4){ cart=[]; updateCartUI(); renderProducts('all'); }
+}
+
+function goStep(n){
+  if(n===3){
+    const name=document.getElementById('co-name').value.trim();
+    const phone=document.getElementById('co-phone').value.trim();
+    if(!name||!phone){ showToast('Please enter your name and phone number','error'); return; }
+    populateConfirm();
+  }
+  currentStep=n; updateStepUI();
+}
+
+function updateStepUI(){
+  for(let i=1;i<=3;i++){
+    const el=document.getElementById(`cstep${i}`);
+    el.classList.remove('active','done');
+    if(i<currentStep) el.classList.add('done');
+    else if(i===currentStep) el.classList.add('active');
+  }
+  document.querySelectorAll('.checkout-panel').forEach(p=>p.classList.remove('active'));
+  const panelId = currentStep<=3 ? `cpanel${currentStep}` : 'cpanelSuccess';
+  document.getElementById(panelId).classList.add('active');
+}
+
+function populateOrderSummary(){
+  let total=0;
+  const el=document.getElementById('orderSummaryItems');
+  el.innerHTML=cart.map(item=>{
+    total+=item.price;
+    const typeClass=item.mode==='rent'?'badge-rent':'badge-buy';
+    const typeText=item.mode==='rent'?'Rental':'Purchase';
+    const dates=item.rentalData?`<br><small style="color:rgba(240,201,107,0.4);">📅 ${item.rentalData.from} → ${item.rentalData.to} (${item.rentalData.days}d)</small>`:'';
+    return `<div class="osi"><div><span class="osi-name">${item.icon} ${item.name}</span><span class="osi-type ${typeClass}">${typeText}</span>${dates}</div><span class="osi-price">₹${item.price.toLocaleString()}</span></div>`;
+  }).join('');
+  document.getElementById('summaryTotal').textContent='₹'+total.toLocaleString();
+}
+
+function populateConfirm(){
+  const name=document.getElementById('co-name').value;
+  const phone=document.getElementById('co-phone').value;
+  const email=document.getElementById('co-email').value;
+  const address=document.getElementById('co-address').value;
+  const event=document.getElementById('co-event').value;
+  const notes=document.getElementById('co-notes').value;
+  let total=cart.reduce((s,i)=>s+i.price,0);
+  document.getElementById('confirmSummary').innerHTML=`
+    <strong style="color:var(--gold-light);">Customer:</strong> ${name}<br>
+    <strong style="color:var(--gold-light);">Phone:</strong> ${phone}<br>
+    ${email?`<strong style="color:var(--gold-light);">Email:</strong> ${email}<br>`:''}
+    ${address?`<strong style="color:var(--gold-light);">Address:</strong> ${address}<br>`:''}
+    ${event?`<strong style="color:var(--gold-light);">Occasion:</strong> ${event}<br>`:''}
+    ${notes?`<strong style="color:var(--gold-light);">Notes:</strong> ${notes}<br>`:''}
+    <strong style="color:var(--gold-light);">Items:</strong> ${cart.length} item(s)<br>
+    <strong style="color:var(--gold-light);font-size:1.1em;">Total: ₹${total.toLocaleString()}</strong>
+  `;
+}
+
+async function placeOrder(){
+  const btn=document.getElementById('placeOrderBtn');
+  btn.textContent='Processing...'; btn.disabled=true;
+  
+  try {
+    const name=document.getElementById('co-name').value;
+    const phone=document.getElementById('co-phone').value;
+    const email=document.getElementById('co-email').value;
+    const address=document.getElementById('co-address').value;
+    const event=document.getElementById('co-event').value;
+    const notes=document.getElementById('co-notes').value;
+    const total=cart.reduce((s,i)=>s+i.price,0);
+    
+    // Get selected payment method
+    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+    
+    const orderData = {
+      customer:{name,phone,email,address,event,notes},
+      items:cart,
+      total,
+      status:'New',
+      customerId: currentUser ? currentUser.id : null,
+      paymentMethod: paymentMethod // Add payment method
+    };
+    
+    // Check if API is available
+    if(typeof api === 'undefined') {
+      // Offline mode - save to localStorage
+      const orderId = 'MLR-' + Date.now().toString().slice(-6);
+      const order = {...orderData, orderId, placedAt: new Date().toLocaleString('en-IN'), timestamp: Date.now()};
+      const orders = JSON.parse(localStorage.getItem('mlr_orders') || '[]');
+      orders.unshift(order);
+      localStorage.setItem('mlr_orders', JSON.stringify(orders));
+      document.getElementById('successOrderId').textContent='Order ID: #'+orderId;
+      showToast('⚠️ Order saved locally. Please contact admin to confirm.', 'error');
+      currentStep=4; updateStepUI();
+      cart = [];
+      CartManager.clearCart();
+      updateCartUI();
+    } else {
+      // Online mode - send to API
+      const result = await api.createOrder(orderData);
+      
+      // Handle online payment
+      if (paymentMethod === 'online') {
+        await initiateOnlinePayment(result, orderData);
+      } else {
+        // COD or Cash at Shop - show success
+        document.getElementById('successOrderId').textContent='Order ID: #'+result.orderId;
+        showToast('✅ Order placed successfully!');
+        currentStep=4; updateStepUI();
+        cart = [];
+        CartManager.clearCart();
+        updateCartUI();
+        await loadProducts();
+      }
+    }
+  } catch (error) {
+    console.error('Error placing order:', error);
+    showToast('Failed to place order. Please try again.', 'error');
+    btn.textContent='✦ Place Order'; btn.disabled=false;
+  }
+}
+
+// Handle online payment with Razorpay
+async function initiateOnlinePayment(order, orderData) {
+  try {
+    // Create Razorpay order
+    const response = await fetch(`${api.baseURL}/payments/create-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: order.total,
+        orderId: order.orderId,
+        customerInfo: {
+          name: orderData.customer.name,
+          phone: orderData.customer.phone
+        }
+      })
+    });
+    
+    const razorpayOrder = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(razorpayOrder.error || 'Failed to create payment order');
+    }
+    
+    // Configure Razorpay
+    const options = {
+      key: razorpayOrder.keyId,
+      amount: razorpayOrder.amount,
+      currency: razorpayOrder.currency,
+      name: 'Mahalakshmi Jewellery',
+      description: `Order ${order.orderId}`,
+      order_id: razorpayOrder.orderId,
+      handler: async function(response) {
+        await verifyPayment(response, order.orderId);
+      },
+      prefill: {
+        name: orderData.customer.name,
+        contact: orderData.customer.phone,
+        email: orderData.customer.email
+      },
+      theme: {
+        color: '#C9963A'
+      },
+      modal: {
+        ondismiss: function() {
+          showToast('Payment cancelled', 'error');
+          document.getElementById('placeOrderBtn').textContent='✦ Place Order';
+          document.getElementById('placeOrderBtn').disabled=false;
+        }
+      }
+    };
+    
+    const rzp = new Razorpay(options);
+    rzp.open();
+  } catch (error) {
+    console.error('Payment initiation error:', error);
+    showToast('Failed to initiate payment: ' + error.message, 'error');
+    document.getElementById('placeOrderBtn').textContent='✦ Place Order';
+    document.getElementById('placeOrderBtn').disabled=false;
+  }
+}
+
+// Verify payment after Razorpay success
+async function verifyPayment(razorpayResponse, orderId) {
+  try {
+    const response = await fetch(`${api.baseURL}/payments/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        razorpay_order_id: razorpayResponse.razorpay_order_id,
+        razorpay_payment_id: razorpayResponse.razorpay_payment_id,
+        razorpay_signature: razorpayResponse.razorpay_signature,
+        order_id: orderId
+      })
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      document.getElementById('successOrderId').textContent='Order ID: #'+orderId;
+      showToast('✅ Payment successful! Order confirmed.');
+      currentStep=4; updateStepUI();
+      cart = [];
+      CartManager.clearCart();
+      updateCartUI();
+      await loadProducts();
+    } else {
+      showToast('Payment verification failed', 'error');
+    }
+  } catch (error) {
+    console.error('Payment verification error:', error);
+    showToast('Payment verification failed', 'error');
+  } finally {
+    document.getElementById('placeOrderBtn').textContent='✦ Place Order';
+    document.getElementById('placeOrderBtn').disabled=false;
+  }
+}
+
+async function submitEnquiry(){
+  const name=document.getElementById('f-name').value.trim();
+  const phone=document.getElementById('f-phone').value.trim();
+  if(!name||!phone){ showToast('Please enter name and phone','error'); return; }
+  
+  try {
+    const enquiryData = {
+      customer:{
+        name,
+        phone,
+        email:document.getElementById('f-email').value,
+        event:document.getElementById('f-event').value,
+        notes:document.getElementById('f-msg').value
+      },
+      requestType:document.getElementById('f-type').value
+    };
+    
+    // Check if API is available
+    if(typeof api === 'undefined') {
+      // Offline mode
+      const orderId = 'ENQ-' + Date.now().toString().slice(-6);
+      const enquiry = {...enquiryData, orderId, placedAt: new Date().toLocaleString('en-IN'), timestamp: Date.now()};
+      const enquiries = JSON.parse(localStorage.getItem('mlr_enquiries') || '[]');
+      enquiries.unshift(enquiry);
+      localStorage.setItem('mlr_enquiries', JSON.stringify(enquiries));
+      showToast('⚠️ Enquiry saved locally. Please call admin directly.');
+    } else {
+      await api.createEnquiry(enquiryData);
+      showToast('✅ Request sent! Admin will contact you within 1 hour.');
+    }
+    
+    ['f-name','f-phone','f-email','f-event','f-msg'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f-type').value='';
+  } catch (error) {
+    console.error('Error submitting enquiry:', error);
+    showToast('Failed to submit enquiry. Please try again.', 'error');
+  }
+}
+
+function showToast(msg, type='success'){  const
+ t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast'+(type==='error'?' error-toast':'');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── CUSTOMER LOGIN ───────────────────────────────────────────────────────
+let currentUser = CartManager.getCustomer(); // Load from CartManager
+
+function checkUserSession(){
+  currentUser = CartManager.getCustomer();
+  if(currentUser){
+    updateLoginButton();
+    // Load cart from backend if logged in
+    if(currentUser.id && typeof api !== 'undefined'){
+      CartManager.loadFromBackend(currentUser.id).then(backendCart => {
+        cart = backendCart;
+        updateCartUI();
+      }).catch(err => console.error('Error loading cart:', err));
+    }
+  }
+}
+
+function updateLoginButton(){
+  const btn = document.getElementById('loginBtn');
+  if(currentUser){
+    btn.innerHTML = `👤 ${currentUser.name.split(' ')[0]}`;
+    btn.onclick = showUserMenu;
+  } else {
+    btn.innerHTML = '👤 Login';
+    btn.onclick = openLoginModal;
+  }
+}
+
+function openLoginModal(){
+  document.getElementById('loginModal').classList.add('open');
+}
+
+function closeLoginModal(){
+  document.getElementById('loginModal').classList.remove('open');
+}
+
+function doCustomerLogin(){
+  const phone = document.getElementById('loginPhone').value.trim();
+  const name = document.getElementById('loginName').value.trim();
+  
+  if(!phone){
+    showToast('Please enter your phone number', 'error');
+    return;
+  }
+  
+  if(phone.length < 10){
+    showToast('Please enter a valid phone number', 'error');
+    return;
+  }
+  
+  // Try API first
+  if(typeof api !== 'undefined'){
+    api.customerLogin(phone, name)
+      .then(async result => {
+        if(result.error){
+          showToast(result.error, 'error');
+          return;
+        }
+        
+        currentUser = result.customer;
+        CartManager.saveCustomer(currentUser);
+        
+        // Load cart from backend and merge with local cart
+        const backendCart = await CartManager.loadFromBackend(currentUser.id);
+        cart = backendCart;
+        
+        updateLoginButton();
+        updateCartUI();
+        closeLoginModal();
+        showToast(result.message || 'Login successful!');
+      })
+      .catch(error => {
+        console.error('Login error:', error);
+        // Fallback to localStorage
+        doLocalLogin(phone, name);
+      });
+  } else {
+    // Fallback to localStorage
+    doLocalLogin(phone, name);
+  }
+}
+
+function doLocalLogin(phone, name){
+  // Check if user exists in localStorage
+  let users = JSON.parse(localStorage.getItem('mlr_customers') || '[]');
+  let user = users.find(u => u.phone === phone);
+  
+  if(!user){
+    // New user - require name
+    if(!name){
+      showToast('Please enter your name for first time login', 'error');
+      return;
+    }
+    user = {phone, name, createdAt: Date.now()};
+    users.push(user);
+    localStorage.setItem('mlr_customers', JSON.stringify(users));
+    showToast(`Welcome ${name}! Account created.`);
+  } else {
+    showToast(`Welcome back ${user.name}!`);
+  }
+  
+  // Save session
+  currentUser = user;
+  localStorage.setItem('mlr_customer', JSON.stringify(user));
+  updateLoginButton();
+  closeLoginModal();
+}
+
+function showUserMenu(){
+  const menu = confirm(`Logged in as: ${currentUser.name}\n${currentUser.phone}\n\nClick OK to logout`);
+  if(menu){
+    doCustomerLogout();
+  }
+}
+
+function doCustomerLogout(){
+  currentUser = null;
+  CartManager.clearCustomer();
+  updateLoginButton();
+  showToast('Logged out successfully');
+}
+
+// ── MY ORDERS ─────────────────────────────────────────────────────────────
+async function openMyOrders(){
+  document.getElementById('myOrdersModal').classList.add('open');
+  await loadMyOrders();
+}
+
+function closeMyOrders(){
+  document.getElementById('myOrdersModal').classList.remove('open');
+}
+
+async function loadMyOrders(){
+  const el = document.getElementById('myOrdersList');
+  el.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(240,201,107,0.6);">Loading orders...</div>';
+  
+  try {
+    let orders = [];
+    
+    // Try to load from API
+    if(typeof api !== 'undefined') {
+      orders = await api.getOrders();
+    } else {
+      // Fallback to localStorage
+      orders = JSON.parse(localStorage.getItem('mlr_orders') || '[]');
+    }
+    
+    if(orders.length === 0){
+      el.innerHTML = `
+        <div style="text-align:center;padding:60px 20px;">
+          <div style="font-size:4rem;margin-bottom:16px;">📦</div>
+          <p style="color:rgba(240,201,107,0.6);font-size:1.1rem;margin-bottom:8px;">No orders yet</p>
+          <p style="color:rgba(240,201,107,0.4);font-size:.9rem;">Your orders will appear here after checkout</p>
+        </div>
+      `;
+      return;
+    }
+    
+    el.innerHTML = orders.map(order => {
+      const statusColors = {
+        'New': '#ffaa44',
+        'Confirmed': '#4CAF50',
+        'Delivered': '#2196F3',
+        'Returned': '#9C27B0',
+        'Completed': '#4CAF50',
+        'Cancelled': '#f44336'
+      };
+      const statusColor = statusColors[order.status] || '#ffaa44';
+      
+      return `
+        <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,150,58,0.2);padding:20px;margin-bottom:16px;border-radius:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px;">
+            <div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--gold-light);margin-bottom:4px;">
+                ${order.orderId || order.order_id}
+              </div>
+              <div style="font-size:.85rem;color:rgba(240,201,107,0.5);">
+                ${order.placedAt || order.placed_at || new Date(order.timestamp).toLocaleString()}
+              </div>
+            </div>
+            <div style="background:${statusColor};color:#fff;padding:6px 12px;border-radius:3px;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;">
+              ${order.status}
+            </div>
+          </div>
+          
+          <div style="border-top:1px solid rgba(201,150,58,0.1);padding-top:12px;margin-bottom:12px;">
+            ${(order.items || []).map(item => `
+              <div style="display:flex;justify-content:space-between;padding:8px 0;color:rgba(240,201,107,0.8);font-size:.9rem;">
+                <span>${item.icon || item.product_icon} ${item.name || item.product_name} ${item.quantity > 1 ? `(×${item.quantity})` : ''}</span>
+                <span style="color:var(--gold-light);">₹${(item.price || 0).toLocaleString()}</span>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(201,150,58,0.2);padding-top:12px;">
+            <div style="color:rgba(240,201,107,0.6);font-size:.85rem;">
+              <div><strong>Customer:</strong> ${order.customer?.name || order.customer_name}</div>
+              <div><strong>Phone:</strong> ${order.customer?.phone || order.customer_phone}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="color:rgba(240,201,107,0.6);font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;">Total</div>
+              <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold-light);font-weight:700;">
+                ₹${(order.total || 0).toLocaleString()}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+    
+  } catch (error) {
+    console.error('Error loading orders:', error);
+    el.innerHTML = `
+      <div style="text-align:center;padding:40px;color:#ff6b6b;">
+        <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+        <p>Failed to load orders</p>
+        <p style="font-size:.85rem;margin-top:8px;color:rgba(240,201,107,0.4);">${error.message}</p>
+      </div>
+    `;
+  }
+}
+
+// ── LOAD PAYMENT METHODS ──────────────────────────────────────────────────
+async function loadPaymentMethods() {
+  try {
+    if (typeof api === 'undefined') return;
+    
+    const response = await fetch(`${api.baseURL}/payments/methods`);
+    const methods = await response.json();
+    
+    // Show/hide online payment option based on availability
+    const onlineOption = document.getElementById('onlinePaymentOption');
+    if (methods.online && methods.razorpayKeyId) {
+      onlineOption.style.display = 'flex';
+    } else {
+      onlineOption.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Error loading payment methods:', error);
+    // Hide online payment if error
+    document.getElementById('onlinePaymentOption').style.display = 'none';
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+checkUserSession();
+loadProducts();
+loadPaymentMethods(); // Load available payment methods
+updateCartUI();
+
+// Auto-open cart if coming from buy/rental page
+if(window.location.hash === '#cart'){
+  setTimeout(() => openCart(), 500);
+}
+</script>
+
+<!-- Footer with Admin Link -->
+<footer style="background:var(--maroon-deep);padding:20px;text-align:center;border-top:1px solid rgba(201,150,58,0.3);">
+  <p style="color:rgba(240,201,107,0.5);font-size:.85rem;">
+    © 2026 Mahalakshmi Jewellery | 
+    <a href="mahalakshmi-admin.html" style="color:var(--gold-light);text-decoration:none;margin-left:8px;">🔐 Admin Panel</a>
+  </p>
+</footer>
+
+</body>
+</html>

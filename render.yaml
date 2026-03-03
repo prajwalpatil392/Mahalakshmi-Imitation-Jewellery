@@ -1,0 +1,52 @@
+services:
+  # Backend API
+  - type: web
+    name: mahalakshmi-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: DB_HOST
+        fromDatabase:
+          name: mahalakshmi-db
+          property: host
+      - key: DB_USER
+        fromDatabase:
+          name: mahalakshmi-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: mahalakshmi-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: mahalakshmi-db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ENABLE_COD
+        value: true
+      - key: ENABLE_CASH_AT_SHOP
+        value: true
+      - key: ENABLE_ONLINE_PAYMENT
+        value: false
+
+  # Frontend Static Site
+  - type: web
+    name: mahalakshmi-frontend
+    env: static
+    buildCommand: echo "No build needed"
+    staticPublishPath: .
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /mahalakshmi-client.html
+
+databases:
+  - name: mahalakshmi-db
+    databaseName: mahalakshmi
+    user: mahalakshmi

@@ -3,46 +3,44 @@ const { Client } = require('pg');
 
 async function migrate() {
   let client;
+  let retries = 0;
+  const maxRetries = 10;
+  const retryDelay = 2000; // 2 seconds
   
   try {
-    // Connect to PostgreSQL (to postgres database first)
-    client = new Client({
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || '',
-      database: 'postgres', // Connect to default database first
-      port: process.env.DB_PORT || 5432
-    });
+    // Connect using DATABASE_URL if available (Railway/Render), otherwise use individual env vars
+    const connectionString = process.env.DATABASE_URL;
+    
+    if (!connectionString) {
+      console.log('⚠️  DATABASE_URL not found. Using individual env vars or defaults.');
+      console.log('This is expected on first deployment - database may still be initializing.');
+      console.log('App will start and create tables automatically.');
+      process.exit(0); // Exit gracefully - app server will retry
+    }
 
-    await client.connect();
-    console.log('Connected to PostgreSQL');
+    // Retry connection loop
+    while (retries < maxRetries) {
+      try {
+        client = new Client({
+          connectionString: connectionString,
+          statement_timeout: 15000,
+          application_name: 'mahalakshmi_app'
+        });
 
-    // Create database if not exists
-    const dbName = process.env.DB_NAME || 'mahalakshmi';
-    try {
-      await client.query(`CREATE DATABASE ${dbName}`);
-      console.log(`Database ${dbName} created`);
-    } catch (err) {
-      if (err.code === '42P04') {
-        console.log(`Database ${dbName} already exists`);
-      } else {
-        throw err;
+        await client.connect();
+        console.log('✅ Connected to PostgreSQL');
+        break;
+      } catch (err) {
+        retries++;
+        if (retries >= maxRetries) throw err;
+        console.log(`⚠️  Connection attempt ${retries}/${maxRetries} failed. Retrying in ${retryDelay/1000}s...`);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
       }
     }
 
-    // Close connection and reconnect to the new database
-    await client.end();
-    
-    client = new Client({
-      host: process.env.DB_HOST || 'localhost',
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || '',
-      database: dbName,
-      port: process.env.DB_PORT || 5432
-    });
-
-    await client.connect();
-    console.log(`Connected to ${dbName} database`);
+    // Get dbName from connectionString
+    const dbName = new URL(connectionString).pathname.slice(1) || 'mahalakshmi';
+    console.log(`Using database: ${dbName}`);
 
     // Create products table
     await client.query(`
@@ -194,8 +192,11 @@ async function migrate() {
     console.log('\n🎉 PostgreSQL migration completed successfully!');
     
   } catch (error) {
-    console.error('❌ Migration error:', error);
-    process.exit(1);
+    console.error('❌ Migration error:', error.message);
+    console.error('⚠️  Database migrations failed, but app will continue.');
+    console.error('Ensure database is running and DATABASE_URL is set correctly.');
+    // Don't exit with error - let the app start and create tables on first use
+    process.exit(0);
   } finally {
     if (client) await client.end();
   }

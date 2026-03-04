@@ -18,7 +18,17 @@ const api = {
   // Products
   async getProducts() {
     const response = await fetch(`${API_BASE_URL}/products`);
-    return response.json();
+    const data = await response.json();
+
+    // Throw on HTTP errors so callers can handle gracefully
+    if (!response.ok) {
+      const message = (data && data.error) 
+        ? data.error 
+        : `Failed to fetch products (status ${response.status})`;
+      throw new Error(message);
+    }
+
+    return data;
   },
   
   async getProduct(id) {

@@ -215,7 +215,13 @@ async function loadProducts() {
   try {
     if(typeof api !== 'undefined') {
       const allProducts = await api.getProducts();
-      products = allProducts.filter(p => p.type === 'rent' || p.type === 'both');
+      // Ensure we have an array before filtering
+      if (Array.isArray(allProducts)) {
+        products = allProducts.filter(p => p.type === 'rent' || p.type === 'both');
+      } else {
+        console.error('Unexpected products payload (not an array):', allProducts);
+        products = [];
+      }
     } else {
       products = [
         {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"📿",rentPerDay:150,availableQty:5,isAvailable:true},
@@ -225,10 +231,18 @@ async function loadProducts() {
         {id:5,name:"Full Bridal Set",material:"Antique Gold 12-Piece",icon:"🌸",rentPerDay:600,availableQty:3,isAvailable:true}
       ];
     }
-    renderProducts();
   } catch (error) {
     console.error('Error loading products:', error);
+    // Fallback to local demo products if API fails
+    products = [
+      {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"📿",rentPerDay:150,availableQty:5,isAvailable:true},
+      {id:2,name:"Bridal Maang Tikka",material:"Kundan & Meenakari",icon:"👑",rentPerDay:80,availableQty:5,isAvailable:true},
+      {id:3,name:"Temple Necklace",material:"Gold-Plated Copper",icon:"💛",rentPerDay:120,availableQty:5,isAvailable:true},
+      {id:4,name:"Jimikki Earrings",material:"South Indian Style",icon:"👂",rentPerDay:50,availableQty:5,isAvailable:true},
+      {id:5,name:"Full Bridal Set",material:"Antique Gold 12-Piece",icon:"🌸",rentPerDay:600,availableQty:3,isAvailable:true}
+    ];
   }
+  renderProducts();
 }
 
 function renderProducts() {

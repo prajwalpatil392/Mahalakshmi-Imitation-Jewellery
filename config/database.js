@@ -33,14 +33,13 @@ if (usePostgres) {
       
       const result = await pgPool.query(pgSql, params);
       
-      // Convert to MySQL format
-      const mysqlResult = {
-        ...result.rows,
-        insertId: result.rows[0]?.id || null,
-        affectedRows: result.rowCount
-      };
+      // Return [rows, fields] format like MySQL does
+      // Attach metadata to rows array for compatibility
+      const rows = result.rows;
+      rows.insertId = result.rows[0]?.id || null;
+      rows.affectedRows = result.rowCount;
       
-      return [mysqlResult, result.fields];
+      return [rows, result.fields];
     },
     execute: async (sql, params) => pool.query(sql, params),
     getConnection: async () => {

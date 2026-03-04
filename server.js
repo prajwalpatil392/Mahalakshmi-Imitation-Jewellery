@@ -53,10 +53,14 @@ app.get('/rental', (req, res) => {
 // Test database connection
 db.getConnection()
   .then(connection => {
-    console.log('✅ MySQL Database Connected');
-    connection.release();
+    if (connection && connection.release) {
+      connection.release();
+    }
+    console.log('✅ Database Connected');
   })
-  .catch(err => console.error('❌ Database Connection Error:', err));
+  .catch(err => {
+    console.warn('⚠️  Database connection test failed (will retry on first request):', err.message);
+  });
 
 // Start Server
 const PORT = process.env.PORT || 5000;

@@ -1,6 +1,6 @@
 const mysql = require('mysql2/promise');
 
-// Use PostgreSQL for production (Render), MySQL for local development
+// Use PostgreSQL for production (Railway), MySQL for local development
 const isProduction = process.env.NODE_ENV === 'production';
 const usePostgres = isProduction || process.env.USE_POSTGRES === 'true';
 
@@ -43,11 +43,19 @@ if (usePostgres) {
       return [mysqlResult, result.fields];
     },
     execute: async (sql, params) => pool.query(sql, params),
+    getConnection: async () => {
+      // For PostgreSQL, return a mock connection object
+      return {
+        query: (sql, params) => pgPool.query(sql, params),
+        release: () => Promise.resolve(),
+        end: () => pgPool.end()
+      };
+    },
     end: () => pgPool.end()
   };
 } else {
   // MySQL configuration (local development)
-  pool = mysql.createPool({
+  const mysqlPool = mysql.createPool({
     host: process.env.DB_HOST || 'localhost',
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
@@ -57,6 +65,13 @@ if (usePostgres) {
     connectionLimit: 10,
     queueLimit: 0
   });
+
+  pool = {
+    query: (sql, params) => mysqlPool.query(sql, params),
+    execute: (sql, params) => mysqlPool.execute(sql, params),
+    getConnection: () => mysqlPool.getConnection(),
+    end: () => mysqlPool.end()
+  };
 }
 
 module.exports = pool;

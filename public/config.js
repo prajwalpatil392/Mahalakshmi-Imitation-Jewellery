@@ -1,7 +1,13 @@
 // API Configuration
-const API_BASE_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost:5000/api'
-  : 'https://mahalakshmi-backend.onrender.com/api'; // Update this after deployment
+// compute API base based on current location
+// local development uses explicit localhost, otherwise use same origin so both
+// Render and Railway deployments work with no hardcoded host.
+const API_BASE_URL = (function(){
+  if (window.location.hostname === 'localhost') {
+    return 'http://localhost:5000/api';
+  }
+  return `${window.location.protocol}//${window.location.host}/api`;
+})();
 
 // UPI Configuration
 const UPI_ID = 'prajwal1111@slc'; // Your UPI ID

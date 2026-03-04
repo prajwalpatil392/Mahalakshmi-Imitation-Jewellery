@@ -22,37 +22,37 @@ function renderUnifiedCart(containerId = 'cartItemsContainer') {
   const buyItems = cart.filter(item => item.mode === 'buy');
   const rentItems = cart.filter(item => item.mode === 'rent');
   
-  let html = '';
+  const sections = [];
   
   // Buy Items Section
   if (buyItems.length > 0) {
-    html += `
+    sections.push(`
       <div class="cart-category">
         <div class="cart-category-header">
           <span class="cart-category-icon">💰</span>
           <span class="cart-category-title">Buy Items</span>
           <span class="cart-category-count">${buyItems.length} item${buyItems.length > 1 ? 's' : ''}</span>
         </div>
-        ${buyItems.map((item, idx) => renderCartItem(item, cart.indexOf(item))).join('')}
+        ${buyItems.map(item => renderCartItem(item, cart.indexOf(item))).join('')}
       </div>
-    `;
+    `);
   }
   
   // Rent Items Section
   if (rentItems.length > 0) {
-    html += `
+    sections.push(`
       <div class="cart-category">
         <div class="cart-category-header">
           <span class="cart-category-icon">📅</span>
           <span class="cart-category-title">Rental Items</span>
           <span class="cart-category-count">${rentItems.length} item${rentItems.length > 1 ? 's' : ''}</span>
         </div>
-        ${rentItems.map((item, idx) => renderCartItem(item, cart.indexOf(item))).join('')}
+        ${rentItems.map(item => renderCartItem(item, cart.indexOf(item))).join('')}
       </div>
-    `;
+    `);
   }
   
-  container.innerHTML = html;
+  container.innerHTML = sections.join('');
 }
 
 function renderCartItem(item, index) {
@@ -68,16 +68,42 @@ function renderCartItem(item, index) {
         <div class="cart-item-name">${item.name}</div>
         <div class="cart-item-meta">
           ${item.mode === 'buy' ? 
-            `₹${item.unitPrice.toLocaleString()} × ${item.quantity}` : 
-            `₹${item.unitPrice.toLocaleString()}/day × ${item.quantity}`
+            `₹${item.unitPrice.toLocaleString()} each` : 
+            `₹${item.unitPrice.toLocaleString()}/day`
           }
         </div>
         ${rentalInfo}
+        <div class="cart-item-quantity">
+          <button class="qty-btn" onclick="updateQuantity(${index}, ${item.quantity - 1})" ${item.quantity <= 1 ? 'disabled' : ''}>−</button>
+          <span class="qty-display">${item.quantity}</span>
+          <button class="qty-btn" onclick="updateQuantity(${index}, ${item.quantity + 1})">+</button>
+        </div>
       </div>
       <div class="cart-item-price">₹${item.price.toLocaleString()}</div>
       <button class="cart-item-remove" onclick="removeFromCart(${index})" title="Remove">✕</button>
     </div>
   `;
+}
+
+// Update quantity function
+function updateQuantity(index, newQuantity) {
+  if (newQuantity < 1) return;
+  
+  const cart = CartManager.getCart();
+  if (cart[index]) {
+    cart[index].quantity = newQuantity;
+    cart[index].price = cart[index].unitPrice * newQuantity;
+    
+    // For rental items, multiply by days
+    if (cart[index].mode === 'rent' && cart[index].rentalData) {
+      cart[index].price = cart[index].unitPrice * newQuantity * cart[index].rentalData.days;
+    }
+    
+    CartManager.saveCart(cart);
+    renderUnifiedCart();
+    updateCartBadge();
+    updateCartTotal();
+  }
 }
 
 // Add CSS for cart categories
@@ -116,6 +142,45 @@ const cartCategoryStyles = `
   background: rgba(201,150,58,0.2);
   padding: 2px 8px;
   border-radius: 10px;
+}
+
+.cart-item-quantity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.qty-btn {
+  background: rgba(201,150,58,0.2);
+  border: 1px solid rgba(201,150,58,0.4);
+  color: var(--gold-light);
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.qty-btn:hover:not(:disabled) {
+  background: rgba(201,150,58,0.4);
+  border-color: var(--gold);
+}
+
+.qty-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.qty-display {
+  min-width: 30px;
+  text-align: center;
+  color: var(--gold-light);
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 </style>
 `;

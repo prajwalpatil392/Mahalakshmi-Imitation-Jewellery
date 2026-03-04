@@ -16,15 +16,11 @@ REM Create mahalakshmi folder
 echo Creating folder: C:\xampp\htdocs\mahalakshmi
 if not exist "C:\xampp\htdocs\mahalakshmi" mkdir "C:\xampp\htdocs\mahalakshmi"
 
-REM Copy HTML files
-echo Copying HTML files...
-copy /Y mahalakshmi-client.html C:\xampp\htdocs\mahalakshmi\
-copy /Y mahalakshmi-admin.html C:\xampp\htdocs\mahalakshmi\
-copy /Y test-connection.html C:\xampp\htdocs\mahalakshmi\
-
-REM Copy JavaScript files
-echo Copying JavaScript files...
-copy /Y config.js C:\xampp\htdocs\mahalakshmi\
+REM Copy entire public folder contents
+ echo Copying public assets...
+ xcopy /Y /E public\* C:\xampp\htdocs\mahalakshmi\
+ 
+ REM (legacy single files removed)
 
 echo.
 echo ========================================

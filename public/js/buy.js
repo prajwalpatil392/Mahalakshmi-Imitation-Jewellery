@@ -23,22 +23,24 @@ async function loadProducts() {
 
 function renderProducts() {
   const grid = document.getElementById('productsGrid');
+  if (!grid) return;
+  
   grid.innerHTML = products.map(p => {
     const availQty = p.availableQty || 0;
     const isAvail = p.isAvailable && availQty > 0;
     
-    let availClass, availText;
-    if(!isAvail || availQty===0){ availClass='avail-no'; availText='Sold'; }
-    else if(availQty<=2){ availClass='avail-low'; availText=`Only ${availQty} left!`; }
-    else{ availClass='avail-yes'; availText=`${availQty} Available`; }
+    const availClass = !isAvail || availQty === 0 ? 'avail-no' : 
+                       availQty <= 2 ? 'avail-low' : 'avail-yes';
+    const availText = !isAvail || availQty === 0 ? 'Sold' : 
+                      availQty <= 2 ? `Only ${availQty} left!` : `${availQty} Available`;
     
-    const cartItem = cart.find(c=>c.id===p.id&&c.mode==='buy');
-    const inCartQty = cartItem ? cartItem.quantity : 0;
+    const cartItem = cart.find(c => c.id === p.id && c.mode === 'buy');
+    const inCartQty = cartItem?.quantity || 0;
     
-    let buyBtn = '';
-    if(!isAvail){
+    let buyBtn;
+    if (!isAvail) {
       buyBtn = `<button class="btn-cart" style="opacity:.5;cursor:not-allowed;background:#3a1010;">✗ Sold Out</button>`;
-    } else if(inCartQty > 0){
+    } else if (inCartQty > 0) {
       buyBtn = `<div class="btn-cart btn-added" style="display:flex;align-items:center;justify-content:center;gap:8px;">
         <button onclick="decreaseQty(${p.id}, event)" style="background:var(--gold-dark);color:#fff;border:none;width:28px;height:28px;cursor:pointer;">−</button>
         <span style="font-weight:700;">${inCartQty}</span>
@@ -48,10 +50,20 @@ function renderProducts() {
       buyBtn = `<button class="btn-cart" onclick="addToCart(${p.id}, event)">🛒 Add to Cart</button>`;
     }
     
+    // Handle image URL - use API base or show icon
+    let imgContent = `<span style="font-size:5rem;">${p.icon}</span>`;
+    let imgStyle = '';
+    
+    if (p.image_url) {
+      const imageUrl = p.image_url.startsWith('http') ? p.image_url : `${api.baseURL}${p.image_url}`;
+      imgStyle = `background-image:url('${imageUrl}');background-size:cover;background-position:center;`;
+      imgContent = `<img src="${imageUrl}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-size:5rem;\\'>${p.icon}</span><span class=\\'avail-tag ${availClass}\\'>${availText}</span>';" />`;
+    }
+    
     return `
       <div class="product-card">
-        <div class="product-img" style="position:relative;${p.image_url ? `background-image:url('http://localhost:5000${p.image_url}');background-size:cover;background-position:center;` : ''}">
-          ${!p.image_url ? p.icon : ''}
+        <div class="product-img" style="position:relative;${imgStyle}">
+          ${imgContent}
           <span class="avail-tag ${availClass}">${availText}</span>
         </div>
         <div class="product-info">
@@ -66,58 +78,57 @@ function renderProducts() {
 }
 
 function addToCart(id, event) {
-  if(event) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
+  event?.preventDefault();
+  event?.stopPropagation();
   
-  const p = products.find(x=>x.id===id);
-  if(!p) return;
+  const p = products.find(x => x.id === id);
+  if (!p) return;
   
   const availableQty = p.availableQty || 0;
-  const existing = cart.find(c=>c.id===id&&c.mode==='buy');
-  const currentQty = existing ? existing.quantity : 0;
+  const existing = cart.find(c => c.id === id && c.mode === 'buy');
+  const currentQty = existing?.quantity || 0;
   
-  if(currentQty >= availableQty){
+  if (currentQty >= availableQty) {
     showToast(`Only ${availableQty} available!`);
     return;
   }
   
-  if(existing){
+  if (existing) {
     existing.quantity++;
     existing.price = p.buy * existing.quantity;
   } else {
     cart.push({
-      id, name:p.name, icon:p.icon, mode:'buy',
-      quantity:1, unitPrice:p.buy, price:p.buy
+      id, 
+      name: p.name, 
+      icon: p.icon, 
+      mode: 'buy',
+      quantity: 1, 
+      unitPrice: p.buy, 
+      price: p.buy
     });
   }
   
-  localStorage.setItem('mlr_cart', JSON.stringify(cart));
-  CartManager.saveCart(cart); // Save using cart manager
+  CartManager.saveCart(cart);
   updateCartBadge();
   renderProducts();
   showToast(`✓ "${p.name}" added to cart!`);
 }
 
 function decreaseQty(id, event) {
-  if(event) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
+  event?.preventDefault();
+  event?.stopPropagation();
   
-  const existing = cart.find(c=>c.id===id&&c.mode==='buy');
-  if(!existing) return;
+  const existing = cart.find(c => c.id === id && c.mode === 'buy');
+  if (!existing) return;
   
-  if(existing.quantity <= 1){
-    cart = cart.filter(c => !(c.id===id&&c.mode==='buy'));
+  if (existing.quantity <= 1) {
+    cart = cart.filter(c => !(c.id === id && c.mode === 'buy'));
   } else {
     existing.quantity--;
     existing.price = existing.unitPrice * existing.quantity;
   }
   
-  localStorage.setItem('mlr_cart', JSON.stringify(cart));
-  CartManager.saveCart(cart); // Save using cart manager
+  CartManager.saveCart(cart);
   updateCartBadge();
   renderProducts();
 }
@@ -171,64 +182,108 @@ function renderCart() {
   const buyItems = cart.filter(item => item.mode === 'buy');
   const rentItems = cart.filter(item => item.mode === 'rent');
   
-  let html = '';
+  const sections = [];
   let total = 0;
   
   // Buy Items Section
   if (buyItems.length > 0) {
-    html += `<div style="margin-bottom:20px;">
+    const buySection = [`<div style="margin-bottom:20px;">
       <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(201,150,58,0.1);border-left:3px solid #C9963A;margin-bottom:12px;">
         <span style="font-size:1.1rem;">💰</span>
         <span style="font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#F0C96B;flex:1;">Buy Items</span>
         <span style="font-size:.7rem;color:rgba(240,201,107,0.6);background:rgba(201,150,58,0.2);padding:2px 8px;border-radius:10px;">${buyItems.length}</span>
-      </div>`;
+      </div>`];
     
     buyItems.forEach(item => {
       const idx = cart.indexOf(item);
+      const qty = item.quantity || 1;
       total += item.price;
-      html += `<div class="cart-item">
+      buySection.push(`<div class="cart-item">
         <div class="cart-item-icon">${item.icon}</div>
         <div class="cart-item-info">
           <div class="cart-item-name">${item.name}</div>
           <div class="cart-item-mode">💰 Purchase</div>
-          <div class="cart-item-price">Qty: ${item.quantity} × ₹${item.unitPrice.toLocaleString()} = ₹${item.price.toLocaleString()}</div>
+          <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
+            <button onclick="updateCartQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">−</button>
+            <span style="color:var(--gold-light);font-weight:600;min-width:20px;text-align:center;">${qty}</span>
+            <button onclick="updateCartQuantity(${idx},1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">+</button>
+          </div>
+          <div class="cart-item-price">₹${item.price.toLocaleString()} ${qty > 1 ? `(₹${item.unitPrice} × ${qty})` : ''}</div>
         </div>
         <button class="cart-item-remove" onclick="removeFromCart(${idx})">✕</button>
-      </div>`;
+      </div>`);
     });
-    html += `</div>`;
+    buySection.push('</div>');
+    sections.push(buySection.join(''));
   }
   
   // Rent Items Section
   if (rentItems.length > 0) {
-    html += `<div style="margin-bottom:20px;">
+    const rentSection = [`<div style="margin-bottom:20px;">
       <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(201,150,58,0.1);border-left:3px solid #C9963A;margin-bottom:12px;">
         <span style="font-size:1.1rem;">📅</span>
         <span style="font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#F0C96B;flex:1;">Rental Items</span>
         <span style="font-size:.7rem;color:rgba(240,201,107,0.6);background:rgba(201,150,58,0.2);padding:2px 8px;border-radius:10px;">${rentItems.length}</span>
-      </div>`;
+      </div>`];
     
     rentItems.forEach(item => {
       const idx = cart.indexOf(item);
+      const qty = item.quantity || 1;
       total += item.price;
-      html += `<div class="cart-item">
+      const rentalInfo = item.rentalData ? 
+        `<div style="font-size:.75rem;color:rgba(240,201,107,0.5);margin-top:4px;">
+          ${item.rentalData.from} → ${item.rentalData.to} (${item.rentalData.days} days)
+        </div>` : '';
+      
+      rentSection.push(`<div class="cart-item">
         <div class="cart-item-icon">${item.icon}</div>
         <div class="cart-item-info">
           <div class="cart-item-name">${item.name}</div>
           <div class="cart-item-mode">📅 Rental</div>
-          ${item.rentalData ? `<div style="font-size:.75rem;color:rgba(240,201,107,0.5);margin-top:4px;">
-            ${item.rentalData.from} → ${item.rentalData.to} (${item.rentalData.days} days)
-          </div>` : ''}
-          <div class="cart-item-price">Qty: ${item.quantity} × ₹${item.unitPrice.toLocaleString()}/day = ₹${item.price.toLocaleString()}</div>
+          ${rentalInfo}
+          <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
+            <button onclick="updateCartQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">−</button>
+            <span style="color:var(--gold-light);font-weight:600;min-width:20px;text-align:center;">${qty}</span>
+            <button onclick="updateCartQuantity(${idx},1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">+</button>
+          </div>
+          <div class="cart-item-price">₹${item.price.toLocaleString()} ${qty > 1 ? `(₹${item.unitPrice}/day × ${qty})` : ''}</div>
         </div>
         <button class="cart-item-remove" onclick="removeFromCart(${idx})">✕</button>
-      </div>`;
+      </div>`);
     });
-    html += `</div>`;
+    rentSection.push('</div>');
+    sections.push(rentSection.join(''));
   }
   
-  body.innerHTML = html;
+  body.innerHTML = sections.join('');
   document.getElementById('cartTotal').textContent = '₹' + total.toLocaleString();
+}
+
+function updateCartQuantity(idx, change) {
+  const item = cart[idx];
+  const newQty = (item.quantity || 1) + change;
+  
+  if(newQty <= 0) {
+    removeFromCart(idx);
+    return;
+  }
+  
+  const product = products.find(p => p.id === item.id);
+  if(!product) return;
+  
+  // Check if enough stock available
+  if(newQty > product.availableQty) {
+    showToast(`Only ${product.availableQty} available!`);
+    return;
+  }
+  
+  item.quantity = newQty;
+  item.price = item.unitPrice * newQty;
+  
+  CartManager.saveCart(cart);
+  updateCartBadge();
+  renderCart();
+  renderProducts();
 }
 
 function removeFromCart(idx) {
@@ -240,8 +295,26 @@ function removeFromCart(idx) {
 }
 
 function goToCheckout() {
+  if (cart.length === 0) {
+    showToast('Your cart is empty!');
+    return;
+  }
+
   CartManager.saveCart(cart);
-  window.location.href = 'mahalakshmi-client.html#checkout';
+
+  // if we are on any page other than the client home, just redirect straight
+  // to the client with a hash that triggers the modal.  no confirmation shown
+  // so the user only has to click once.
+  if (!window.location.pathname.includes('mahalakshmi-client.html')) {
+    window.location.href = 'mahalakshmi-client.html#checkout';
+    return;
+  }
+
+  // already on client, open immediately
+  window.location.hash = 'checkout';
+  if (typeof openCheckout === 'function') {
+    openCheckout();
+  }
 }
 
 loadProducts();

@@ -4,7 +4,50 @@ const db = require('../config/database');
 const { generateInvoice } = require('../services/invoiceService');
 const path = require('path');
 
-// Generate invoice for an order
+// Get invoice for an order
+router.get('/:orderId', async (req, res) => {
+  try {
+    const [invoices] = await db.query('SELECT * FROM invoices WHERE order_id = ?', [req.params.orderId]);
+    if (invoices.length === 0) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+    
+    res.json(invoices[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create invoice for an order
+router.post('/', async (req, res) => {
+  try {
+    const { order_id } = req.body;
+    
+    const [orders] = await db.query('SELECT * FROM orders WHERE id = ?', [order_id]);
+    if (orders.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    const order = orders[0];
+    const invoiceNumber = 'INV-' + Date.now().toString().slice(-6);
+    
+    const [result] = await db.query(
+      'INSERT INTO invoices (order_id, invoice_number, total_amount, status) VALUES (?, ?, ?, ?)',
+      [order_id, invoiceNumber, order.total, 'issued']
+    );
+    
+    res.status(201).json({ 
+      invoiceId: result.insertId,
+      invoice_number: invoiceNumber,
+      order_id,
+      total_amount: order.total
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Generate invoice PDF for an order
 router.post('/:orderId', async (req, res) => {
   try {
     const [orders] = await db.query('SELECT * FROM orders WHERE id = ?', [req.params.orderId]);

@@ -163,6 +163,7 @@ section{padding:90px 40px;}
   min-height:2.6rem;
   display:-webkit-box;
   -webkit-line-clamp:2;
+  line-clamp:2;
   -webkit-box-orient:vertical;
   overflow:hidden;
 }
@@ -582,7 +583,7 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
       <span class="cart-total-label">Total Amount</span>
       <span class="cart-total-val" id="cartTotal">₹0</span>
     </div>
-    <button class="btn-checkout" onclick="openCheckout()">✦ Proceed to Checkout</button>
+    <button type="button" class="btn-checkout" onclick="openCheckout()">✦ Proceed to Checkout</button>
     <button class="btn-clear" onclick="clearCart()">Clear Cart</button>
   </div>
 </div>
@@ -675,6 +676,13 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
             <div style="font-size:.75rem;color:rgba(240,201,107,0.5);">Pay when you pick up from our store</div>
           </div>
         </label>
+        <label class="payment-option-label" style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(201,150,58,0.2);background:rgba(255,255,255,0.03);cursor:pointer;transition:all .2s;">
+          <input type="radio" name="paymentMethod" value="upi" style="width:18px;height:18px;cursor:pointer;">
+          <div style="flex:1;">
+            <div style="color:var(--gold-light);font-weight:600;margin-bottom:2px;">📱 Pay via UPI</div>
+            <div style="font-size:.75rem;color:rgba(240,201,107,0.5);">Google Pay, PhonePe, Paytm - Instant payment</div>
+          </div>
+        </label>
         <label class="payment-option-label" id="onlinePaymentOption" style="display:none;align-items:center;gap:12px;padding:12px;border:1px solid rgba(201,150,58,0.2);background:rgba(255,255,255,0.03);cursor:pointer;transition:all .2s;">
           <input type="radio" name="paymentMethod" value="online" style="width:18px;height:18px;cursor:pointer;">
           <div style="flex:1;">
@@ -701,7 +709,7 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
         <p>Your order has been sent to the admin dashboard. They will contact you shortly to confirm.</p>
         <div class="order-id" id="successOrderId">Order ID: #MLR-0000</div>
         <p style="color:rgba(240,201,107,0.4);font-size:.82rem;">Keep this order ID for reference. Admin will call/WhatsApp you within 1 hour.</p>
-        <button class="btn-checkout" onclick="closeCheckout()" style="margin-top:20px;">Continue Shopping</button>
+        <button type="button" class="btn-checkout" onclick="closeCheckout()" style="margin-top:20px;">Continue Shopping</button>
       </div>
     </div>
   </div>
@@ -749,7 +757,7 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ── PRODUCTS DATA (loaded from API) ───────────────────────────────────────
 let products = [];
 
@@ -1199,6 +1207,7 @@ function closeCheckout(){
 }
 
 function goStep(n){
+  console.log('Going to step:', n);
   if(n===3){
     const name=document.getElementById('co-name').value.trim();
     const phone=document.getElementById('co-phone').value.trim();
@@ -1206,6 +1215,7 @@ function goStep(n){
     populateConfirm();
   }
   currentStep=n; updateStepUI();
+  console.log('Current step is now:', currentStep);
 }
 
 function updateStepUI(){
@@ -1299,6 +1309,9 @@ async function placeOrder(){
       // Handle online payment
       if (paymentMethod === 'online') {
         await initiateOnlinePayment(result, orderData);
+      } else if (paymentMethod === 'upi') {
+        // Open UPI payment
+        openUPIPayment(result, orderData);
       } else {
         // COD or Cash at Shop - show success
         document.getElementById('successOrderId').textContent='Order ID: #'+result.orderId;
@@ -1682,14 +1695,90 @@ async function loadMyOrders(){
   }
 }
 
+// Open UPI payment (Google Pay, PhonePe, etc.)
+function openUPIPayment(order, orderData) {
+  const upiId = UPI_ID; // From config.js
+  const name = UPI_NAME;
+  const amount = order.total;
+  const note = `Order ${order.orderId}`;
+  
+  // Create UPI payment URL
+  const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
+  
+  // Show UPI payment modal
+  const modal = document.createElement('div');
+  modal.id = 'upiModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.innerHTML = `
+    <div style="background:var(--maroon-deep);border:1px solid var(--gold);padding:30px;max-width:400px;width:100%;border-radius:10px;text-align:center;">
+      <h3 style="color:var(--gold-light);margin-bottom:20px;">📱 Pay via UPI</h3>
+      <div style="background:white;padding:20px;border-radius:10px;margin-bottom:20px;">
+        <div id="qrcode" style="display:flex;justify-content:center;"></div>
+      </div>
+      <p style="color:rgba(240,201,107,0.8);margin-bottom:15px;">Scan QR code or click button below</p>
+      <p style="color:var(--gold-light);font-size:1.2rem;margin-bottom:20px;">₹${amount}</p>
+      <button id="upiLaunchBtn" style="width:100%;padding:15px;background:var(--gold);color:var(--maroon-deep);border:none;border-radius:5px;font-weight:bold;font-size:1rem;cursor:pointer;margin-bottom:10px;">
+        Open UPI App
+      </button>
+      <button onclick="confirmUPIPayment('${order.orderId}')" style="width:100%;padding:12px;background:var(--green);color:white;border:none;border-radius:5px;font-weight:bold;cursor:pointer;margin-bottom:10px;">
+        ✓ I've Paid
+      </button>
+      <button onclick="document.getElementById('upiModal')?.remove()" style="width:100%;padding:10px;background:transparent;color:rgba(240,201,107,0.5);border:1px solid rgba(201,150,58,0.3);border-radius:5px;cursor:pointer;">
+        Cancel
+      </button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  
+  // Generate QR code
+  const qrData = upiUrl;
+  const qr = document.getElementById('qrcode');
+  // Simple QR code using Google Charts API
+  qr.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}" alt="UPI QR Code">`;
+
+  // attach click handler that checks if uri handler exists
+  document.getElementById('upiLaunchBtn').addEventListener('click', () => {
+    const upiBtn = document.getElementById('upiLaunchBtn');
+    if (upiBtn) upiBtn.disabled = true;
+    
+    // attempt to open the URI; browsers may block if no handler
+    window.location.href = upiUrl;
+    
+    setTimeout(() => {
+      // after delay, check if still on page (no handler likely)
+      if (document.getElementById('upiModal')) {
+        const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        if (!isMobile) {
+          showToast('📱 UPI payments work on mobile devices only. Use the QR code with your mobile.', 'info');
+        } else {
+          showToast('⚠️ UPI app not found. Please install a UPI app.', 'error');
+        }
+        if (upiBtn) upiBtn.disabled = false;
+      }
+    }, 1500);
+  });
+}
+
+// Confirm UPI payment
+function confirmUPIPayment(orderId) {
+  const modal = document.getElementById('upiModal');
+  if (modal) modal.remove();
+  document.getElementById('successOrderId').textContent='Order ID: #'+orderId;
+  showToast('✅ Payment confirmation received! Admin will verify.');
+  currentStep=4; updateStepUI();
+  cart = [];
+  CartManager.clearCart();
+  updateCartUI();
+  loadProducts();
+}
+
 // ── LOAD PAYMENT METHODS ──────────────────────────────────────────────────
 async function loadPaymentMethods() {
   try {
-    if (typeof api === 'undefined') return;
-    
-    const response = await fetch(`${api.baseURL}/payments/methods`);
-    const methods = await response.json();
-    
+    if (typeof api === 'undefined' || !api.getPaymentMethods) return;
+
+    const methods = await api.getPaymentMethods();
+
     // Show/hide online payment option based on availability
     const onlineOption = document.getElementById('onlinePaymentOption');
     if (methods.online && methods.razorpayKeyId) {
@@ -1713,6 +1802,18 @@ updateCartUI();
 // Auto-open cart if coming from buy/rental page
 if(window.location.hash === '#cart'){
   setTimeout(() => openCart(), 500);
+}
+
+// Auto-open checkout when hash is present and there are items in cart
+if(window.location.hash === '#checkout'){
+  if(cart.length > 0) {
+    openCheckout();
+    // clear the hash so that refreshing doesn't re-open the modal
+    history.replaceState(null, '', window.location.pathname);
+  } else {
+    showToast('Your cart is empty!', 'error');
+    history.replaceState(null, '', window.location.pathname);
+  }
 }
 </script>
 

@@ -16,10 +16,13 @@ if not exist "C:\xampp\xampp-control.exe" (
 REM Copy files to XAMPP htdocs
 echo Copying files to XAMPP...
 if not exist "C:\xampp\htdocs\mahalakshmi" mkdir "C:\xampp\htdocs\mahalakshmi"
-copy mahalakshmi-client.html C:\xampp\htdocs\mahalakshmi\ >nul
-copy mahalakshmi-admin.html C:\xampp\htdocs\mahalakshmi\ >nul
-copy test-connection.html C:\xampp\htdocs\mahalakshmi\ >nul
-copy config.js C:\xampp\htdocs\mahalakshmi\ >nul
+if not exist "C:\xampp\htdocs\mahalakshmi\js" mkdir "C:\xampp\htdocs\mahalakshmi\js"
+if not exist "C:\xampp\htdocs\mahalakshmi\css" mkdir "C:\xampp\htdocs\mahalakshmi\css"
+
+REM Copy all public directory files to XAMPP
+ echo Copying public assets...
+ xcopy /Y /E public\* C:\xampp\htdocs\mahalakshmi\ >nul
+
 echo [OK] Files copied
 
 REM Start XAMPP Control Panel

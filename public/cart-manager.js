@@ -54,24 +54,25 @@ const CartManager = {
   // Add item to cart
   addItem(product, mode, quantity = 1, rentalData = null) {
     const cart = this.getCart();
+    const rentalKey = rentalData ? JSON.stringify(rentalData) : null;
     const existing = cart.find(c => 
       c.id === product.id && 
       c.mode === mode && 
-      JSON.stringify(c.rentalData) === JSON.stringify(rentalData)
+      (rentalKey ? JSON.stringify(c.rentalData) === rentalKey : !c.rentalData)
     );
     
     if (existing) {
       existing.quantity += quantity;
       existing.price = existing.unitPrice * existing.quantity;
     } else {
-      const unitPrice = mode === 'buy' ? product.buy : (rentalData ? rentalData.total : product.rentPerDay);
+      const unitPrice = mode === 'buy' ? product.buy : (rentalData?.total || product.rentPerDay);
       cart.push({
         id: product.id,
         name: product.name,
         icon: product.icon,
-        mode: mode,
-        quantity: quantity,
-        unitPrice: unitPrice,
+        mode,
+        quantity,
+        unitPrice,
         price: unitPrice * quantity,
         rentalData: rentalData || null
       });
@@ -135,17 +136,14 @@ const CartManager = {
   // Sync cart with backend (if customer is logged in)
   async syncWithBackend(cart) {
     const customer = this.getCustomer();
-    if (!customer || !customer.id) {
-      return; // Not logged in, skip sync
-    }
+    if (!customer?.id) return; // Not logged in, skip sync
     
     try {
       if (typeof api !== 'undefined' && api.syncCart) {
         await api.syncCart(customer.id, cart);
-        console.log('Cart synced with backend');
       }
     } catch (error) {
-      console.error('Error syncing cart with backend:', error);
+      console.error('Error syncing cart:', error);
     }
   },
   

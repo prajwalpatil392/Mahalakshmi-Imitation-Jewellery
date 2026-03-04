@@ -7,8 +7,11 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "migrate": "node scripts/migrate.js",
+    "migrate:postgres": "node scripts/migrate-postgres.js",
     "seed": "node scripts/seedProducts.js",
-    "build": "npm install && npm run migrate"
+    "test": "jest --detectOpenHandles --forceExit",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [
     "jewellery",
@@ -29,10 +32,13 @@
     "mysql2": "^3.6.5",
     "nodemailer": "^6.9.7",
     "pdfkit": "^0.14.0",
+    "pg": "^8.19.0",
     "razorpay": "^2.9.6",
     "twilio": "^4.19.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1",
+    "supertest": "^6.3.3"
   }
 }

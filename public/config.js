@@ -3,6 +3,10 @@ const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:5000/api'
   : 'https://mahalakshmi-backend.onrender.com/api'; // Update this after deployment
 
+// UPI Configuration
+const UPI_ID = 'prajwal1111@slc'; // Your UPI ID
+const UPI_NAME = 'Mahalakshmi Jewellery';
+
 const api = {
   baseURL: API_BASE_URL.replace('/api', ''),
   // Products
@@ -184,6 +188,12 @@ const api = {
   // Customer Orders
   async getCustomerOrders(customerId) {
     const response = await fetch(`${API_BASE_URL}/customers/${customerId}/orders`);
+    return response.json();
+  },
+
+  // Payment methods
+  async getPaymentMethods() {
+    const response = await fetch(`${API_BASE_URL}/payments/methods`);
     return response.json();
   }
 };

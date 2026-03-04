@@ -28,13 +28,18 @@ router.get('/', async (req, res) => {
     
     const [rentals] = await db.query(query, params);
     
-    // Get items for each rental
-    for (let rental of rentals) {
-      const [items] = await db.query(
-        'SELECT * FROM order_items WHERE order_id = ? AND mode = "rent"',
-        [rental.id]
+    // Optimize: Get all items in one query
+    if (rentals.length > 0) {
+      const rentalIds = rentals.map(r => r.id);
+      const [allItems] = await db.query(
+        'SELECT * FROM order_items WHERE order_id IN (?) AND mode = "rent"',
+        [rentalIds]
       );
-      rental.items = items;
+      
+      // Group items by order_id
+      rentals.forEach(rental => {
+        rental.items = allItems.filter(item => item.order_id === rental.id);
+      });
     }
     
     res.json(rentals);
@@ -99,12 +104,18 @@ router.get('/overdue', async (req, res) => {
       ORDER BY o.expected_return_date ASC
     `);
     
-    for (let rental of rentals) {
-      const [items] = await db.query(
-        'SELECT * FROM order_items WHERE order_id = ? AND mode = "rent"',
-        [rental.id]
+    // Optimize: Get all items in one query
+    if (rentals.length > 0) {
+      const rentalIds = rentals.map(r => r.id);
+      const [allItems] = await db.query(
+        'SELECT * FROM order_items WHERE order_id IN (?) AND mode = "rent"',
+        [rentalIds]
       );
-      rental.items = items;
+      
+      // Group items by order_id
+      rentals.forEach(rental => {
+        rental.items = allItems.filter(item => item.order_id === rental.id);
+      });
     }
     
     res.json(rentals);

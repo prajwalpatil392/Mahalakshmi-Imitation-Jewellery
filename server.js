@@ -8,11 +8,13 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Serve uploaded files
+// Serve uploaded files and public static assets
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// public directory contains HTML, CSS, JS and other client assets
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.use('/api/products', require('./routes/products'));
@@ -29,6 +31,23 @@ app.use('/api/payments', require('./routes/payments'));
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Mahalakshmi API is running' });
+});
+
+// Serve frontend pages (routes still available but files now live in public)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'mahalakshmi-client.html'));
+});
+
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'mahalakshmi-admin.html'));
+});
+
+app.get('/buy', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'buy.html'));
+});
+
+app.get('/rental', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'rental.html'));
 });
 
 // Test database connection

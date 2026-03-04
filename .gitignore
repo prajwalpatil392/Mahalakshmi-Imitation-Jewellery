@@ -4,3 +4,10 @@ uploads/
 invoices/
 *.log
 .DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+coverage/
+.nyc_output/

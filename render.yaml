@@ -3,50 +3,53 @@ services:
   - type: web
     name: mahalakshmi-backend
     env: node
-    buildCommand: npm install
+    buildCommand: npm install && npm run migrate:postgres
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 5000
-      - key: DB_HOST
-        fromDatabase:
-          name: mahalakshmi-db
-          property: host
-      - key: DB_USER
-        fromDatabase:
-          name: mahalakshmi-db
-          property: user
-      - key: DB_PASSWORD
-        fromDatabase:
-          name: mahalakshmi-db
-          property: password
-      - key: DB_NAME
-        fromDatabase:
-          name: mahalakshmi-db
-          property: database
+      # Database will be auto-connected via DATABASE_URL from PostgreSQL service
+      # Security
       - key: JWT_SECRET
         generateValue: true
+      # Payment Configuration
       - key: ENABLE_COD
         value: true
       - key: ENABLE_CASH_AT_SHOP
         value: true
+      - key: ENABLE_UPI
+        value: true
+      - key: UPI_ID
+        value: prajwal1111@slc
       - key: ENABLE_ONLINE_PAYMENT
         value: false
+      # Optional: Razorpay (uncomment if needed)
+      # - key: RAZORPAY_KEY_ID
+      #   sync: false
+      # - key: RAZORPAY_KEY_SECRET
+      #   sync: false
+      # Optional: Email Service (uncomment if needed)
+      # - key: EMAIL_HOST
+      #   value: smtp.gmail.com
+      # - key: EMAIL_PORT
+      #   value: 587
+      # - key: EMAIL_USER
+      #   sync: false
+      # - key: EMAIL_PASSWORD
+      #   sync: false
+      # Optional: SMS Service (uncomment if needed)
+      # - key: TWILIO_ACCOUNT_SID
+      #   sync: false
+      # - key: TWILIO_AUTH_TOKEN
+      #   sync: false
+      # - key: TWILIO_PHONE_NUMBER
+      #   sync: false
 
-  # Frontend Static Site
-  - type: web
-    name: mahalakshmi-frontend
-    env: static
-    buildCommand: echo "No build needed"
-    staticPublishPath: .
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /mahalakshmi-client.html
-
+# PostgreSQL Database (Free tier available)
 databases:
   - name: mahalakshmi-db
     databaseName: mahalakshmi
-    user: mahalakshmi
+    user: mahalakshmi_user
+    plan: free

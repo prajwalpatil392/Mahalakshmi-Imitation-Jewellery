@@ -143,7 +143,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
       <span>Total:</span>
       <span id="cartTotal">₹0</span>
     </div>
-    <button class="cart-checkout-btn" onclick="goToCheckout()">✦ Proceed to Checkout</button>
+    <button type="button" class="cart-checkout-btn" onclick="goToCheckout()">✦ Proceed to Checkout</button>
   </div>
 </div>
 
@@ -427,13 +427,19 @@ function renderCart() {
     
     buyItems.forEach(item => {
       const idx = cart.indexOf(item);
+      const qty = item.quantity || 1;
       total += item.price;
       html += `<div class="cart-item">
         <div class="cart-item-icon">${item.icon}</div>
         <div class="cart-item-info">
           <div class="cart-item-name">${item.name}</div>
           <div class="cart-item-mode">💰 Purchase</div>
-          <div class="cart-item-price">Qty: ${item.quantity} × ₹${item.unitPrice.toLocaleString()} = ₹${item.price.toLocaleString()}</div>
+          <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
+            <button onclick="updateCartQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">−</button>
+            <span style="color:var(--gold-light);font-weight:600;min-width:20px;text-align:center;">${qty}</span>
+            <button onclick="updateCartQuantity(${idx},1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">+</button>
+          </div>
+          <div class="cart-item-price">₹${item.price.toLocaleString()} ${qty>1?`(₹${item.unitPrice} × ${qty})`:''}</div>
         </div>
         <button class="cart-item-remove" onclick="removeFromCart(${idx})">✕</button>
       </div>`;
@@ -452,6 +458,7 @@ function renderCart() {
     
     rentItems.forEach(item => {
       const idx = cart.indexOf(item);
+      const qty = item.quantity || 1;
       total += item.price;
       html += `<div class="cart-item">
         <div class="cart-item-icon">${item.icon}</div>
@@ -461,7 +468,12 @@ function renderCart() {
           ${item.rentalData ? `<div style="font-size:.75rem;color:rgba(240,201,107,0.5);margin-top:4px;">
             ${item.rentalData.from} → ${item.rentalData.to} (${item.rentalData.days} days)
           </div>` : ''}
-          <div class="cart-item-price">Qty: ${item.quantity} × ₹${item.unitPrice.toLocaleString()}/day = ₹${item.price.toLocaleString()}</div>
+          <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
+            <button onclick="updateCartQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">−</button>
+            <span style="color:var(--gold-light);font-weight:600;min-width:20px;text-align:center;">${qty}</span>
+            <button onclick="updateCartQuantity(${idx},1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">+</button>
+          </div>
+          <div class="cart-item-price">₹${item.price.toLocaleString()} ${qty>1?`(₹${item.unitPrice}/day × ${qty})`:''}</div>
         </div>
         <button class="cart-item-remove" onclick="removeFromCart(${idx})">✕</button>
       </div>`;
@@ -473,6 +485,33 @@ function renderCart() {
   document.getElementById('cartTotal').textContent = '₹' + total.toLocaleString();
 }
 
+function updateCartQuantity(idx, change) {
+  const item = cart[idx];
+  const newQty = (item.quantity || 1) + change;
+  
+  if(newQty <= 0) {
+    removeFromCart(idx);
+    return;
+  }
+  
+  const product = products.find(p => p.id === item.id);
+  if(!product) return;
+  
+  // Check if enough stock available
+  if(newQty > product.availableQty) {
+    showToast(`Only ${product.availableQty} available!`);
+    return;
+  }
+  
+  item.quantity = newQty;
+  item.price = item.unitPrice * newQty;
+  
+  CartManager.saveCart(cart);
+  updateCartBadge();
+  renderCart();
+  renderProducts();
+}
+
 function removeFromCart(idx) {
   cart.splice(idx, 1);
   CartManager.saveCart(cart);
@@ -482,8 +521,26 @@ function removeFromCart(idx) {
 }
 
 function goToCheckout() {
+  if (cart.length === 0) {
+    showToast('Your cart is empty!');
+    return;
+  }
+
   CartManager.saveCart(cart);
-  window.location.href = 'mahalakshmi-client.html#checkout';
+
+  // same logic as buy.js – if we're not on the client homepage, send the
+  // user there directly with #checkout.  avoid the extra confirmation step
+  // so only one interaction is required.
+  if (!window.location.pathname.includes('mahalakshmi-client.html')) {
+    window.location.href = 'mahalakshmi-client.html#checkout';
+    return;
+  }
+
+  // already on client page – open checkout right away
+  window.location.hash = 'checkout';
+  if (typeof openCheckout === 'function') {
+    openCheckout();
+  }
 }
 
 loadProducts();

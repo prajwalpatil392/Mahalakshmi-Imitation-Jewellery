@@ -91,13 +91,54 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get customer by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const [customers] = await db.query('SELECT * FROM customers WHERE id = ?', [req.params.id]);
+    
+    if (customers.length === 0) {
+      return res.status(404).json({ error: 'Customer not found' });
+    }
+    
+    res.json(customers[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new customer (admin endpoint)
+router.post('/', async (req, res) => {
+  try {
+    const { name, email, phone, city, address } = req.body;
+    
+    // Validate required fields
+    if (!name || !phone) {
+      return res.status(400).json({ error: 'Name and phone are required' });
+    }
+    
+    // Validate email format if provided
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+    
+    const [result] = await db.query(
+      'INSERT INTO customers (name, email, phone, city, address) VALUES (?, ?, ?, ?, ?)',
+      [name, email, phone, city, address]
+    );
+    
+    res.status(201).json({ customerId: result.insertId, name, email, phone, city, address });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
 // Update customer
 router.put('/:id', async (req, res) => {
   try {
-    const { name, email } = req.body;
+    const { name, email, city, address } = req.body;
     await db.query(
-      'UPDATE customers SET name = ?, email = ? WHERE id = ?',
-      [name, email, req.params.id]
+      'UPDATE customers SET name = COALESCE(?, name), email = COALESCE(?, email), city = COALESCE(?, city), address = COALESCE(?, address) WHERE id = ?',
+      [name, email, city, address, req.params.id]
     );
     res.json({ message: 'Customer updated successfully' });
   } catch (error) {

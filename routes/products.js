@@ -8,9 +8,26 @@ router.get('/', async (req, res) => {
   try {
     const [products] = await db.query('SELECT * FROM products');
     
+    // Optimize: Get all consumed stock in one query
+    const productIds = products.map(p => p.id);
+    const [consumedData] = await db.query(
+      `SELECT oi.product_id, COALESCE(SUM(oi.quantity), 0) as count 
+       FROM order_items oi
+       JOIN orders o ON oi.order_id = o.id
+       WHERE oi.product_id IN (?) AND o.status IN ('New', 'Confirmed')
+       GROUP BY oi.product_id`,
+      [productIds]
+    );
+    
+    // Create a map for quick lookup
+    const consumedMap = {};
+    consumedData.forEach(item => {
+      consumedMap[item.product_id] = item.count;
+    });
+    
     // Calculate available quantity for each product
-    const productsWithAvailability = await Promise.all(products.map(async (product) => {
-      const consumed = await getConsumedStock(product.id);
+    const productsWithAvailability = products.map(product => {
+      const consumed = consumedMap[product.id] || 0;
       const available = Math.max(0, product.base_stock - consumed);
       
       return {
@@ -28,7 +45,7 @@ router.get('/', async (req, res) => {
         isAvailable: available > 0 && product.available,
         image_url: product.image_url
       };
-    }));
+    });
     
     res.json(productsWithAvailability);
   } catch (error) {

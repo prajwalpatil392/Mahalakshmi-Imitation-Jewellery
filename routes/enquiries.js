@@ -43,7 +43,29 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const orderId = 'ENQ-' + Date.now().toString().slice(-6);
-    const { customer, requestType } = req.body;
+    
+    // Support both formats: { customer: {...} } and flat { name, email, ... }
+    let customer, requestType;
+    if (req.body.customer) {
+      customer = req.body.customer;
+      requestType = req.body.requestType;
+    } else {
+      // Flat format from test
+      const { name, email, phone, subject, message } = req.body;
+      
+      // Validate required fields
+      if (!name || !phone || !message) {
+        return res.status(400).json({ error: 'Name, phone, and message are required' });
+      }
+      
+      // Validate email format if provided
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ error: 'Invalid email format' });
+      }
+      
+      customer = { name, email, phone, event: subject, notes: message };
+      requestType = 'enquiry';
+    }
     
     const [result] = await db.query(
       `INSERT INTO enquiries (order_id, customer_name, customer_phone, customer_email, customer_event, customer_notes, request_type, status, placed_at, timestamp) 
@@ -51,7 +73,7 @@ router.post('/', async (req, res) => {
       [orderId, customer.name, customer.phone, customer.email, customer.event, customer.notes, requestType, 'New', new Date().toLocaleString('en-IN'), Date.now()]
     );
     
-    res.status(201).json({ id: result.insertId, orderId, ...req.body });
+    res.status(201).json({ id: result.insertId, enquiryId: result.insertId, orderId, ...req.body });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -63,6 +85,17 @@ router.patch('/:id/status', async (req, res) => {
     const { status } = req.body;
     await db.query('UPDATE enquiries SET status = ? WHERE id = ?', [status, req.params.id]);
     res.json({ id: req.params.id, status });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Update enquiry (full update)
+router.put('/:id', async (req, res) => {
+  try {
+    const { status } = req.body;
+    await db.query('UPDATE enquiries SET status = ? WHERE id = ?', [status, req.params.id]);
+    res.json({ id: req.params.id, status, message: 'Enquiry updated successfully' });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

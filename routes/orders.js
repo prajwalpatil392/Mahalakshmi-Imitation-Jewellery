@@ -25,10 +25,18 @@ router.get('/', async (req, res) => {
     
     const [orders] = await db.query(query, params);
     
-    // Get items for each order
-    for (let order of orders) {
-      const [items] = await db.query('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
-      order.items = items;
+    // Optimize: Get all items in one query instead of N queries
+    if (orders.length > 0) {
+      const orderIds = orders.map(o => o.id);
+      const [allItems] = await db.query(
+        'SELECT * FROM order_items WHERE order_id IN (?)',
+        [orderIds]
+      );
+      
+      // Group items by order_id
+      orders.forEach(order => {
+        order.items = allItems.filter(item => item.order_id === order.id);
+      });
     }
     
     res.json(orders);

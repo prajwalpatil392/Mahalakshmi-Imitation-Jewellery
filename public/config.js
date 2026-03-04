@@ -52,14 +52,28 @@ const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderData)
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      const message = (data && data.error)
+        ? data.error
+        : `Failed to create order (status ${response.status})`;
+      throw new Error(message);
+    }
+    return data;
   },
   
   async getOrders(status = null) {
     let url = `${API_BASE_URL}/orders`;
     if (status) url += `?status=${status}`;
     const response = await fetch(url);
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      const message = (data && data.error)
+        ? data.error
+        : `Failed to fetch orders (status ${response.status})`;
+      throw new Error(message);
+    }
+    return data;
   },
   
   async updateOrderStatus(id, status) {

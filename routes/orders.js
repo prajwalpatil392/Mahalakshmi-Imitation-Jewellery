@@ -8,7 +8,7 @@ const { sendOrderConfirmationSMS, sendAdminOrderNotificationSMS } = require('../
 router.get('/', async (req, res) => {
   try {
     const { status, limit } = req.query;
-    let query = 'SELECT * FROM orders WHERE type = "order"';
+    let query = "SELECT * FROM orders WHERE type = 'order'";
     const params = [];
     
     if (status) {
@@ -149,9 +149,9 @@ router.delete('/:id', async (req, res) => {
 // Get order statistics
 router.get('/stats/summary', async (req, res) => {
   try {
-    const [totalResult] = await db.query('SELECT COUNT(*) as count FROM orders WHERE type = "order"');
-    const [newResult] = await db.query('SELECT COUNT(*) as count FROM orders WHERE type = "order" AND status = "New"');
-    const [revenueResult] = await db.query('SELECT SUM(total) as total FROM orders WHERE type = "order" AND status IN ("Confirmed", "Delivered", "Completed")');
+    const [totalResult] = await db.query("SELECT COUNT(*) as count FROM orders WHERE type = 'order'");
+    const [newResult] = await db.query("SELECT COUNT(*) as count FROM orders WHERE type = 'order' AND status = 'New'");
+    const [revenueResult] = await db.query("SELECT SUM(total) as total FROM orders WHERE type = 'order' AND status IN ('Confirmed', 'Delivered', 'Completed')");
     
     res.json({
       totalOrders: totalResult[0].count,

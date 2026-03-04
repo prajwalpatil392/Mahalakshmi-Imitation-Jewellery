@@ -23,22 +23,38 @@ if (usePostgres) {
   // MySQL-compatible wrapper for PostgreSQL
   pool = {
     query: async (sql, params = []) => {
-      let index = 0;
-      let pgSql = sql.replace(/\?/g, () => `$${++index}`);
-      
+      // Expand MySQL-style IN (?) with array params into PostgreSQL ($1,$2,...) placeholders
+      const parts = sql.split('?');
+      const newParams = [];
+      let paramIndex = 0;
+      let pgSql = parts[0];
+
+      for (let i = 0; i < params.length; i++) {
+        const param = params[i];
+        if (Array.isArray(param)) {
+          const placeholders = param.map(() => `$${++paramIndex}`).join(',');
+          pgSql += placeholders;
+          newParams.push(...param);
+        } else {
+          pgSql += `$${++paramIndex}`;
+          newParams.push(param);
+        }
+        pgSql += parts[i + 1] || '';
+      }
+
       // Auto-add RETURNING id for INSERT statements
       if (pgSql.trim().toUpperCase().startsWith('INSERT') && !pgSql.toUpperCase().includes('RETURNING')) {
         pgSql += ' RETURNING id';
       }
-      
-      const result = await pgPool.query(pgSql, params);
-      
+
+      const result = await pgPool.query(pgSql, newParams);
+
       // Return [rows, fields] format like MySQL does
       // Attach metadata to rows array for compatibility
       const rows = result.rows;
       rows.insertId = result.rows[0]?.id || null;
       rows.affectedRows = result.rowCount;
-      
+
       return [rows, result.fields];
     },
     execute: async (sql, params) => pool.query(sql, params),

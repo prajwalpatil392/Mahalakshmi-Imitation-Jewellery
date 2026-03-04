@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
     if (rentals.length > 0) {
       const rentalIds = rentals.map(r => r.id);
       const [allItems] = await db.query(
-        'SELECT * FROM order_items WHERE order_id IN (?) AND mode = "rent"',
+        "SELECT * FROM order_items WHERE order_id IN (?) AND mode = 'rent'",
         [rentalIds]
       );
       
@@ -70,14 +70,14 @@ router.patch('/:id/return', async (req, res) => {
     
     // Get rental items to restore inventory
     const [items] = await connection.query(
-      'SELECT product_id, quantity FROM order_items WHERE order_id = ? AND mode = "rent"',
+      "SELECT product_id, quantity FROM order_items WHERE order_id = ? AND mode = 'rent'",
       [req.params.id]
     );
     
     // Restore inventory for each item
     for (const item of items) {
       await connection.query(
-        'UPDATE products SET stock = stock + ? WHERE id = ?',
+        'UPDATE products SET base_stock = base_stock + ? WHERE id = ?',
         [item.quantity, item.product_id]
       );
     }
@@ -108,7 +108,7 @@ router.get('/overdue', async (req, res) => {
     if (rentals.length > 0) {
       const rentalIds = rentals.map(r => r.id);
       const [allItems] = await db.query(
-        'SELECT * FROM order_items WHERE order_id IN (?) AND mode = "rent"',
+        "SELECT * FROM order_items WHERE order_id IN (?) AND mode = 'rent'",
         [rentalIds]
       );
       

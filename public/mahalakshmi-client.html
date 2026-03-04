@@ -790,9 +790,17 @@ async function loadProducts() {
       return;
     }
     
-    products = await api.getProducts();
+    const allProducts = await api.getProducts();
+
+    // Ensure we have an array before using it
+    if (Array.isArray(allProducts)) {
+      products = allProducts;
+      console.log('✅ Products loaded from API:', products.length);
+    } else {
+      console.error('Unexpected products payload (not an array):', allProducts);
+      products = fallbackProducts;
+    }
     renderProducts(currentFilter);
-    console.log('✅ Products loaded from API:', products.length);
   } catch (error) {
     console.error('❌ Error loading products from API:', error);
     console.log('Using fallback products');
@@ -1614,7 +1622,13 @@ async function loadMyOrders(){
     
     // Try to load from API
     if(typeof api !== 'undefined') {
-      orders = await api.getOrders();
+      const apiOrders = await api.getOrders();
+      if (Array.isArray(apiOrders)) {
+        orders = apiOrders;
+      } else {
+        console.error('Unexpected orders payload (not an array):', apiOrders);
+        orders = [];
+      }
     } else {
       // Fallback to localStorage
       orders = JSON.parse(localStorage.getItem('mlr_orders') || '[]');

@@ -5,7 +5,13 @@ async function loadProducts() {
   try {
     if(typeof api !== 'undefined') {
       const allProducts = await api.getProducts();
-      products = allProducts.filter(p => p.type === 'buy' || p.type === 'both');
+      // Ensure we have an array before filtering
+      if (Array.isArray(allProducts)) {
+        products = allProducts.filter(p => p.type === 'buy' || p.type === 'both');
+      } else {
+        console.error('Unexpected products payload (not an array):', allProducts);
+        products = [];
+      }
     } else {
       products = [
         {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"📿",buy:3200,availableQty:5,isAvailable:true},
@@ -13,12 +19,20 @@ async function loadProducts() {
         {id:4,name:"Jimikki Earrings",material:"South Indian Style",icon:"👂",buy:950,availableQty:5,isAvailable:true},
         {id:6,name:"Kangan Bangles (Set 4)",material:"Gold-Plated Brass",icon:"⭕",buy:1200,availableQty:8,isAvailable:true},
         {id:8,name:"Antique Toe Ring Pair",material:"Sterling Silver Finish",icon:"🦶",buy:450,availableQty:10,isAvailable:true}
-      ];
+      ];      
     }
-    renderProducts();
   } catch (error) {
     console.error('Error loading products:', error);
+    // Fallback to local demo products if API fails
+    products = [
+      {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"📿",buy:3200,availableQty:5,isAvailable:true},
+      {id:3,name:"Temple Necklace",material:"Gold-Plated Copper",icon:"💛",buy:2400,availableQty:5,isAvailable:true},
+      {id:4,name:"Jimikki Earrings",material:"South Indian Style",icon:"👂",buy:950,availableQty:5,isAvailable:true},
+      {id:6,name:"Kangan Bangles (Set 4)",material:"Gold-Plated Brass",icon:"⭕",buy:1200,availableQty:8,isAvailable:true},
+      {id:8,name:"Antique Toe Ring Pair",material:"Sterling Silver Finish",icon:"🦶",buy:450,availableQty:10,isAvailable:true}
+    ];
   }
+  renderProducts();
 }
 
 function renderProducts() {

@@ -188,65 +188,8 @@ tr:last-child td{border-bottom:none;}
 .notif-count{position:absolute;top:-6px;right:-6px;background:var(--gold);color:var(--maroon-deep);border-radius:50%;width:18px;height:18px;font-size:.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;display:none;}
 .notif-count.visible{display:flex;}
 
-/* RESPONSIVE */
-@media(max-width:1200px){
-  .stat-grid{grid-template-columns:repeat(2,1fr);}
-  .topbar-title{font-size:1.2rem;}
-}
-
-@media(max-width:900px){
-  .sidebar{width:60px;}
-  .sidebar-brand-name, .sidebar-brand-sub, .nav-item .ni-text, .sidebar-footer, .nav-section{display:none;}
-  .nav-item{justify-content:center;padding:14px 0;}
-  .ni-icon{margin-right:0;}
-  .topbar{padding:0 16px;}
-  .content{padding:16px;}
-  .stat-grid{gap:12px;}
-  .sc-header{flex-direction:column;align-items:flex-start;gap:10px;}
-}
-
-@media(max-width:768px){
-  .prod-admin-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr));}
-  .pac-pricing{flex-direction:column;gap:8px;align-items:center;}
-  .detail-grid{grid-template-columns:1fr;}
-}
-
-@media(max-width:640px){
-  .app{flex-direction:column;}
-  .sidebar{width:100%;height:auto;flex-direction:row;align-items:center;padding:0 8px;}
-  .sidebar-brand{border:none;padding:8px;}
-  .sidebar-brand-name{display:block;font-size:1rem;}
-  .sidebar-nav{flex:1;display:flex;justify-content:flex-end;}
-  .nav-item{padding:10px 12px;}
-  .ni-text{display:none;}
-  .topbar-right .live-dot, .topbar-right .topbar-date{display:none;}
-  .topbar-title{font-size:1.1rem;}
-  .stat-grid{grid-template-columns:1fr 1fr;}
-  .sc-val{font-size:1.8rem;}
-  .sc-label{font-size:.6rem;}
-  .sc-header h3{font-size:1rem;}
-  .filter-select, .search-input{width:100%;}
-  .action-btns .ab{font-size:0.6rem; padding:4px 6px;}
-  #page-products .tab{font-size:0.7rem; padding: 6px 8px;}
-  #page-products .tab:nth-child(2)::before { content: '💰'; margin-right: 4px; }
-  #page-products .tab:nth-child(3)::before { content: '📅'; margin-right: 4px; }
-  #page-products .tab:nth-child(4)::before { content: '🔄'; margin-right: 4px; }
-  #page-products .tab .button-text{display:none;}
-}
-
-@media(max-width:480px){
-  .stat-grid{grid-template-columns:1fr;}
-  .topbar{height:50px;}
-  .topbar-title{display:none;}
-  .topbar-right{width:100%;justify-content:space-around;}
-  .refresh-btn{padding:6px 10px;}
-  .modal{padding:24px;}
-  .modal h2{font-size:1.3rem;}
-  .login-box{padding:15px;}
-  #page-products .tab{font-size:0.6rem; padding: 5px;}
-  #page-products .tab:nth-child(2), #page-products .tab:nth-child(3), #page-products .tab:nth-child(4) {min-width: 50px; text-align: center;}
-  #page-products .tab .button-text{display:none;}
-}
+@media(max-width:900px){.stat-grid{grid-template-columns:1fr 1fr;}.sidebar{width:200px;}.detail-grid{grid-template-columns:1fr;}}
+@media(max-width:640px){.app{flex-direction:column;}.sidebar{width:100%;height:auto;}.stat-grid{grid-template-columns:1fr 1fr;}}
 </style>
 </head>
 <body>
@@ -377,9 +320,9 @@ tr:last-child td{border-bottom:none;}
             <div style="display:flex;gap:16px;align-items:center;">
               <div style="display:flex;gap:8px;">
                 <button class="tab active" onclick="filterProductsByType('all', this)">All Products</button>
-                <button class="tab" onclick="filterProductsByType('buy', this)"><span class="button-text">For Sale</span></button>
-                <button class="tab" onclick="filterProductsByType('rent', this)"><span class="button-text">For Rent</span></button>
-                <button class="tab" onclick="filterProductsByType('both', this)"><span class="button-text">Both</span></button>
+                <button class="tab" onclick="filterProductsByType('buy', this)">💰 For Sale</button>
+                <button class="tab" onclick="filterProductsByType('rent', this)">📅 For Rent</button>
+                <button class="tab" onclick="filterProductsByType('both', this)">🔄 Both</button>
               </div>
               <button class="refresh-btn" onclick="openAddProductModal()" style="background:var(--gold);color:var(--maroon-deep);border:none;">+ Add Product</button>
               <div style="display:flex;gap:16px;align-items:center;font-size:.72rem;letter-spacing:.08em;margin-left:auto;">

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -86,6 +86,23 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 .cart-total{display:flex;justify-content:space-between;margin-bottom:16px;font-size:1.3rem;color:var(--gold-light);font-family:'Cormorant Garamond',serif;font-weight:700;}
 .cart-checkout-btn{background:var(--gold);color:var(--maroon-deep);border:none;padding:14px;width:100%;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;cursor:pointer;}
 .cart-checkout-btn:hover{background:var(--gold-light);}
+
+/* RESPONSIVE */
+@media (max-width:1024px){
+  nav{padding:0 24px;}
+  .products-section{padding:64px 24px;}
+}
+
+@media (max-width:768px){
+  nav{padding:0 16px;}
+  .nav-links{display:none;}
+  .products-section{padding:56px 16px;}
+  .products-grid{grid-template-columns:1fr 1fr;}
+}
+
+@media (max-width:480px){
+  .products-grid{grid-template-columns:1fr;}
+}
 </style>
 </head>
 <body>

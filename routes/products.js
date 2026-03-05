@@ -7,9 +7,18 @@ const { sendLowStockAlert } = require('../services/emailService');
 router.get('/', async (req, res) => {
   try {
     const [products] = await db.query('SELECT * FROM products');
-    
+
+    // If there are no products yet, return empty list early
+    if (!products || products.length === 0) {
+      return res.json([]);
+    }
+
     // Optimize: Get all consumed stock in one query
     const productIds = products.map(p => p.id);
+    if (productIds.length === 0) {
+      return res.json([]);
+    }
+
     const [consumedData] = await db.query(
       `SELECT oi.product_id, COALESCE(SUM(oi.quantity), 0) as count 
        FROM order_items oi

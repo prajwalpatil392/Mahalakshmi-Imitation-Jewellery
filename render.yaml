@@ -4,7 +4,7 @@ services:
     name: mahalakshmi-backend
     env: node
     buildCommand: npm install
-    startCommand: npm run migrate:postgres || npm start; npm start
+    startCommand: npm run migrate:postgres && npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV

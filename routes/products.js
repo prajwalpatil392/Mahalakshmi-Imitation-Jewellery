@@ -43,7 +43,7 @@ router.get('/', async (req, res) => {
         available: product.available,
         availableQty: available,
         isAvailable: available > 0 && product.available,
-        image_url: product.image_url
+        image_url: product.image_url ? `${req.protocol}://${req.get('host')}${product.image_url}` : null ? `${req.protocol}://${req.get('host')}${product.image_url}` : null
       };
     });
     

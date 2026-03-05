@@ -50,14 +50,15 @@ app.get('/rental', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'rental.html'));
 });
 
-// Test database connection
-db.connect(err => {
-  if (err) {
-    console.error('⚠️ Database connection failed:', err.stack);
-  } else {
+// Test database connection (PostgreSQL via db.query)
+(async () => {
+  try {
+    await db.query('SELECT 1');
     console.log('✅ Database Connected');
+  } catch (err) {
+    console.error('⚠️ Database connection failed:', err.message || err);
   }
-});
+})();
 
 // Start Server
 const PORT = process.env.PORT || 5000;

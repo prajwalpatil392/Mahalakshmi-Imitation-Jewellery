@@ -23,25 +23,26 @@ router.get('/', validatePagination, asyncHandler(async (req, res) => {
   
   const params = [];
   if (status) {
-    query += ' HAVING rental_status = ?';
+    query += ' AND (CASE WHEN o.return_date IS NOT NULL THEN \'returned\' WHEN o.expected_return_date < NOW() THEN \'overdue\' ELSE \'active\' END) = $1';
     params.push(status);
   }
   
   query += ' ORDER BY o.timestamp DESC';
   
-  const [rentals] = await db.query(query, params);
+  const result = await db.query(query, params);
+  const rentals = result.rows;
   
   // Optimize: Get all items in one query
   if (rentals.length > 0) {
     const rentalIds = rentals.map(r => r.id);
-    const [allItems] = await db.query(
-      "SELECT * FROM order_items WHERE order_id IN (?) AND mode = 'rent'",
+    const itemsResult = await db.query(
+      "SELECT * FROM order_items WHERE order_id = ANY($1::int[]) AND mode = 'rent'",
       [rentalIds]
     );
     
     // Group items by order_id
     rentals.forEach(rental => {
-      rental.items = allItems.filter(item => item.order_id === rental.id);
+      rental.items = itemsResult.rows.filter(item => item.order_id === rental.id);
     });
   }
   
@@ -61,23 +62,23 @@ router.patch('/:id/return', validateId, asyncHandler(async (req, res) => {
     // Update order with return information
     await connection.query(
       `UPDATE orders SET 
-        return_date = ?,
-        return_condition = ?,
-        return_notes = ?,
+        return_date = $1,
+        return_condition = $2,
+        return_notes = $3,
         status = 'Returned'
-      WHERE id = ?`,
+      WHERE id = $4`,
       [returnDate || new Date(), condition || 'Good', notes, rentalId]
     );
     
     // Get rental items to release stock
-    const [items] = await connection.query(
-      "SELECT product_id, quantity FROM order_items WHERE order_id = ? AND mode = 'rent'",
+    const itemsResult = await connection.query(
+      "SELECT product_id, quantity FROM order_items WHERE order_id = $1 AND mode = 'rent'",
       [rentalId]
     );
     
     // Release stock using inventory service
-    if (items.length > 0) {
-      const orderItems = items.map(item => ({
+    if (itemsResult.rows.length > 0) {
+      const orderItems = itemsResult.rows.map(item => ({
         product_id: item.product_id,
         quantity: item.quantity
       }));
@@ -85,7 +86,7 @@ router.patch('/:id/return', validateId, asyncHandler(async (req, res) => {
     }
     
     await connection.commit();
-    logger.info(`Rental returned: ${rentalId}`, { condition, items: items.length });
+    logger.info(`Rental returned: ${rentalId}`, { condition, items: itemsResult.rows.length });
     res.json({ success: true, message: 'Rental marked as returned', id: rentalId });
   } catch (error) {
     await connection.rollback();
@@ -98,7 +99,7 @@ router.patch('/:id/return', validateId, asyncHandler(async (req, res) => {
 
 // Get overdue rentals
 router.get('/overdue', asyncHandler(async (req, res) => {
-  const [rentals] = await db.query(`
+  const result = await db.query(`
     SELECT o.* FROM orders o
     WHERE o.type = 'order'
     AND o.return_date IS NULL
@@ -107,17 +108,19 @@ router.get('/overdue', asyncHandler(async (req, res) => {
     ORDER BY o.expected_return_date ASC
   `);
   
+  const rentals = result.rows;
+  
   // Optimize: Get all items in one query
   if (rentals.length > 0) {
     const rentalIds = rentals.map(r => r.id);
-    const [allItems] = await db.query(
-      "SELECT * FROM order_items WHERE order_id IN (?) AND mode = 'rent'",
+    const itemsResult = await db.query(
+      "SELECT * FROM order_items WHERE order_id = ANY($1::int[]) AND mode = 'rent'",
       [rentalIds]
     );
     
     // Group items by order_id
     rentals.forEach(rental => {
-      rental.items = allItems.filter(item => item.order_id === rental.id);
+      rental.items = itemsResult.rows.filter(item => item.order_id === rental.id);
     });
   }
   

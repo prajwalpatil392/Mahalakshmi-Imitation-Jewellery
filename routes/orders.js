@@ -13,32 +13,34 @@ router.get('/', validatePagination, asyncHandler(async (req, res) => {
   const { status, limit } = req.query;
   let query = "SELECT * FROM orders WHERE type = 'order'";
   const params = [];
+  let paramIndex = 1;
   
   if (status) {
-    query += ' AND status = ?';
+    query += ` AND status = $${paramIndex++}`;
     params.push(status);
   }
   
   query += ' ORDER BY timestamp DESC';
   
   if (limit) {
-    query += ' LIMIT ?';
+    query += ` LIMIT $${paramIndex++}`;
     params.push(parseInt(limit));
   }
   
-  const [orders] = await db.query(query, params);
+  const result = await db.query(query, params);
+  const orders = result.rows;
   
   // Optimize: Get all items in one query instead of N queries
   if (orders.length > 0) {
     const orderIds = orders.map(o => o.id);
-    const [allItems] = await db.query(
-      'SELECT * FROM order_items WHERE order_id IN (?)',
+    const itemsResult = await db.query(
+      'SELECT * FROM order_items WHERE order_id = ANY($1::int[])',
       [orderIds]
     );
     
     // Group items by order_id
     orders.forEach(order => {
-      order.items = allItems.filter(item => item.order_id === order.id);
+      order.items = itemsResult.rows.filter(item => item.order_id === order.id);
     });
   }
   
@@ -47,14 +49,14 @@ router.get('/', validatePagination, asyncHandler(async (req, res) => {
 
 // Get single order
 router.get('/:id', validateId, asyncHandler(async (req, res) => {
-  const [orders] = await db.query('SELECT * FROM orders WHERE id = ?', [req.params.id]);
-  if (orders.length === 0) {
+  const result = await db.query('SELECT * FROM orders WHERE id = $1', [req.params.id]);
+  if (result.rows.length === 0) {
     throw new AppError('Order not found', 404, 'ORDER_NOT_FOUND');
   }
   
-  const order = orders[0];
-  const [items] = await db.query('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
-  order.items = items;
+  const order = result.rows[0];
+  const itemsResult = await db.query('SELECT * FROM order_items WHERE order_id = $1', [order.id]);
+  order.items = itemsResult.rows;
   
   res.json({ success: true, data: order });
 }));
@@ -95,20 +97,20 @@ router.post('/', validateOrder, asyncHandler(async (req, res) => {
     const payment_status = paymentMethod === 'online' ? 'pending' : 'pending';
     
     // Insert order with RETURNING clause for PostgreSQL
-    const [result] = await connection.query(
+    const result = await connection.query(
       `INSERT INTO orders (order_id, type, customer_id, customer_name, customer_phone, customer_email, customer_address, customer_event, customer_notes, total, status, placed_at, timestamp, product_names, payment_method, payment_status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING id`,
       [orderId, 'order', customerId || null, customer.name, customer.phone, customer.email || null, customer.address || null, customer.event || null, customer.notes || null, total, status || 'New', new Date().toLocaleString('en-IN'), Date.now(), productNames, payment_method, payment_status]
     );
     
-    const orderDbId = result[0].id;
+    const orderDbId = result.rows[0].id;
     
     // Insert order items with quantities
     for (const item of items) {
       const quantity = item.quantity || 1;
       await connection.query(
         `INSERT INTO order_items (order_id, product_id, product_name, product_icon, mode, quantity, price, rental_from, rental_to, rental_days, rental_total) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
         [orderDbId, item.id, item.name, item.icon, item.mode, quantity, item.unitPrice || item.price, 
          item.rentalData?.from, item.rentalData?.to, item.rentalData?.days, item.rentalData?.total]
       );
@@ -123,7 +125,7 @@ router.post('/', validateOrder, asyncHandler(async (req, res) => {
     
     // Clear customer cart if customerId provided
     if (customerId) {
-      await connection.query('UPDATE customers SET cart_data = NULL WHERE id = ?', [customerId]);
+      await connection.query('UPDATE customers SET cart_data = NULL WHERE id = $1', [customerId]);
     }
     
     await connection.commit();
@@ -156,20 +158,20 @@ router.patch('/:id/status', validateId, validateStatusUpdate, asyncHandler(async
   const orderId = req.params.id;
   
   // Get current order status
-  const [orders] = await db.query('SELECT status FROM orders WHERE id = ?', [orderId]);
-  if (orders.length === 0) {
+  const result = await db.query('SELECT status FROM orders WHERE id = $1', [orderId]);
+  if (result.rows.length === 0) {
     throw new AppError('Order not found', 404, 'ORDER_NOT_FOUND');
   }
   
-  const oldStatus = orders[0].status;
+  const oldStatus = result.rows[0].status;
   
   // Update status
-  await db.query('UPDATE orders SET status = ? WHERE id = ?', [status, orderId]);
+  await db.query('UPDATE orders SET status = $1 WHERE id = $2', [status, orderId]);
   
   // Release stock if order is cancelled or returned
   if ((status === 'Cancelled' || status === 'Returned') && (oldStatus === 'New' || oldStatus === 'Confirmed')) {
-    const [items] = await db.query('SELECT product_id, quantity FROM order_items WHERE order_id = ?', [orderId]);
-    const orderItems = items.map(item => ({
+    const itemsResult = await db.query('SELECT product_id, quantity FROM order_items WHERE order_id = $1', [orderId]);
+    const orderItems = itemsResult.rows.map(item => ({
       product_id: item.product_id,
       quantity: item.quantity
     }));
@@ -185,11 +187,11 @@ router.delete('/:id', validateId, asyncHandler(async (req, res) => {
   const orderId = req.params.id;
   
   // Get order items before deletion
-  const [items] = await db.query('SELECT product_id, quantity FROM order_items WHERE order_id = ?', [orderId]);
+  const itemsResult = await db.query('SELECT product_id, quantity FROM order_items WHERE order_id = $1', [orderId]);
   
   // Release stock
-  if (items.length > 0) {
-    const orderItems = items.map(item => ({
+  if (itemsResult.rows.length > 0) {
+    const orderItems = itemsResult.rows.map(item => ({
       product_id: item.product_id,
       quantity: item.quantity
     }));
@@ -197,7 +199,7 @@ router.delete('/:id', validateId, asyncHandler(async (req, res) => {
   }
   
   // Delete order (cascade will delete order_items)
-  await db.query('DELETE FROM orders WHERE id = ?', [orderId]);
+  await db.query('DELETE FROM orders WHERE id = $1', [orderId]);
   
   logger.info(`Order deleted: ${orderId}`);
   res.json({ success: true, message: 'Order deleted' });
@@ -205,16 +207,16 @@ router.delete('/:id', validateId, asyncHandler(async (req, res) => {
 
 // Get order statistics
 router.get('/stats/summary', asyncHandler(async (req, res) => {
-  const [totalResult] = await db.query("SELECT COUNT(*) as count FROM orders WHERE type = 'order'");
-  const [newResult] = await db.query("SELECT COUNT(*) as count FROM orders WHERE type = 'order' AND status = 'New'");
-  const [revenueResult] = await db.query("SELECT SUM(total) as total FROM orders WHERE type = 'order' AND status IN ('Confirmed', 'Delivered', 'Completed')");
+  const totalResult = await db.query("SELECT COUNT(*) as count FROM orders WHERE type = 'order'");
+  const newResult = await db.query("SELECT COUNT(*) as count FROM orders WHERE type = 'order' AND status = 'New'");
+  const revenueResult = await db.query("SELECT SUM(total) as total FROM orders WHERE type = 'order' AND status IN ('Confirmed', 'Delivered', 'Completed')");
   
   res.json({
     success: true,
     data: {
-      totalOrders: totalResult[0].count,
-      newOrders: newResult[0].count,
-      totalRevenue: revenueResult[0].total || 0
+      totalOrders: parseInt(totalResult.rows[0].count),
+      newOrders: parseInt(newResult.rows[0].count),
+      totalRevenue: parseFloat(revenueResult.rows[0].total) || 0
     }
   });
 }));

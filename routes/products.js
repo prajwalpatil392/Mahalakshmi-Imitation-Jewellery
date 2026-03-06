@@ -52,7 +52,9 @@ router.get('/', async (req, res) => {
         available: product.available,
         availableQty: available,
         isAvailable: available > 0 && product.available,
-        image_url: product.image_url ? `${req.protocol}://${req.get('host')}${product.image_url}` : null ? `${req.protocol}://${req.get('host')}${product.image_url}` : null
+       image_url: product.image_url
+     ? `${req.protocol}://${req.get('host')}${product.image_url}`
+     : null
       };
     });
     
@@ -77,8 +79,8 @@ router.get('/:id', async (req, res) => {
       name: product.name,
       material: product.material,
       icon: product.icon,
-      rentPerDay: product.rent_per_day,
-      buy: product.buy_price,
+      rentPerDay: Number(product.rent_per_day),
+      buy: Number(product.buy_price),
       type: product.type,
       category: product.category,
       baseStock: product.base_stock,

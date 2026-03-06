@@ -69,7 +69,9 @@ function renderProducts() {
     let imgStyle = '';
     
     if (p.image_url) {
-      const imageUrl = p.image_url.startsWith('http') ? p.image_url : `${api.baseURL}${p.image_url}`;
+      const imageUrl = p.image_url.startsWith('http')
+  ? p.image_url
+  : `https://mahalakshmi-imitation-jewellery.onrender.com${p.image_url}`;
       imgStyle = `background-image:url('${imageUrl}');background-size:cover;background-position:center;`;
       imgContent = `<img src="${imageUrl}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-size:5rem;\\'>${p.icon}</span><span class=\\'avail-tag ${availClass}\\'>${availText}</span>';" />`;
     }

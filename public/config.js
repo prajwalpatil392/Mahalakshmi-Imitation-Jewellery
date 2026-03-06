@@ -20,12 +20,15 @@ const api = {
       throw new Error(message);
     }
 
-    return data;
+    // Handle new response format { success: true, data: [...] }
+    return data.data || data;
   },
   
   async getProduct(id) {
     const response = await fetch(`${API_BASE_URL}/products/${id}`);
-    return response.json();
+    const data = await response.json();
+    // Handle new response format { success: true, data: {...} }
+    return data.data || data;
   },
   
   async createProduct(productData) {
@@ -86,7 +89,8 @@ async createOrder(orderData) {
         : `Failed to fetch orders (status ${response.status})`;
       throw new Error(message);
     }
-    return data;
+    // Handle new response format { success: true, data: [...] }
+    return data.data || data;
   },
   
   async updateOrderStatus(id, status) {
@@ -107,7 +111,9 @@ async createOrder(orderData) {
   
   async getOrderStats() {
     const response = await fetch(`${API_BASE_URL}/orders/stats/summary`);
-    return response.json();
+    const data = await response.json();
+    // Handle new response format { success: true, data: {...} }
+    return data.data || data;
   },
   
   // Enquiries

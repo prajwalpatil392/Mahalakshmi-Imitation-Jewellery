@@ -20,14 +20,13 @@ router.get('/', async (req, res) => {
     }
 
     const [consumedData] = await db.query(
-      `SELECT oi.product_id, COALESCE(SUM(oi.quantity), 0) as count 
-       FROM order_items oi
-       JOIN orders o ON oi.order_id = o.id
-       WHERE oi.product_id IN (?) AND o.status IN ('New', 'Confirmed')
-       GROUP BY oi.product_id`,
-      [productIds]
-    );
-    
+  `SELECT oi.product_id, COALESCE(SUM(oi.quantity), 0) as count 
+   FROM order_items oi
+   JOIN orders o ON oi.order_id = o.id
+   WHERE oi.product_id = ANY($1::int[]) AND o.status IN ('New', 'Confirmed')
+   GROUP BY oi.product_id`,
+  [productIds]
+);
     // Create a map for quick lookup
     const consumedMap = {};
     consumedData.forEach(item => {

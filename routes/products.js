@@ -34,28 +34,34 @@ router.get('/', async (req, res) => {
     });
     
     // Calculate available quantity for each product
-    const productsWithAvailability = products.map(product => {
-      const consumed = consumedMap[product.id] || 0;
-      const available = Math.max(0, product.base_stock - consumed);
-      
-      return {
-        id: product.id,
-        name: product.name,
-        material: product.material,
-        icon: product.icon,
-        rentPerDay: product.rent_per_day,
-        buy: product.buy_price,
-        type: product.type,
-        category: product.category,
-        baseStock: product.base_stock,
-        available: product.available,
-        availableQty: available,
-        isAvailable: available > 0 && product.available,
-       image_url: product.image_url
-     ? `${req.protocol}://${req.get('host')}${product.image_url}`
-     : null
-      };
-    });
+ const productsWithAvailability = products.map(product => {
+  const consumed = consumedMap[product.id] || 0;
+  const available = Math.max(0, product.base_stock - consumed);
+
+  let imageUrl = product.image_url;
+
+  if (imageUrl && !imageUrl.startsWith("http")) {
+    imageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+  }
+
+  imageUrl = imageUrl ? imageUrl.replace("http//", "http://") : null;
+
+  return {
+    id: product.id,
+    name: product.name,
+    material: product.material,
+    icon: product.icon,
+    rentPerDay: product.rent_per_day,
+    buy: product.buy_price,
+    type: product.type,
+    category: product.category,
+    baseStock: product.base_stock,
+    available: product.available,
+    availableQty: available,
+    isAvailable: available > 0 && product.available,
+    image_url: imageUrl
+  };
+});
     
     res.json(productsWithAvailability);
   } catch (error) {

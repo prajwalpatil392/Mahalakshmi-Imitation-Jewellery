@@ -1,42 +1,58 @@
 const { Pool } = require('pg');
 
-// Single PostgreSQL pool used everywhere (Render + local Postgres)
+// PostgreSQL pool configuration
 const pgPool = new Pool({
   connectionString: process.env.DATABASE_URL,
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+  port: process.env.DB_PORT || 5432,
+  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 });
 
 /**
- * Convert MySQL-style SQL with ? placeholders (and IN (?)) into
- * PostgreSQL-style $1, $2, ... and flatten array params.
+ * Convert MySQL-style ? placeholders to PostgreSQL $1, $2, $3...
+ * Handles arrays for IN clauses properly
  */
-function toPostgres(sql, params = []) {
-  let index = 0;
-
+function convertToPostgres(sql, params = []) {
+  let paramIndex = 0;
+  const flatParams = [];
+  
   const pgSql = sql.replace(/\?/g, () => {
-    index++;
-    return `$${index}`;
+    const param = params[paramIndex++];
+    
+    // Handle arrays for IN clauses
+    if (Array.isArray(param)) {
+      const placeholders = param.map(() => `$${flatParams.length + 1 + flatParams.push(param.shift()) - 1}`);
+      param.forEach(p => flatParams.push(p));
+      return `(${placeholders.join(', ')})`;
+    }
+    
+    flatParams.push(param);
+    return `$${flatParams.length}`;
   });
-
-  return { pgSql, newParams: params };
+  
+  return { sql: pgSql, params: flatParams };
 }
 
 const db = {
   /**
-   * MySQL-compatible query: returns [rows, fields?]
+   * Query with MySQL-style ? placeholders (auto-converted to PostgreSQL)
+   * Returns [rows, fields] for MySQL compatibility
    */
   query: async (sql, params = []) => {
-    const { pgSql, newParams } = toPostgres(sql, params);
-    const result = await pgPool.query(pgSql, newParams);
+    const { sql: pgSql, params: pgParams } = convertToPostgres(sql, params);
+    const result = await pgPool.query(pgSql, pgParams);
     const rows = result.rows || [];
-    // Attach MySQL-like metadata where useful
+    
+    // Add MySQL-compatible properties
     rows.insertId = rows[0]?.id || null;
     rows.affectedRows = result.rowCount;
+    
     return [rows, result.fields];
   },
 
@@ -45,7 +61,7 @@ const db = {
   },
 
   /**
-   * MySQL-style transactional connection with beginTransaction/commit/rollback.
+   * Get a connection for transactions
    */
   getConnection: async () => {
     const client = await pgPool.connect();
@@ -54,14 +70,18 @@ const db = {
       beginTransaction: () => client.query('BEGIN'),
       commit: () => client.query('COMMIT'),
       rollback: () => client.query('ROLLBACK'),
+      
       query: async (sql, params = []) => {
-        const { pgSql, newParams } = toPostgres(sql, params);
-        const result = await client.query(pgSql, newParams);
+        const { sql: pgSql, params: pgParams } = convertToPostgres(sql, params);
+        const result = await client.query(pgSql, pgParams);
         const rows = result.rows || [];
+        
         rows.insertId = rows[0]?.id || null;
         rows.affectedRows = result.rowCount;
+        
         return [rows, result.fields];
       },
+      
       release: () => client.release()
     };
   },

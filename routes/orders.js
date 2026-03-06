@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
     if (orders.length > 0) {
       const orderIds = orders.map(o => o.id);
       const [allItems] = await db.query(
-        'SELECT * FROM order_items WHERE order_id = ANY($1::int[])',
+        'SELECT * FROM order_items WHERE order_id IN (?)',
         [orderIds]
       );
       
@@ -63,7 +63,11 @@ router.get('/:id', async (req, res) => {
 
 // Create order
 router.post('/', async (req, res) => {
+  const connection = await db.getConnection();
+  
   try {
+    await connection.beginTransaction();
+    
     const orderId = 'MLR-' + Date.now().toString().slice(-6);
     const { customer, items, total, status, customerId, paymentMethod } = req.body;
     
@@ -78,10 +82,10 @@ router.post('/', async (req, res) => {
     const payment_method = paymentMethod || 'Cash on Delivery';
     const payment_status = paymentMethod === 'online' ? 'pending' : 'pending';
     
-    // Insert order with customer_id, product_names, and payment info
-    const [result] = await db.query(
+    // Insert order with RETURNING clause for PostgreSQL
+    const [result] = await connection.query(
       `INSERT INTO orders (order_id, type, customer_id, customer_name, customer_phone, customer_email, customer_address, customer_event, customer_notes, total, status, placed_at, timestamp, product_names, payment_method, payment_status) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING id`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
       [orderId, 'order', customerId || null, customer.name, customer.phone, customer.email || null, customer.address || null, customer.event || null, customer.notes || null, total, status || 'New', new Date().toLocaleString('en-IN'), Date.now(), productNames, payment_method, payment_status]
     );
     
@@ -90,18 +94,20 @@ router.post('/', async (req, res) => {
     // Insert order items with quantities
     for (const item of items) {
       const quantity = item.quantity || 1;
-      await db.query(
+      await connection.query(
         `INSERT INTO order_items (order_id, product_id, product_name, product_icon, mode, quantity, price, rental_from, rental_to, rental_days, rental_total) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-        [orderDbId, parseInt(item.id), item.name, item.icon, item.mode, quantity, item.unitPrice || item.price, 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [orderDbId, item.id, item.name, item.icon, item.mode, quantity, item.unitPrice || item.price, 
          item.rentalData?.from, item.rentalData?.to, item.rentalData?.days, item.rentalData?.total]
       );
     }
     
     // Clear customer cart if customerId provided
     if (customerId) {
-      await db.query('UPDATE customers SET cart_data = NULL WHERE id = $1', [customerId]);
+      await connection.query('UPDATE customers SET cart_data = NULL WHERE id = ?', [customerId]);
     }
+    
+    await connection.commit();
     
     // Send notifications
     const createdOrder = { ...req.body, order_id: orderId, product_names: productNames };
@@ -112,7 +118,10 @@ router.post('/', async (req, res) => {
     
     res.status(201).json({ id: orderDbId, orderId, payment_method, payment_status, ...req.body });
   } catch (error) {
+    await connection.rollback();
     res.status(400).json({ error: error.message });
+  } finally {
+    connection.release();
   }
 });
 

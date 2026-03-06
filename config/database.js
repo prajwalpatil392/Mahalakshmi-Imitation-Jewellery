@@ -16,32 +16,7 @@ const pgPool = new Pool({
  * PostgreSQL-style $1, $2, ... and flatten array params.
  */
 function toPostgres(sql, params = []) {
-  const parts = sql.split('?');
-  const newParams = [];
-  let paramIndex = 0;
-  let pgSql = parts[0];
-
-  for (let i = 0; i < params.length; i++) {
-    const param = params[i];
-    if (Array.isArray(param)) {
-      // Expand IN (?) array → IN ($1,$2,...)
-      const placeholders = param.map(() => `$${++paramIndex}`).join(',');
-      pgSql += placeholders;
-      newParams.push(...param);
-    } else {
-      pgSql += `$${++paramIndex}`;
-      newParams.push(param);
-    }
-    pgSql += parts[i + 1] || '';
-  }
-
-  // Auto-add RETURNING id for INSERT statements when not explicitly present
-  const upper = pgSql.trim().toUpperCase();
-  if (upper.startsWith('INSERT') && !upper.includes('RETURNING')) {
-    pgSql += ' RETURNING id';
-  }
-
-  return { pgSql, newParams };
+  return { pgSql: sql, newParams: params };
 }
 
 const db = {

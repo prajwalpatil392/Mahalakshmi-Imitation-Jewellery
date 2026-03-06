@@ -2,84 +2,87 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 const { sendLowStockAlert } = require('../services/emailService');
+const { asyncHandler, AppError } = require('../middleware/errorHandler');
+const { validateProduct, validateId, validatePagination } = require('../middleware/validation');
+const logger = require('../utils/logger');
 
 // Get all products with availability
-router.get('/', async (req, res) => {
-  try {
-    const [products] = await db.query('SELECT * FROM products');
+router.get('/', validatePagination, asyncHandler(async (req, res) => {
+  const [products] = await db.query('SELECT * FROM products');
 
-    // If there are no products yet, return empty list early
-    if (!products || products.length === 0) {
-      return res.json([]);
-    }
-
-    // Optimize: Get all consumed stock in one query
-    const productIds = products.map(p => p.id);
-    if (productIds.length === 0) {
-      return res.json([]);
-    }
-
-   const [consumedData] = await db.query(
-  `SELECT oi.product_id, COALESCE(SUM(oi.quantity), 0) as count 
-   FROM order_items oi
-   JOIN orders o ON oi.order_id = o.id
-   WHERE oi.product_id = ANY($1::int[]) AND o.status IN ('New', 'Confirmed')
-   GROUP BY oi.product_id`,
-  [productIds]
-);
-    // Create a map for quick lookup
-    const consumedMap = {};
-    consumedData.forEach(item => {
-      consumedMap[item.product_id] = item.count;
-    });
-    
-    // Calculate available quantity for each product
- const productsWithAvailability = products.map(product => {
-  const consumed = consumedMap[product.id] || 0;
-  const available = Math.max(0, product.base_stock - consumed);
-
-  let imageUrl = product.image_url;
-
-  if (imageUrl && !imageUrl.startsWith("http")) {
-    imageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+  // If there are no products yet, return empty list early
+  if (!products || products.length === 0) {
+    return res.json({ success: true, data: [] });
   }
 
-  imageUrl = imageUrl ? imageUrl.replace("http//", "http://") : null;
-
-  return {
-    id: product.id,
-    name: product.name,
-    material: product.material,
-    icon: product.icon,
-    rentPerDay: product.rent_per_day,
-    buy: product.buy_price,
-    type: product.type,
-    category: product.category,
-    baseStock: product.base_stock,
-    available: product.available,
-    availableQty: available,
-    isAvailable: available > 0 && product.available,
-    image_url: imageUrl
-  };
-});
-    
-    res.json(productsWithAvailability);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  // Optimize: Get all consumed stock in one query
+  const productIds = products.map(p => p.id);
+  if (productIds.length === 0) {
+    return res.json({ success: true, data: [] });
   }
-});
+
+  const [consumedData] = await db.query(
+    `SELECT oi.product_id, COALESCE(SUM(oi.quantity), 0) as count 
+     FROM order_items oi
+     JOIN orders o ON oi.order_id = o.id
+     WHERE oi.product_id = ANY($1::int[]) AND o.status IN ('New', 'Confirmed')
+     GROUP BY oi.product_id`,
+    [productIds]
+  );
+  
+  // Create a map for quick lookup
+  const consumedMap = {};
+  consumedData.forEach(item => {
+    consumedMap[item.product_id] = item.count;
+  });
+  
+  // Calculate available quantity for each product
+  const productsWithAvailability = products.map(product => {
+    const consumed = consumedMap[product.id] || 0;
+    const available = Math.max(0, product.base_stock - consumed);
+
+    let imageUrl = product.image_url;
+
+    if (imageUrl && !imageUrl.startsWith("http")) {
+      imageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+    }
+
+    imageUrl = imageUrl ? imageUrl.replace("http//", "http://") : null;
+
+    return {
+      id: product.id,
+      name: product.name,
+      material: product.material,
+      icon: product.icon,
+      rentPerDay: product.rent_per_day,
+      buy: product.buy_price,
+      type: product.type,
+      category: product.category,
+      baseStock: product.base_stock,
+      available: product.available,
+      availableQty: available,
+      isAvailable: available > 0 && product.available,
+      image_url: imageUrl
+    };
+  });
+  
+  res.json({ success: true, data: productsWithAvailability });
+}));
 
 // Get single product
-router.get('/:id', async (req, res) => {
-  try {
-    const [products] = await db.query('SELECT * FROM products WHERE id = ?', [req.params.id]);
-    if (products.length === 0) return res.status(404).json({ error: 'Product not found' });
-    
-    const product = products[0];
-    const consumed = await getConsumedStock(product.id);
-    const available = Math.max(0, product.base_stock - consumed);
-    
-    res.json({
+router.get('/:id', validateId, asyncHandler(async (req, res) => {
+  const [products] = await db.query('SELECT * FROM products WHERE id = ?', [req.params.id]);
+  if (products.length === 0) {
+    throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND');
+  }
+  
+  const product = products[0];
+  const consumed = await getConsumedStock(product.id);
+  const available = Math.max(0, product.base_stock - consumed);
+  
+  res.json({
+    success: true,
+    data: {
       id: product.id,
       name: product.name,
       material: product.material,
@@ -93,60 +96,51 @@ router.get('/:id', async (req, res) => {
       availableQty: available,
       isAvailable: available > 0 && product.available,
       image_url: product.image_url
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+    }
+  });
+}));
 
 // Create product (admin)
-router.post('/', async (req, res) => {
-  try {
-    const { name, material, icon, rentPerDay, buy, type, category, baseStock, imageUrl } = req.body;
-    const [result] = await db.query(
-      `INSERT INTO products (name, material, icon, rent_per_day, buy_price, type, category, base_stock, image_url) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, material, icon || '💎', rentPerDay, buy, type, category, baseStock || 5, imageUrl || null]
-    );
-    res.status(201).json({ id: result.insertId, ...req.body });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
-  }
-});
+router.post('/', validateProduct, asyncHandler(async (req, res) => {
+  const { name, material, icon, rentPerDay, buy, type, category, baseStock, imageUrl } = req.body;
+  const [result] = await db.query(
+    `INSERT INTO products (name, material, icon, rent_per_day, buy_price, type, category, base_stock, image_url) 
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [name, material, icon || '💎', rentPerDay, buy, type, category, baseStock || 5, imageUrl || null]
+  );
+  
+  logger.info('Product created', { id: result.insertId, name });
+  res.status(201).json({ success: true, data: { id: result.insertId, ...req.body } });
+}));
 
 // Update product (admin)
-router.put('/:id', async (req, res) => {
-  try {
-    const { name, material, icon, rentPerDay, buy, type, category, baseStock, available } = req.body;
-    await db.query(
-      `UPDATE products SET name=?, material=?, icon=?, rent_per_day=?, buy_price=?, type=?, category=?, base_stock=?, available=? WHERE id=?`,
-      [name, material, icon, rentPerDay, buy, type, category, baseStock, available, req.params.id]
-    );
-    
-    // Check for low stock and send alert
-    const consumed = await getConsumedStock(req.params.id);
-    const availableQty = Math.max(0, baseStock - consumed);
-    const threshold = parseInt(process.env.LOW_STOCK_THRESHOLD || 5);
-    
-    if (availableQty <= threshold) {
-      await sendLowStockAlert({ name, stock: availableQty });
-    }
-    
-    res.json({ id: req.params.id, ...req.body });
-  } catch (error) {
-    res.status(400).json({ error: error.message });
+router.put('/:id', validateId, validateProduct, asyncHandler(async (req, res) => {
+  const { name, material, icon, rentPerDay, buy, type, category, baseStock, available } = req.body;
+  await db.query(
+    `UPDATE products SET name=?, material=?, icon=?, rent_per_day=?, buy_price=?, type=?, category=?, base_stock=?, available=? WHERE id=?`,
+    [name, material, icon, rentPerDay, buy, type, category, baseStock, available, req.params.id]
+  );
+  
+  // Check for low stock and send alert
+  const consumed = await getConsumedStock(req.params.id);
+  const availableQty = Math.max(0, baseStock - consumed);
+  const threshold = parseInt(process.env.LOW_STOCK_THRESHOLD || 5);
+  
+  if (availableQty <= threshold) {
+    await sendLowStockAlert({ name, stock: availableQty });
+    logger.warn('Low stock alert sent', { productId: req.params.id, name, stock: availableQty });
   }
-});
+  
+  logger.info('Product updated', { id: req.params.id, name });
+  res.json({ success: true, data: { id: req.params.id, ...req.body } });
+}));
 
 // Delete product (admin)
-router.delete('/:id', async (req, res) => {
-  try {
-    await db.query('DELETE FROM products WHERE id = ?', [req.params.id]);
-    res.json({ message: 'Product deleted' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+router.delete('/:id', validateId, asyncHandler(async (req, res) => {
+  await db.query('DELETE FROM products WHERE id = ?', [req.params.id]);
+  logger.info('Product deleted', { id: req.params.id });
+  res.json({ success: true, message: 'Product deleted' });
+}));
 
 // Helper function to calculate consumed stock
 async function getConsumedStock(productId) {

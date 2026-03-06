@@ -61,6 +61,76 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// TEMPORARY: Migration endpoint - REMOVE AFTER RUNNING MIGRATION!
+app.get('/run-migration', async (req, res) => {
+  const secret = req.query.secret;
+  
+  // Check secret key
+  if (!process.env.MIGRATION_SECRET || secret !== process.env.MIGRATION_SECRET) {
+    logger.warn('Unauthorized migration attempt');
+    return res.status(403).json({ error: 'Forbidden - Invalid secret' });
+  }
+  
+  try {
+    logger.info('Starting migration...');
+    
+    // Run migration directly
+    const db = require('./config/database');
+    
+    // Create inventory_transactions table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS inventory_transactions (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        quantity INTEGER NOT NULL,
+        transaction_type VARCHAR(20) NOT NULL,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+      )
+    `);
+    logger.info('✅ inventory_transactions table created');
+    
+    // Create indexes
+    await db.query('CREATE INDEX IF NOT EXISTS idx_inventory_order ON inventory_transactions(order_id)');
+    await db.query('CREATE INDEX IF NOT EXISTS idx_inventory_product ON inventory_transactions(product_id)');
+    await db.query('CREATE INDEX IF NOT EXISTS idx_inventory_created ON inventory_transactions(created_at)');
+    logger.info('✅ Indexes created');
+    
+    // Create product_stock view
+    await db.query(`
+      CREATE OR REPLACE VIEW product_stock AS
+      SELECT 
+        p.id,
+        p.name,
+        p.base_stock,
+        COALESCE(SUM(CASE WHEN it.transaction_type = 'reserve' THEN it.quantity ELSE 0 END), 0) as reserved_stock,
+        COALESCE(SUM(CASE WHEN it.transaction_type = 'release' THEN it.quantity ELSE 0 END), 0) as released_stock,
+        p.base_stock - COALESCE(SUM(CASE WHEN it.transaction_type = 'reserve' THEN it.quantity ELSE 0 END), 0) + COALESCE(SUM(CASE WHEN it.transaction_type = 'release' THEN it.quantity ELSE 0 END), 0) as available_stock
+      FROM products p
+      LEFT JOIN inventory_transactions it ON p.id = it.product_id
+      GROUP BY p.id, p.name, p.base_stock
+    `);
+    logger.info('✅ product_stock view created');
+    
+    logger.info('✅ Migration completed successfully!');
+    
+    res.json({ 
+      success: true, 
+      message: 'Migration completed successfully!',
+      note: 'IMPORTANT: Remove this endpoint from server.js now!'
+    });
+  } catch (error) {
+    logger.error('Migration failed:', error);
+    res.status(500).json({ 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 // API Routes
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
@@ -113,6 +183,9 @@ app.listen(PORT, () => {
   logger.info(`🚀 Server running on port ${PORT}`);
   logger.info(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.info(`🔗 Health check: http://localhost:${PORT}/health`);
+  if (process.env.MIGRATION_SECRET) {
+    logger.warn('⚠️ MIGRATION ENDPOINT IS ACTIVE - Remove after running migration!');
+  }
 });
 
 // Graceful shutdown

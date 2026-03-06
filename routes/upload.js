@@ -2,22 +2,13 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+const imageService = require('../services/imageService');
+const { asyncHandler, AppError } = require('../middleware/errorHandler');
+const { uploadLimiter } = require('../middleware/rateLimiter');
+const logger = require('../utils/logger');
 
-// Configure multer for file upload
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../uploads/products');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'product-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Configure multer for memory storage (Cloudinary upload)
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage: storage,
@@ -32,65 +23,68 @@ const upload = multer({
     if (mimetype && extname) {
       return cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed!'));
+      cb(new AppError('Only image files are allowed!', 400, 'INVALID_FILE_TYPE'));
     }
   }
 });
 
-// Upload single product image
-router.post('/product', upload.single('image'), (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
-    }
-    
-    const imageUrl = `/uploads/products/${req.file.filename}`;
-    res.json({
-      success: true,
-      imageUrl: imageUrl,
-      filename: req.file.filename
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+// Upload single product image to Cloudinary
+router.post('/product', uploadLimiter, upload.single('image'), asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new AppError('No file uploaded', 400, 'NO_FILE');
   }
-});
+  
+  const productId = req.body.productId || Date.now();
+  
+  // Upload to Cloudinary
+  const result = await imageService.uploadProductImage(req.file.buffer, productId);
+  
+  logger.info('Image uploaded to Cloudinary', { productId, url: result.url });
+  
+  res.json({
+    success: true,
+    imageUrl: result.url,
+    publicId: result.public_id,
+    filename: result.public_id
+  });
+}));
 
-// Upload multiple product images
-router.post('/products', upload.array('images', 5), (req, res) => {
-  try {
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({ error: 'No files uploaded' });
-    }
-    
-    const imageUrls = req.files.map(file => ({
-      url: `/uploads/products/${file.filename}`,
-      filename: file.filename
-    }));
-    
-    res.json({
-      success: true,
-      images: imageUrls
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+// Upload multiple product images to Cloudinary
+router.post('/products', uploadLimiter, upload.array('images', 5), asyncHandler(async (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    throw new AppError('No files uploaded', 400, 'NO_FILES');
   }
-});
+  
+  const productId = req.body.productId || Date.now();
+  const uploadPromises = req.files.map((file, index) => 
+    imageService.uploadProductImage(file.buffer, `${productId}-${index}`)
+  );
+  
+  const results = await Promise.all(uploadPromises);
+  
+  const imageUrls = results.map(result => ({
+    url: result.url,
+    publicId: result.public_id,
+    filename: result.public_id
+  }));
+  
+  logger.info('Multiple images uploaded to Cloudinary', { productId, count: imageUrls.length });
+  
+  res.json({
+    success: true,
+    images: imageUrls
+  });
+}));
 
-// Delete product image
-router.delete('/product/:filename', (req, res) => {
-  try {
-    const filename = req.params.filename;
-    const filePath = path.join(__dirname, '../uploads/products', filename);
-    
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      res.json({ success: true, message: 'Image deleted' });
-    } else {
-      res.status(404).json({ error: 'Image not found' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Delete product image from Cloudinary
+router.delete('/product/:publicId', asyncHandler(async (req, res) => {
+  const publicId = req.params.publicId;
+  
+  await imageService.deleteProductImage(publicId);
+  
+  logger.info('Image deleted from Cloudinary', { publicId });
+  
+  res.json({ success: true, message: 'Image deleted' });
+}));
 
 module.exports = router;

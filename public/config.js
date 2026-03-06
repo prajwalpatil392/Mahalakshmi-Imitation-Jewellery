@@ -47,6 +47,7 @@ const api = {
   
   // Orders
   async createOrder(orderData) {
+    console.log("ORDER DATA SENT:", orderData);
     const response = await fetch(`${API_BASE_URL}/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

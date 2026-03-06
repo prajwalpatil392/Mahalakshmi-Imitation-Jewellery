@@ -16,7 +16,14 @@ const pgPool = new Pool({
  * PostgreSQL-style $1, $2, ... and flatten array params.
  */
 function toPostgres(sql, params = []) {
-  return { pgSql: sql, newParams: params };
+  let index = 0;
+
+  const pgSql = sql.replace(/\?/g, () => {
+    index++;
+    return `$${index}`;
+  });
+
+  return { pgSql, newParams: params };
 }
 
 const db = {

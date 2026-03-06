@@ -46,22 +46,42 @@ const api = {
   },
   
   // Orders
-  async createOrder(orderData) {
-    console.log("ORDER DATA SENT:", orderData);
-    const response = await fetch(`${API_BASE_URL}/orders`, {
+async createOrder(orderData) {
+
+  console.log("ORDER DATA SENT:", orderData);
+
+  try {
+
+    let response = await fetch(`${API_BASE_URL}/orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(orderData)
     });
-    const data = await response.json();
+
+    // retry once if server was sleeping
     if (!response.ok) {
-      const message = (data && data.error)
-        ? data.error
-        : `Failed to create order (status ${response.status})`;
-      throw new Error(message);
+      await new Promise(r => setTimeout(r, 2000));
+
+      response = await fetch(`${API_BASE_URL}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
     }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || "Failed to create order");
+    }
+
     return data;
-  },
+
+  } catch (err) {
+    console.error("Order API error:", err);
+    throw err;
+  }
+},
   
   async getOrders(status = null) {
     let url = `${API_BASE_URL}/orders`;

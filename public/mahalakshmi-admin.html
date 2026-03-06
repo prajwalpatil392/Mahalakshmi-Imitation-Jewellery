@@ -496,7 +496,7 @@ function saveInventory(inv){localStorage.setItem(INVENTORY_KEY,JSON.stringify(in
 
 // Get base stock - use product's baseStock from API, fallback to localStorage
 function getBaseStock(id){
-  const product = products.find(p => p.id === id);
+  const product = products.find(p => String(p.id) === String(id));
   if (product && product.baseStock !== undefined) {
     return product.baseStock;
   }
@@ -530,7 +530,7 @@ function getConsumedStock(productId){
     const s=statuses[order.orderId]||order.status;
     if(s==='Cancelled'||s==='Returned') return; // freed up
     (order.items||[]).forEach(item=>{
-      if(item.id===productId || item.product_id===productId) {
+      if(String(item.id)===String(productId) || String(item.product_id)===String(productId)) {
         const qty = item.quantity || 1;
         consumed += qty;
       }
@@ -625,11 +625,20 @@ function checkSession(){
 }
 
 // ── INIT ─────────────────────────────────────────────────────────────────
-function init(){
-  loadProductsFromAPI(); // Load products from backend
-  setInterval(refreshAll,5000); // Auto-refresh every 5 sec (live orders)
-  refreshAll();
-  document.getElementById('topbarDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+async function init(){
+  await loadProductsFromAPI(); // WAIT for products
+
+  setInterval(refreshAll,5000);
+
+  await refreshAll();
+
+  document.getElementById('topbarDate').textContent =
+    new Date().toLocaleDateString('en-IN',{
+      weekday:'short',
+      day:'numeric',
+      month:'short',
+      year:'numeric'
+    });
 }
 
 async function refreshAll(){
@@ -980,7 +989,10 @@ function renderProductsPage(){
 
     return `<div class="prod-admin-card">
       ${outOverlay}
-      ${p.image_url ? `<div style="text-align:center;margin-bottom:10px;"><img src="http://localhost:5000${p.image_url}" alt="${p.name}" style="max-width:100%;height:150px;object-fit:cover;border-radius:4px;border:1px solid rgba(201,150,58,0.2);"/></div>` : ''}
+      ${p.image_url ? `<div style="text-align:center;margin-bottom:10px;"><img src="${p.image_url ? `<div style="text-align:center;margin-bottom:10px;">
+<img src="${api.baseURL}${p.image_url}" alt="${p.name}" 
+style="max-width:100%;height:150px;object-fit:cover;border-radius:4px;border:1px solid rgba(201,150,58,0.2);"/>
+</div>` : ''}" alt="${p.name}" style="max-width:100%;height:150px;object-fit:cover;border-radius:4px;border:1px solid rgba(201,150,58,0.2);"/></div>` : ''}
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">
         <span class="pac-icon" style="font-size:2rem;margin:0;">${p.icon}</span>
         <span class="badge ${available===0?'badge-cancelled':available<=2?'':'badge-confirmed'}" style="${available>2?'background:rgba(26,107,26,0.2);color:var(--green-bright);border:1px solid rgba(76,175,80,0.3);':''}">
@@ -1028,7 +1040,7 @@ function adjustStock(id,delta){
   if(input) input.value=newVal;
   syncAvailabilityFromStock(id,newVal);
   renderProductsPage();
-  const p=products.find(x=>x.id===id);
+  const p=products.find(x=>String(x.id)===String(id));
   const avail=getAvailableQty(id);
   showToast(`"${p.name}" stock: ${newVal} total, ${avail} available`);
 }

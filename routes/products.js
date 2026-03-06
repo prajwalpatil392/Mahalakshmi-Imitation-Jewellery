@@ -19,7 +19,7 @@ router.get('/', async (req, res) => {
       return res.json([]);
     }
 
-    const [consumedData] = await db.query(
+   const [consumedData] = await db.query(
   `SELECT oi.product_id, COALESCE(SUM(oi.quantity), 0) as count 
    FROM order_items oi
    JOIN orders o ON oi.order_id = o.id

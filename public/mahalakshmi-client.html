@@ -761,17 +761,6 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 // ── PRODUCTS DATA (loaded from API) ───────────────────────────────────────
 let products = [];
 
-// Fallback products if API is not available
-const fallbackProducts = [
-  {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"📿",rentPerDay:150,buy:3200,type:"both",category:"Haram",availableQty:5,isAvailable:true},
-  {id:2,name:"Bridal Maang Tikka",material:"Kundan & Meenakari",icon:"👑",rentPerDay:80,buy:1800,type:"both",category:"Maang Tikka",availableQty:5,isAvailable:true},
-  {id:3,name:"Temple Necklace",material:"Gold-Plated Copper",icon:"💛",rentPerDay:120,buy:2400,type:"both",category:"Necklace",availableQty:5,isAvailable:true},
-  {id:4,name:"Jimikki Earrings",material:"South Indian Style",icon:"👂",rentPerDay:50,buy:950,type:"both",category:"Earrings",availableQty:5,isAvailable:true},
-  {id:5,name:"Full Bridal Set",material:"Antique Gold 12-Piece",icon:"🌸",rentPerDay:600,buy:null,type:"rent",category:"Bridal",availableQty:3,isAvailable:true},
-  {id:6,name:"Kangan Bangles (Set 4)",material:"Gold-Plated Brass",icon:"⭕",rentPerDay:null,buy:1200,type:"buy",category:"Bangles",availableQty:8,isAvailable:true},
-  {id:7,name:"Navaratna Necklace",material:"Stone-Studded",icon:"🔮",rentPerDay:180,buy:2800,type:"both",category:"Necklace",availableQty:4,isAvailable:true},
-  {id:8,name:"Antique Toe Ring Pair",material:"Sterling Silver Finish",icon:"🦶",rentPerDay:null,buy:450,type:"buy",category:"Anklets",availableQty:10,isAvailable:true}
-];
 
 // ── CART STATE ────────────────────────────────────────────────────────────
 let cart = CartManager.getCart(); // Load from localStorage
@@ -782,31 +771,27 @@ let currentStep = 1;
 // Load products from API
 async function loadProducts() {
   try {
-    // Check if api is defined
-    if(typeof api === 'undefined') {
-      console.warn('API not available, using fallback products');
-      products = fallbackProducts;
-      renderProducts(currentFilter);
+
+    if(typeof api === 'undefined'){
+      console.error("API not available");
+      showNoProducts();
       return;
     }
-    
+
     const allProducts = await api.getProducts();
 
-    // Ensure we have an array before using it
-    if (Array.isArray(allProducts)) {
+    if(Array.isArray(allProducts) && allProducts.length > 0){
       products = allProducts;
-      console.log('✅ Products loaded from API:', products.length);
+      console.log("✅ Products loaded from API:", products.length);
+      renderProducts(currentFilter);
     } else {
-      console.error('Unexpected products payload (not an array):', allProducts);
-      products = fallbackProducts;
+      products = [];
+      showNoProducts();
     }
-    renderProducts(currentFilter);
-  } catch (error) {
-    console.error('❌ Error loading products from API:', error);
-    console.log('Using fallback products');
-    products = fallbackProducts;
-    renderProducts(currentFilter);
-    showToast('Using offline mode - some features may be limited', 'error');
+
+  } catch(error) {
+    console.error("❌ Error loading products:", error);
+    showNoProducts();
   }
 }
 // ── RENDER PRODUCTS ───────────────────────────────────────────────────────
@@ -916,6 +901,27 @@ function filterByCategory(cat){
     const list = products.filter(p=>p.category===cat||p.name.includes(cat));
     renderProducts('all');
   },400);
+}
+
+function showNoProducts(){
+  const grid = document.getElementById('productsGrid');
+
+  grid.innerHTML = `
+    <div style="
+      grid-column:1/-1;
+      text-align:center;
+      padding:80px 20px;
+      color:rgba(240,201,107,0.6);
+    ">
+      <div style="font-size:3rem;margin-bottom:10px;">📦</div>
+      <h3 style="color:var(--gold-light);margin-bottom:10px;">
+        No Products Available
+      </h3>
+      <p style="font-size:.9rem;">
+        Please check back later or contact the store.
+      </p>
+    </div>
+  `;
 }
 
 // ── CART LOGIC ────────────────────────────────────────────────────────────

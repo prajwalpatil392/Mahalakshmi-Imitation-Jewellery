@@ -85,7 +85,7 @@ router.post('/', async (req, res) => {
       [orderId, 'order', customerId || null, customer.name, customer.phone, customer.email || null, customer.address || null, customer.event || null, customer.notes || null, total, status || 'New', new Date().toLocaleString('en-IN'), Date.now(), productNames, payment_method, payment_status]
     );
     
-    const orderDbId = result.rows[0].id;
+    const orderDbId = result.insertId;
     
     // Insert order items with quantities
     for (const item of items) {

@@ -939,12 +939,15 @@ function addToCart(id, mode, rentalData=null){
     existing.price = mode==='buy' ? p.buy * existing.quantity : (rentalData ? rentalData.total * existing.quantity : p.rentPerDay * existing.quantity);
   } else {
     const item = {
-      id, name:p.name, icon:p.icon, mode,
-      quantity: 1,
-      unitPrice: mode==='buy' ? p.buy : (rentalData ? rentalData.total : p.rentPerDay),
-      price: mode==='buy' ? p.buy : (rentalData ? rentalData.total : p.rentPerDay),
-      rentalData: rentalData||null
-    };
+  productId: p.id,   // ⭐ correct product id for database
+  name: p.name,
+  icon: p.icon,
+  mode,
+  quantity: 1,
+  unitPrice: mode==='buy' ? p.buy : (rentalData ? rentalData.total : p.rentPerDay),
+  price: mode==='buy' ? p.buy : (rentalData ? rentalData.total : p.rentPerDay),
+  rentalData: rentalData || null
+};
     cart.push(item);
   }
   

@@ -939,7 +939,8 @@ function addToCart(id, mode, rentalData=null){
     existing.price = mode==='buy' ? p.buy * existing.quantity : (rentalData ? rentalData.total * existing.quantity : p.rentPerDay * existing.quantity);
   } else {
     const item = {
-  productId: p.id,   // ⭐ correct product id for database
+  id: p.id,           // ⭐ REQUIRED for backend
+  productId: p.id,
   name: p.name,
   icon: p.icon,
   mode,

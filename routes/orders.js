@@ -93,7 +93,7 @@ router.post('/', async (req, res) => {
       await db.query(
         `INSERT INTO order_items (order_id, product_id, product_name, product_icon, mode, quantity, price, rental_from, rental_to, rental_days, rental_total) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
-        [orderDbId, item.id, item.name, item.icon, item.mode, quantity, item.unitPrice || item.price, 
+        [orderDbId, parseInt(item.id), item.name, item.icon, item.mode, quantity, item.unitPrice || item.price, 
          item.rentalData?.from, item.rentalData?.to, item.rentalData?.days, item.rentalData?.total]
       );
     }

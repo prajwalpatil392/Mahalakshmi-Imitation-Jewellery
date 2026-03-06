@@ -8,7 +8,8 @@ const logger = require('../utils/logger');
 
 // Get all products with availability
 router.get('/', validatePagination, asyncHandler(async (req, res) => {
-  const [products] = await db.query('SELECT * FROM products');
+  const result = await db.query('SELECT * FROM products');
+  const products = result.rows;
 
   // If there are no products yet, return empty list early
   if (!products || products.length === 0) {
@@ -21,7 +22,7 @@ router.get('/', validatePagination, asyncHandler(async (req, res) => {
     return res.json({ success: true, data: [] });
   }
 
-  const [consumedData] = await db.query(
+  const consumedResult = await db.query(
     `SELECT oi.product_id, COALESCE(SUM(oi.quantity), 0) as count 
      FROM order_items oi
      JOIN orders o ON oi.order_id = o.id
@@ -32,8 +33,8 @@ router.get('/', validatePagination, asyncHandler(async (req, res) => {
   
   // Create a map for quick lookup
   const consumedMap = {};
-  consumedData.forEach(item => {
-    consumedMap[item.product_id] = item.count;
+  consumedResult.rows.forEach(item => {
+    consumedMap[item.product_id] = parseInt(item.count);
   });
   
   // Calculate available quantity for each product
@@ -71,12 +72,12 @@ router.get('/', validatePagination, asyncHandler(async (req, res) => {
 
 // Get single product
 router.get('/:id', validateId, asyncHandler(async (req, res) => {
-  const [products] = await db.query('SELECT * FROM products WHERE id = ?', [req.params.id]);
-  if (products.length === 0) {
+  const result = await db.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
+  if (result.rows.length === 0) {
     throw new AppError('Product not found', 404, 'PRODUCT_NOT_FOUND');
   }
   
-  const product = products[0];
+  const product = result.rows[0];
   const consumed = await getConsumedStock(product.id);
   const available = Math.max(0, product.base_stock - consumed);
   
@@ -103,21 +104,22 @@ router.get('/:id', validateId, asyncHandler(async (req, res) => {
 // Create product (admin)
 router.post('/', validateProduct, asyncHandler(async (req, res) => {
   const { name, material, icon, rentPerDay, buy, type, category, baseStock, imageUrl } = req.body;
-  const [result] = await db.query(
+  const result = await db.query(
     `INSERT INTO products (name, material, icon, rent_per_day, buy_price, type, category, base_stock, image_url) 
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
     [name, material, icon || '💎', rentPerDay, buy, type, category, baseStock || 5, imageUrl || null]
   );
   
-  logger.info('Product created', { id: result.insertId, name });
-  res.status(201).json({ success: true, data: { id: result.insertId, ...req.body } });
+  const productId = result.rows[0].id;
+  logger.info('Product created', { id: productId, name });
+  res.status(201).json({ success: true, data: { id: productId, ...req.body } });
 }));
 
 // Update product (admin)
 router.put('/:id', validateId, validateProduct, asyncHandler(async (req, res) => {
   const { name, material, icon, rentPerDay, buy, type, category, baseStock, available } = req.body;
   await db.query(
-    `UPDATE products SET name=?, material=?, icon=?, rent_per_day=?, buy_price=?, type=?, category=?, base_stock=?, available=? WHERE id=?`,
+    `UPDATE products SET name=$1, material=$2, icon=$3, rent_per_day=$4, buy_price=$5, type=$6, category=$7, base_stock=$8, available=$9 WHERE id=$10`,
     [name, material, icon, rentPerDay, buy, type, category, baseStock, available, req.params.id]
   );
   
@@ -137,20 +139,20 @@ router.put('/:id', validateId, validateProduct, asyncHandler(async (req, res) =>
 
 // Delete product (admin)
 router.delete('/:id', validateId, asyncHandler(async (req, res) => {
-  await db.query('DELETE FROM products WHERE id = ?', [req.params.id]);
+  await db.query('DELETE FROM products WHERE id = $1', [req.params.id]);
   logger.info('Product deleted', { id: req.params.id });
   res.json({ success: true, message: 'Product deleted' });
 }));
 
 // Helper function to calculate consumed stock
 async function getConsumedStock(productId) {
-  const [items] = await db.query(
+  const result = await db.query(
     `SELECT COALESCE(SUM(oi.quantity), 0) as count FROM order_items oi
      JOIN orders o ON oi.order_id = o.id
-     WHERE oi.product_id = ? AND o.status IN ('New', 'Confirmed')`,
+     WHERE oi.product_id = $1 AND o.status IN ('New', 'Confirmed')`,
     [productId]
   );
-  return items[0].count;
+  return parseInt(result.rows[0].count);
 }
 
 module.exports = router;

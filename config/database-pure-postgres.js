@@ -9,7 +9,7 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 });
 
-// Log connection events
+// Log connection status
 pool.on('connect', () => {
   console.log('✅ PostgreSQL client connected');
 });
@@ -29,7 +29,6 @@ const db = {
       const result = await pool.query(text, params);
       const duration = Date.now() - start;
       
-      // Warn about slow queries
       if (duration > 1000) {
         console.warn(`⚠️ Slow query (${duration}ms):`, text.substring(0, 100));
       }
@@ -37,7 +36,7 @@ const db = {
       return result;
     } catch (error) {
       console.error('❌ Query error:', error.message);
-      console.error('Query:', text.substring(0, 200));
+      console.error('Query:', text);
       console.error('Params:', params);
       throw error;
     }
@@ -57,6 +56,8 @@ const db = {
       rollback: () => client.query('ROLLBACK'),
       
       release: () => client.release(),
+      
+      // Helper for safe release
       end: () => client.release()
     };
   },

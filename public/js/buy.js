@@ -65,16 +65,22 @@ function renderProducts() {
     }
     
     // Handle image URL - use API base or show icon
-    let imgContent = `<span style="font-size:5rem;">${p.icon}</span>`;
-    let imgStyle = '';
-    
-    if (p.image_url) {
-      const imageUrl = p.image_url.startsWith('http')
-  ? p.image_url
-  : `https://mahalakshmi-imitation-jewellery.onrender.com${p.image_url}`;
-      imgStyle = `background-image:url('${imageUrl}');background-size:cover;background-position:center;`;
-      imgContent = `<img src="${imageUrl}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-size:5rem;\\'>${p.icon}</span><span class=\\'avail-tag ${availClass}\\'>${availText}</span>';" />`;
-    }
+   if (p.image_url) {
+  let imageUrl = p.image_url;
+
+  // If it's a relative path, attach server URL
+  if (!imageUrl.startsWith('http')) {
+    imageUrl = `https://mahalakshmi-imitation-jewellery.onrender.com${imageUrl}`;
+  }
+
+  // Force HTTPS (fix mixed content)
+  imageUrl = imageUrl.replace('http://', 'https://');
+
+  imgStyle = `background-image:url('${imageUrl}');background-size:cover;background-position:center;`;
+
+  imgContent = `<img src="${imageUrl}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;"
+  onerror="this.style.display='none';this.parentElement.innerHTML='<span style=\\'font-size:5rem;\\'>${p.icon}</span><span class=\\'avail-tag ${availClass}\\'>${availText}</span>';" />`;
+}
     
     return `
       <div class="product-card">

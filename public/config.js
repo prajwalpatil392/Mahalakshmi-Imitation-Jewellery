@@ -10,26 +10,36 @@ const api = {
   
   // Products
   async getProducts() {
-    const response = await fetch(`${API_BASE_URL}/products`);
-    const data = await response.json();
+    try {
+      const response = await fetch(`${API_BASE_URL}/products`);
+      const data = await response.json();
 
-    if (!response.ok) {
-      const message = (data && data.error) 
-        ? data.error 
-        : `Failed to fetch products (status ${response.status})`;
-      throw new Error(message);
+      if (!response.ok) {
+        const message = (data && data.error) 
+          ? data.error 
+          : `Failed to fetch products (status ${response.status})`;
+        throw new Error(message);
+      }
+
+      return data.data || data;
+    } catch (error) {
+      console.error('getProducts error:', error);
+      throw new Error(error.message || 'Failed to fetch products');
     }
-
-    return data.data || data;
   },
   
   async getProduct(id) {
-    const response = await fetch(`${API_BASE_URL}/products/${id}`);
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to fetch product');
+    try {
+      const response = await fetch(`${API_BASE_URL}/products/${id}`);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch product');
+      }
+      return data.data || data;
+    } catch (error) {
+      console.error('getProduct error:', error);
+      throw new Error(error.message || 'Failed to fetch product');
     }
-    return data.data || data;
   },
   
   async createProduct(productData) {
@@ -81,17 +91,22 @@ const api = {
   },
   
   async getOrders(status = null) {
-    let url = `${API_BASE_URL}/orders`;
-    if (status) url += `?status=${status}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    if (!response.ok) {
-      const message = (data && data.error)
-        ? data.error
-        : `Failed to fetch orders (status ${response.status})`;
-      throw new Error(message);
+    try {
+      let url = `${API_BASE_URL}/orders`;
+      if (status) url += `?status=${status}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) {
+        const message = (data && data.error)
+          ? data.error
+          : `Failed to fetch orders (status ${response.status})`;
+        throw new Error(message);
+      }
+      return data.data || data;
+    } catch (error) {
+      console.error('getOrders error:', error);
+      throw new Error(error.message || 'Failed to fetch orders');
     }
-    return data.data || data;
   },
   
   async updateOrderStatus(id, status) {
@@ -142,14 +157,19 @@ const api = {
   },
   
   async getEnquiries(status = null) {
-    let url = `${API_BASE_URL}/enquiries`;
-    if (status) url += `?status=${status}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to fetch enquiries');
+    try {
+      let url = `${API_BASE_URL}/enquiries`;
+      if (status) url += `?status=${status}`;
+      const response = await fetch(url);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch enquiries');
+      }
+      return data.data || data;
+    } catch (error) {
+      console.error('getEnquiries error:', error);
+      throw new Error(error.message || 'Failed to fetch enquiries');
     }
-    return data.data || data;
   },
   
   async updateEnquiryStatus(id, status) {
@@ -270,12 +290,17 @@ const api = {
   },
   
   async getAllCustomers() {
-    const response = await fetch(`${API_BASE_URL}/customers`);
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || 'Failed to fetch customers');
+    try {
+      const response = await fetch(`${API_BASE_URL}/customers`);
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch customers');
+      }
+      return data.data || data;
+    } catch (error) {
+      console.error('getAllCustomers error:', error);
+      throw new Error(error.message || 'Failed to fetch customers');
     }
-    return data.data || data;
   },
   
   // Customer Cart

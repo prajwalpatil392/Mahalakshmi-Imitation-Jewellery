@@ -18,29 +18,34 @@ router.get('/', validatePagination, asyncHandler(async (req, res) => {
 
   // Optimize: Get all consumed stock in one query
   const productIds = products.map(p => p.id);
-  if (productIds.length === 0) {
-    return res.json({ success: true, data: [] });
-  }
-
-  const consumedResult = await db.query(
-    `SELECT oi.product_id, COALESCE(SUM(oi.quantity), 0) as count 
-     FROM order_items oi
-     JOIN orders o ON oi.order_id = o.id
-     WHERE oi.product_id = ANY($1::int[]) AND o.status IN ('New', 'Confirmed')
-     GROUP BY oi.product_id`,
-    [productIds]
-  );
-  
-  // Create a map for quick lookup
   const consumedMap = {};
-  consumedResult.rows.forEach(item => {
-    consumedMap[item.product_id] = parseInt(item.count);
-  });
+  
+  // Try to get consumed stock, but don't fail if order_items table doesn't exist
+  if (productIds.length > 0) {
+    try {
+      const consumedResult = await db.query(
+        `SELECT oi.product_id, COALESCE(SUM(oi.quantity), 0) as count 
+         FROM order_items oi
+         JOIN orders o ON oi.order_id = o.id
+         WHERE oi.product_id = ANY($1::int[]) AND o.status IN ('New', 'Confirmed')
+         GROUP BY oi.product_id`,
+        [productIds]
+      );
+      
+      // Create a map for quick lookup
+      consumedResult.rows.forEach(item => {
+        consumedMap[item.product_id] = parseInt(item.count);
+      });
+    } catch (error) {
+      // If order_items table doesn't exist, just continue without consumed stock
+      console.warn('Could not fetch consumed stock:', error.message);
+    }
+  }
   
   // Calculate available quantity for each product
   const productsWithAvailability = products.map(product => {
     const consumed = consumedMap[product.id] || 0;
-    const available = Math.max(0, product.base_stock - consumed);
+    const available = Math.max(0, (product.base_stock || 0) - consumed);
 
     let imageUrl = product.image_url;
 
@@ -59,10 +64,10 @@ router.get('/', validatePagination, asyncHandler(async (req, res) => {
       buy: product.buy_price,
       type: product.type,
       category: product.category,
-      baseStock: product.base_stock,
-      available: product.available,
+      baseStock: product.base_stock || 0,
+      available: product.available !== false,
       availableQty: available,
-      isAvailable: available > 0 && product.available,
+      isAvailable: available > 0 && product.available !== false,
       image_url: imageUrl
     };
   });

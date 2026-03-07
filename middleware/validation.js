@@ -71,7 +71,7 @@ const validateOrder = [
     .matches(/^[0-9]{10,15}$/).withMessage('Phone must be 10-15 digits'),
   
   body('customer.email')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isEmail().withMessage('Invalid email address')
     .normalizeEmail(),
@@ -119,7 +119,7 @@ const validateCustomer = [
     .matches(/^[0-9]{10,15}$/).withMessage('Phone must be 10-15 digits'),
   
   body('email')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isEmail().withMessage('Invalid email address')
     .normalizeEmail(),
@@ -142,7 +142,7 @@ const validateEnquiry = [
     .matches(/^[0-9]{10,15}$/).withMessage('Phone must be 10-15 digits'),
   
   body('email')
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .isEmail().withMessage('Invalid email address')
     .normalizeEmail(),

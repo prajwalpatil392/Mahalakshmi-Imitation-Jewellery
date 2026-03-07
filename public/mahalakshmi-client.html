@@ -1287,12 +1287,22 @@ async function placeOrder(){
   
   try {
     const name=document.getElementById('co-name').value;
-    const phone=document.getElementById('co-phone').value;
+    let phone=document.getElementById('co-phone').value;
     const email=document.getElementById('co-email').value;
     const address=document.getElementById('co-address').value;
     const event=document.getElementById('co-event').value;
     const notes=document.getElementById('co-notes').value;
     const total=cart.reduce((s,i)=>s+i.price,0);
+    
+    // Clean phone number - remove all non-digit characters
+    phone = phone.replace(/\D/g, '');
+    
+    // Validate phone length
+    if (phone.length < 10 || phone.length > 15) {
+      showToast('Please enter a valid phone number (10-15 digits)', 'error');
+      btn.textContent='✦ Place Order'; btn.disabled=false;
+      return;
+    }
     
     // Get selected payment method
     const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;

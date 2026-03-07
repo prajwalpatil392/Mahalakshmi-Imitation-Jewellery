@@ -47,13 +47,28 @@ router.get('/', validatePagination, asyncHandler(async (req, res) => {
     const consumed = consumedMap[product.id] || 0;
     const available = Math.max(0, (product.base_stock || 0) - consumed);
 
+    // Sanitize image URL - fix common issues
     let imageUrl = product.image_url;
 
-    if (imageUrl && !imageUrl.startsWith("http")) {
-      imageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+    if (imageUrl) {
+      // Fix double protocol (https://http://...)
+      imageUrl = imageUrl.replace(/https?:\/\/https?:\/\//gi, 'https://');
+      
+      // Fix missing separator (domain.comhttp://...)
+      imageUrl = imageUrl.replace(/\.com(https?:\/\/)/gi, '.com/');
+      imageUrl = imageUrl.replace(/\.net(https?:\/\/)/gi, '.net/');
+      
+      // Fix malformed protocol separator (http//)
+      imageUrl = imageUrl.replace(/https?\/\//gi, 'https://');
+      
+      // If relative path, prepend host
+      if (!imageUrl.startsWith('http')) {
+        imageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
+      }
+      
+      // Force HTTPS for security
+      imageUrl = imageUrl.replace(/^http:\/\//i, 'https://');
     }
-
-    imageUrl = imageUrl ? imageUrl.replace("http//", "http://") : null;
 
     return {
       id: product.id,

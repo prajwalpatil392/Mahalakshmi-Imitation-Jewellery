@@ -68,7 +68,9 @@ const api = {
 
       // Handle rate limiting
       if (response.status === 429) {
-        throw new Error('Too many order requests. Please wait a few minutes and try again.');
+        const data = await response.json();
+        const errorMsg = data?.error?.message || 'Too many order requests. Please wait a few minutes and try again.';
+        throw new Error(errorMsg);
       }
 
       // retry once if server was sleeping
@@ -85,13 +87,15 @@ const api = {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || `Failed to create order (status ${response.status})`);
+        // Extract error message properly
+        const errorMsg = data?.error?.message || data?.error || data?.message || `Failed to create order (status ${response.status})`;
+        throw new Error(errorMsg);
       }
 
       return data.data || data;
     } catch (err) {
       console.error("Order API error:", err);
-      throw new Error(err.message || 'Failed to create order');
+      throw err; // Re-throw the original error with proper message
     }
   },
   

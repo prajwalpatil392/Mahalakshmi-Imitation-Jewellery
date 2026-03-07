@@ -38,10 +38,11 @@ async function seedProducts() {
     await connection.query('DELETE FROM products');
     console.log('Cleared existing products');
     
-    for (const product of products) {
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
       await connection.query(
         `INSERT INTO products (name, material, icon, rent_per_day, buy_price, type, category, base_stock) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
         [product.name, product.material, product.icon, product.rentPerDay, product.buy, product.type, product.category, product.baseStock]
       );
     }

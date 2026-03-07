@@ -9,6 +9,10 @@ const { apiLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
 
+// Trust proxy - CRITICAL for Render deployment
+// Enables proper IP detection behind proxies/load balancers
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet({
   contentSecurityPolicy: false,

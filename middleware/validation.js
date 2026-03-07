@@ -68,7 +68,7 @@ const validateOrder = [
   body('customer.phone')
     .trim()
     .notEmpty().withMessage('Phone number is required')
-    .matches(/^[0-9]{10}$/).withMessage('Phone must be 10 digits'),
+    .matches(/^[0-9]{10,15}$/).withMessage('Phone must be 10-15 digits'),
   
   body('customer.email')
     .optional()
@@ -116,7 +116,7 @@ const validateCustomer = [
   body('phone')
     .trim()
     .notEmpty().withMessage('Phone is required')
-    .matches(/^[0-9]{10}$/).withMessage('Phone must be 10 digits'),
+    .matches(/^[0-9]{10,15}$/).withMessage('Phone must be 10-15 digits'),
   
   body('email')
     .optional()
@@ -139,7 +139,7 @@ const validateEnquiry = [
   body('phone')
     .trim()
     .notEmpty().withMessage('Phone is required')
-    .matches(/^[0-9]{10}$/).withMessage('Phone must be 10 digits'),
+    .matches(/^[0-9]{10,15}$/).withMessage('Phone must be 10-15 digits'),
   
   body('email')
     .optional()

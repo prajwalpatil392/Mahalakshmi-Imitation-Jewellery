@@ -5,13 +5,13 @@ const path = require('path');
 class ImageService {
   /**
    * Upload product image to Cloudinary
-   * @param {string} filePath - Local file path
+   * @param {Buffer|string} fileData - File buffer or local file path
    * @param {number} productId - Product ID for naming
    * @returns {Promise<Object>} Image details
    */
-  async uploadProductImage(filePath, productId) {
+  async uploadProductImage(fileData, productId) {
     try {
-      const result = await cloudinary.uploader.upload(filePath, {
+      let uploadOptions = {
         folder: 'mahalakshmi/products',
         public_id: `product_${productId}_${Date.now()}`,
         transformation: [
@@ -19,18 +19,39 @@ class ImageService {
           { fetch_format: 'auto' }
         ],
         resource_type: 'image'
-      });
+      };
 
-      // Delete local file after successful upload
-      try {
-        await fs.unlink(filePath);
-      } catch (unlinkError) {
-        console.warn('Could not delete local file:', unlinkError.message);
+      let result;
+
+      // Handle Buffer (from multer memory storage) or file path
+      if (Buffer.isBuffer(fileData)) {
+        // Upload from buffer using upload_stream
+        result = await new Promise((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            uploadOptions,
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          uploadStream.end(fileData);
+        });
+      } else {
+        // Upload from file path
+        result = await cloudinary.uploader.upload(fileData, uploadOptions);
+
+        // Delete local file after successful upload
+        try {
+          await fs.unlink(fileData);
+        } catch (unlinkError) {
+          console.warn('Could not delete local file:', unlinkError.message);
+        }
       }
 
       return {
         url: result.secure_url,
         publicId: result.public_id,
+        public_id: result.public_id, // Include both formats for compatibility
         width: result.width,
         height: result.height,
         format: result.format
@@ -74,6 +95,13 @@ class ImageService {
       console.error('Image delete error:', error);
       // Don't throw - deletion failure shouldn't break the flow
     }
+  }
+
+  /**
+   * Alias for deleteImage (for compatibility)
+   */
+  async deleteProductImage(publicId) {
+    return this.deleteImage(publicId);
   }
 
   /**

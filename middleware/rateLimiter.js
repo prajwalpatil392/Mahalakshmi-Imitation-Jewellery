@@ -45,11 +45,11 @@ const authLimiter = rateLimit({
 
 /**
  * Order Creation Rate Limiter
- * 10 orders per hour per IP
+ * 50 orders per hour per IP (increased for production use)
  */
 const orderLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10,
+  max: 50,
   message: {
     success: false,
     error: {

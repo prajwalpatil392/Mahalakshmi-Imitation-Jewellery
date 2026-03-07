@@ -51,23 +51,30 @@ router.get('/', validatePagination, asyncHandler(async (req, res) => {
     let imageUrl = product.image_url;
 
     if (imageUrl) {
-      // Fix double protocol (https://http://...)
+      // First, fix any double protocol issues
       imageUrl = imageUrl.replace(/https?:\/\/https?:\/\//gi, 'https://');
       
-      // Fix missing separator (domain.comhttp://...)
-      imageUrl = imageUrl.replace(/\.com(https?:\/\/)/gi, '.com/');
-      imageUrl = imageUrl.replace(/\.net(https?:\/\/)/gi, '.net/');
+      // Fix domain concatenation (domain.comhttp:// or domain.comhttps://)
+      imageUrl = imageUrl.replace(/(\.com|\.net|\.org)(https?:\/\/)/gi, '$1/');
       
-      // Fix malformed protocol separator (http//)
+      // Fix malformed protocol separator (http// or https//)
       imageUrl = imageUrl.replace(/https?\/\//gi, 'https://');
       
-      // If relative path, prepend host
+      // If it's a relative path, prepend host
       if (!imageUrl.startsWith('http')) {
         imageUrl = `${req.protocol}://${req.get('host')}${imageUrl}`;
       }
       
       // Force HTTPS for security
       imageUrl = imageUrl.replace(/^http:\/\//i, 'https://');
+      
+      // Final validation - if URL is still malformed, set to null
+      try {
+        new URL(imageUrl);
+      } catch (e) {
+        console.warn('Invalid image URL, setting to null:', imageUrl);
+        imageUrl = null;
+      }
     }
 
     return {

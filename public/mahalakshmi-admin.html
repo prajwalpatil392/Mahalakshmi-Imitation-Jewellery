@@ -628,7 +628,8 @@ function checkSession(){
 async function init(){
   await loadProductsFromAPI(); // WAIT for products
 
-  setInterval(refreshAll,5000);
+  // Auto-refresh every 30 seconds (reduced from 5s to avoid rate limiting)
+  setInterval(refreshAll, 30000);
 
   await refreshAll();
 

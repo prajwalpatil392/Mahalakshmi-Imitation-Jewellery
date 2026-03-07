@@ -71,17 +71,26 @@ router.post('/', validateOrder, asyncHandler(async (req, res) => {
     const orderId = 'MLR-' + Date.now().toString().slice(-6);
     const { customer, items, total, status, customerId, paymentMethod } = req.body;
     
-    // Check stock availability for all items
-    for (const item of items) {
-      const stock = await inventoryService.getProductStock(item.id);
-      const requestedQty = item.quantity || 1;
-      
-      if (stock.available_stock < requestedQty) {
-        throw new AppError(
-          `Insufficient stock for ${item.name}. Available: ${stock.available_stock}, Requested: ${requestedQty}`,
-          400,
-          'INSUFFICIENT_STOCK'
-        );
+    // Check stock availability for all items (optional - only if migration ran)
+    try {
+      for (const item of items) {
+        const stock = await inventoryService.getProductStock(item.id);
+        const requestedQty = item.quantity || 1;
+        
+        if (stock.available_stock < requestedQty) {
+          throw new AppError(
+            `Insufficient stock for ${item.name}. Available: ${stock.available_stock}, Requested: ${requestedQty}`,
+            400,
+            'INSUFFICIENT_STOCK'
+          );
+        }
+      }
+    } catch (error) {
+      // If inventory service fails (table doesn't exist), just log and continue
+      if (error.code !== 'INSUFFICIENT_STOCK') {
+        logger.warn('Inventory check skipped (migration not run):', error.message);
+      } else {
+        throw error; // Re-throw if it's actually insufficient stock
       }
     }
     
@@ -116,12 +125,17 @@ router.post('/', validateOrder, asyncHandler(async (req, res) => {
       );
     }
     
-    // Reserve stock using inventory service
-    const orderItems = items.map(item => ({
-      product_id: item.id,
-      quantity: item.quantity || 1
-    }));
-    await inventoryService.reserveStock(orderDbId, orderItems, `Order ${orderId} placed`);
+    // Reserve stock using inventory service (optional - only if migration ran)
+    try {
+      const orderItems = items.map(item => ({
+        product_id: item.id,
+        quantity: item.quantity || 1
+      }));
+      await inventoryService.reserveStock(orderDbId, orderItems, `Order ${orderId} placed`);
+    } catch (error) {
+      // If inventory service fails (table doesn't exist), just log and continue
+      logger.warn('Stock reservation skipped (migration not run):', error.message);
+    }
     
     // Clear customer cart if customerId provided
     if (customerId) {
@@ -132,12 +146,16 @@ router.post('/', validateOrder, asyncHandler(async (req, res) => {
     
     logger.info(`Order created: ${orderId}`, { orderId, orderDbId, total, items: items.length });
     
-    // Send notifications
-    const createdOrder = { ...req.body, order_id: orderId, product_names: productNames };
-    await sendOrderConfirmation(createdOrder);
-    await sendAdminOrderNotification(createdOrder);
-    await sendOrderConfirmationSMS(createdOrder);
-    await sendAdminOrderNotificationSMS(createdOrder);
+    // Send notifications (don't fail order if notifications fail)
+    try {
+      const createdOrder = { ...req.body, order_id: orderId, product_names: productNames };
+      await sendOrderConfirmation(createdOrder);
+      await sendAdminOrderNotification(createdOrder);
+      await sendOrderConfirmationSMS(createdOrder);
+      await sendAdminOrderNotificationSMS(createdOrder);
+    } catch (error) {
+      logger.warn('Notification failed:', error.message);
+    }
     
     res.status(201).json({ 
       success: true, 

@@ -7,12 +7,12 @@ const UPI_NAME = 'Mahalakshmi Jewellery';
 
 const api = {
   baseURL: API_BASE_URL.replace('/api', ''),
+  
   // Products
   async getProducts() {
     const response = await fetch(`${API_BASE_URL}/products`);
     const data = await response.json();
 
-    // Throw on HTTP errors so callers can handle gracefully
     if (!response.ok) {
       const message = (data && data.error) 
         ? data.error 
@@ -20,14 +20,15 @@ const api = {
       throw new Error(message);
     }
 
-    // Handle new response format { success: true, data: [...] }
     return data.data || data;
   },
   
   async getProduct(id) {
     const response = await fetch(`${API_BASE_URL}/products/${id}`);
     const data = await response.json();
-    // Handle new response format { success: true, data: {...} }
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch product');
+    }
     return data.data || data;
   },
   
@@ -37,46 +38,47 @@ const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(productData)
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to create product');
+    }
+    return data.data || data;
   },
   
   // Orders
-async createOrder(orderData) {
+  async createOrder(orderData) {
+    console.log("ORDER DATA SENT:", orderData);
 
-  console.log("ORDER DATA SENT:", orderData);
-
-  try {
-
-    let response = await fetch(`${API_BASE_URL}/orders`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(orderData)
-    });
-
-    // retry once if server was sleeping
-    if (!response.ok) {
-      await new Promise(r => setTimeout(r, 2000));
-
-      response = await fetch(`${API_BASE_URL}/orders`, {
+    try {
+      let response = await fetch(`${API_BASE_URL}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
       });
+
+      // retry once if server was sleeping
+      if (!response.ok) {
+        await new Promise(r => setTimeout(r, 2000));
+
+        response = await fetch(`${API_BASE_URL}/orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData)
+        });
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to create order");
+      }
+
+      return data.data || data;
+    } catch (err) {
+      console.error("Order API error:", err);
+      throw err;
     }
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      throw new Error(data.error || "Failed to create order");
-    }
-
-    return data;
-
-  } catch (err) {
-    console.error("Order API error:", err);
-    throw err;
-  }
-},
+  },
   
   async getOrders(status = null) {
     let url = `${API_BASE_URL}/orders`;
@@ -89,7 +91,6 @@ async createOrder(orderData) {
         : `Failed to fetch orders (status ${response.status})`;
       throw new Error(message);
     }
-    // Handle new response format { success: true, data: [...] }
     return data.data || data;
   },
   
@@ -99,20 +100,30 @@ async createOrder(orderData) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update order status');
+    }
+    return data.data || data;
   },
   
   async deleteOrder(id) {
     const response = await fetch(`${API_BASE_URL}/orders/${id}`, {
       method: 'DELETE'
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to delete order');
+    }
+    return data;
   },
   
   async getOrderStats() {
     const response = await fetch(`${API_BASE_URL}/orders/stats/summary`);
     const data = await response.json();
-    // Handle new response format { success: true, data: {...} }
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch order stats');
+    }
     return data.data || data;
   },
   
@@ -123,14 +134,22 @@ async createOrder(orderData) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(enquiryData)
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to create enquiry');
+    }
+    return data.data || data;
   },
   
   async getEnquiries(status = null) {
     let url = `${API_BASE_URL}/enquiries`;
     if (status) url += `?status=${status}`;
     const response = await fetch(url);
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch enquiries');
+    }
+    return data.data || data;
   },
   
   async updateEnquiryStatus(id, status) {
@@ -139,14 +158,22 @@ async createOrder(orderData) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update enquiry status');
+    }
+    return data.data || data;
   },
   
   async deleteEnquiry(id) {
     const response = await fetch(`${API_BASE_URL}/enquiries/${id}`, {
       method: 'DELETE'
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to delete enquiry');
+    }
+    return data;
   },
   
   // Inventory
@@ -156,7 +183,11 @@ async createOrder(orderData) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ baseStock })
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to update stock');
+    }
+    return data.data || data;
   },
   
   async toggleAvailability(id, available) {
@@ -165,7 +196,11 @@ async createOrder(orderData) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ available })
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to toggle availability');
+    }
+    return data.data || data;
   },
   
   // Upload
@@ -177,7 +212,11 @@ async createOrder(orderData) {
       method: 'POST',
       body: formData
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to upload image');
+    }
+    return data;
   },
   
   // Auth
@@ -187,7 +226,11 @@ async createOrder(orderData) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Login failed');
+    }
+    return data;
   },
   
   async register(username, password) {
@@ -196,7 +239,11 @@ async createOrder(orderData) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Registration failed');
+    }
+    return data;
   },
   
   // Customers
@@ -206,17 +253,29 @@ async createOrder(orderData) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ phone, name })
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Customer login failed');
+    }
+    return data;
   },
   
   async getCustomerByPhone(phone) {
     const response = await fetch(`${API_BASE_URL}/customers/phone/${phone}`);
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch customer');
+    }
+    return data;
   },
   
   async getAllCustomers() {
     const response = await fetch(`${API_BASE_URL}/customers`);
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch customers');
+    }
+    return data.data || data;
   },
   
   // Customer Cart
@@ -226,23 +285,39 @@ async createOrder(orderData) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cart: cartItems })
     });
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to sync cart');
+    }
+    return data;
   },
   
   async getCustomerCart(customerId) {
     const response = await fetch(`${API_BASE_URL}/customers/${customerId}/cart`);
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch cart');
+    }
+    return data;
   },
   
   // Customer Orders
   async getCustomerOrders(customerId) {
     const response = await fetch(`${API_BASE_URL}/customers/${customerId}/orders`);
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch customer orders');
+    }
+    return data;
   },
 
   // Payment methods
   async getPaymentMethods() {
     const response = await fetch(`${API_BASE_URL}/payments/methods`);
-    return response.json();
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to fetch payment methods');
+    }
+    return data;
   }
 };

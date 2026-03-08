@@ -330,8 +330,8 @@ function goToCheckout() {
   // if we are on any page other than the client home, just redirect straight
   // to the client with a hash that triggers the modal.  no confirmation shown
   // so the user only has to click once.
-  if (!window.location.pathname.includes('mahalakshmi-client.html')) {
-    window.location.href = 'mahalakshmi-client.html#checkout';
+  if (!window.location.pathname.includes('index.html') && window.location.pathname !== '/') {
+    window.location.href = '/#checkout';
     return;
   }
 

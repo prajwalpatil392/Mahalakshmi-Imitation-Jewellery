@@ -108,10 +108,11 @@ router.post('/', validateOrder, asyncHandler(async (req, res) => {
     const payment_status = paymentMethod === 'online' ? 'pending' : 'pending';
     
     // Insert order with RETURNING clause for PostgreSQL
+    const placedAt = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
     const result = await connection.query(
       `INSERT INTO orders (order_id, type, customer_id, customer_name, customer_phone, customer_email, customer_address, customer_event, customer_notes, total, status, placed_at, timestamp, product_names, payment_method, payment_status) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING id`,
-      [orderId, 'order', customerId || null, customer.name, customer.phone, customer.email || null, customer.address || null, customer.event || null, customer.notes || null, total, status || 'New', new Date().toLocaleString('en-IN'), Date.now(), productNames, payment_method, payment_status]
+      [orderId, 'order', customerId || null, customer.name, customer.phone, customer.email || null, customer.address || null, customer.event || null, customer.notes || null, total, status || 'New', placedAt, Date.now(), productNames, payment_method, payment_status]
     );
     
     const orderDbId = result.rows[0].id;

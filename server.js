@@ -5,13 +5,17 @@ const helmet = require('helmet');
 const path = require('path');
 const logger = require('./utils/logger');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
-const { apiLimiter } = require('./middleware/rateLimiter');
+const { apiLimiter } = require('./middleware/adaptiveRateLimit');
+const compressionMiddleware = require('./middleware/compression');
+const healthCheck = require('./utils/healthCheck');
 
 const app = express();
 
 // Trust proxy - CRITICAL for Render deployment
-// Enables proper IP detection behind proxies/load balancers
 app.set('trust proxy', 1);
+
+// Compression - reduce response size
+app.use(compressionMiddleware);
 
 // Security middleware
 app.use(helmet({
@@ -25,45 +29,41 @@ app.use(cors({
   credentials: true
 }));
 
-// Body parsing
+// Body parsing with limits
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging
+// Request logging with performance tracking
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
     logger.logResponse(req, res, duration);
+    
+    // Warn on slow requests
+    if (duration > 3000) {
+      logger.warn(`Slow request detected: ${req.method} ${req.path} took ${duration}ms`);
+    }
   });
   next();
 });
 
-// Static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use(express.static(path.join(__dirname, 'public')));
+// Static files with caching
+app.use('/uploads', express.static(path.join(__dirname, 'uploads'), {
+  maxAge: '1d', // Cache for 1 day
+  etag: true
+}));
 
-// Rate limiting on API routes
+app.use(express.static(path.join(__dirname, 'public'), {
+  maxAge: '1h', // Cache for 1 hour
+  etag: true
+}));
+
+// Adaptive rate limiting on API routes
 app.use('/api/', apiLimiter);
 
-// Health check
-app.get('/health', async (req, res) => {
-  const db = require('./config/database');
-  try {
-    await db.query('SELECT 1');
-    res.json({ 
-      status: 'healthy', 
-      database: 'connected',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(503).json({ 
-      status: 'unhealthy', 
-      database: 'disconnected',
-      error: error.message
-    });
-  }
-});
+// Enhanced health check
+app.get('/health', healthCheck.middleware());
 
 // API Routes
 app.use('/api/products', require('./routes/products'));
@@ -80,6 +80,15 @@ app.use('/api/payments', require('./routes/payments'));
 // Frontend routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
+});
+
+// Redirect old URLs to new ones
+app.get('/mahalakshmi-client.html', (req, res) => {
+  res.redirect(301, '/');
+});
+
+app.get('/mahalakshmi-admin.html', (req, res) => {
+  res.redirect(301, '/admin');
 });
 
 app.get('/admin', (req, res) => {

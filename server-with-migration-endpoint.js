@@ -148,6 +148,15 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
 });
 
+// Redirect old URLs to new ones
+app.get('/mahalakshmi-client.html', (req, res) => {
+  res.redirect(301, '/');
+});
+
+app.get('/mahalakshmi-admin.html', (req, res) => {
+  res.redirect(301, '/admin');
+});
+
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'pages', 'admin.html'));
 });

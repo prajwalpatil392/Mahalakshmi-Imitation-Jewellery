@@ -409,9 +409,47 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.error-toast{background:#8B1A1A;}
 
-/* RESPONSIVE */
-@media(max-width:768px){nav{padding:0 16px;}.nav-links{display:none;}section{padding:64px 20px;}.contact-wrap{grid-template-columns:1fr;gap:40px;}.footer-grid{grid-template-columns:1fr;gap:36px;}.form-row{grid-template-columns:1fr;}#trust{gap:28px;padding:24px 20px;}.products-grid{grid-template-columns:1fr 1fr;}}
-@media(max-width:480px){.products-grid{grid-template-columns:1fr;}}
+/* RESPONSIVE - Mobile First Approach */
+@media(max-width:768px){
+  nav{padding:0 16px;}
+  .nav-links{display:none;}
+  section{padding:48px 16px;}
+  .contact-wrap{grid-template-columns:1fr;gap:32px;}
+  .footer-grid{grid-template-columns:1fr;gap:32px;}
+  .form-row{grid-template-columns:1fr;}
+  #trust{gap:24px;padding:20px 16px;}
+  .products-grid{grid-template-columns:1fr 1fr;gap:16px;}
+  h1{font-size:2rem;line-height:1.2;}
+  h2{font-size:1.5rem;}
+  .btn-primary, .btn-secondary{padding:14px 24px;font-size:1rem;width:100%;max-width:100%;}
+  .cart-badge{width:22px;height:22px;font-size:0.7rem;}
+  .product-card{padding:12px;}
+  .product-img{height:180px;}
+  .checkout-modal{padding:16px;}
+  .checkout-content{max-width:100%;margin:0;border-radius:12px;}
+  input, textarea, select{font-size:16px;}
+}
+@media(max-width:480px){
+  .products-grid{grid-template-columns:1fr;gap:12px;}
+  h1{font-size:1.75rem;}
+  h2{font-size:1.25rem;}
+  section{padding:40px 12px;}
+  button, .btn-primary, .btn-secondary{min-height:48px;padding:14px 20px;}
+  nav{padding:0 12px;height:60px;}
+  .logo{font-size:1.1rem;}
+  .product-card{padding:10px;}
+  .product-name{font-size:0.95rem;}
+  .product-price{font-size:1.1rem;}
+}
+@media(max-width:768px) and (orientation:landscape){
+  section{padding:32px 16px;}
+  .product-img{height:140px;}
+}
+@media(hover:none) and (pointer:coarse){
+  button, a, input[type="checkbox"], input[type="radio"]{min-height:44px;min-width:44px;}
+  .product-card:hover{transform:none;}
+  button:active, .btn-primary:active, .btn-secondary:active{transform:scale(0.98);opacity:0.9;}
+}
 </style>
 </head>
 <body>

@@ -188,6 +188,12 @@ tr:last-child td{border-bottom:none;}
 .notif-count{position:absolute;top:-6px;right:-6px;background:var(--gold);color:var(--maroon-deep);border-radius:50%;width:18px;height:18px;font-size:.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;display:none;}
 .notif-count.visible{display:flex;}
 
+/* HAMBURGER MENU */
+.hamburger{display:none;background:none;border:none;color:var(--gold-light);font-size:1.5rem;cursor:pointer;padding:8px;transition:color .2s;}
+.hamburger:hover{color:var(--gold);}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:98;}
+.sidebar-overlay.open{display:block;}
+
 /* RESPONSIVE */
 @media(max-width:1200px){
   .content{padding:20px;}
@@ -203,8 +209,18 @@ tr:last-child td{border-bottom:none;}
 }
 
 @media(max-width:640px){
+  .hamburger{display:block;}
   .app{flex-direction:column;}
-  .sidebar{width:100%;height:auto;}
+  .sidebar{
+    position:fixed;
+    left:-100%;
+    top:0;
+    width:260px;
+    height:100vh;
+    z-index:99;
+    transition:left .3s ease;
+  }
+  .sidebar.open{left:0;}
   .topbar{padding:0 16px;}
   .topbar-right{gap:10px;}
   .content{padding:16px;}
@@ -262,9 +278,13 @@ tr:last-child td{border-bottom:none;}
     </div>
   </div>
 
+  <!-- SIDEBAR OVERLAY -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
   <!-- MAIN -->
   <div class="main">
     <div class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div class="topbar-right">
         <div class="live-dot">Live</div>
@@ -663,6 +683,21 @@ function showPage(id){
   if(nav) nav.classList.add('active');
   else document.querySelectorAll('.nav-item')[0].classList.add('active');
   document.getElementById('topbarTitle').textContent=pageTitles[id]||id;
+  closeSidebar();
+}
+
+function toggleSidebar(){
+  const sidebar=document.querySelector('.sidebar');
+  const overlay=document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+
+function closeSidebar(){
+  const sidebar=document.querySelector('.sidebar');
+  const overlay=document.getElementById('sidebarOverlay');
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
 }
 
 // ── BADGE HELPERS ─────────────────────────────────────────────────────────

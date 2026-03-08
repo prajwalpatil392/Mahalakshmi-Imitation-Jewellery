@@ -27,6 +27,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 .nav-cta{background:var(--gold)!important;color:var(--maroon-deep)!important;padding:8px 20px!important;font-weight:500;}
 .nav-cta:hover{background:var(--gold-light)!important;}
 .nav-cta::after{display:none!important;}
+/* Nav text responsive */
+.nav-links a .short-text{display:none;}
+@media(max-width:768px){
+  .nav-links a .full-text{display:none;}
+  .nav-links a .short-text{display:inline;}
+}
 
 /* CART ICON */
 .cart-btn{position:relative;background:transparent;border:1px solid rgba(201,150,58,0.4);color:var(--gold-light);padding:8px 16px;cursor:pointer;font-family:'Alegreya Sans',sans-serif;font-size:.85rem;letter-spacing:.08em;display:flex;align-items:center;gap:8px;transition:border-color .2s,background .2s;}
@@ -428,6 +434,9 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
   .checkout-modal{padding:16px;}
   .checkout-content{max-width:100%;margin:0;border-radius:12px;}
   input, textarea, select{font-size:16px;}
+  /* Mobile nav text shortening */
+  .nav-links a .full-text{display:none;}
+  .nav-links a .short-text{display:inline;}
 }
 @media(max-width:480px){
   .products-grid{grid-template-columns:1fr;gap:12px;}
@@ -459,8 +468,8 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
   <a href="mahalakshmi-client.html" class="nav-logo">🪷 Mahalakshmi</a>
   <ul class="nav-links">
     <li><a href="mahalakshmi-client.html">Home</a></li>
-    <li><a href="buy.html">💍 Buy Jewellery</a></li>
-    <li><a href="rental.html">📅 Rent Jewellery</a></li>
+    <li><a href="buy.html">💍 <span class="full-text">Buy Jewellery</span><span class="short-text">Buy</span></a></li>
+    <li><a href="rental.html">📅 <span class="full-text">Rent Jewellery</span><span class="short-text">Rent</span></a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
   <div style="display:flex;gap:12px;align-items:center;">

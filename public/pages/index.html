@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Mahalakshmi Rentals & Sellers – Bridal Jewellery</title>
+<title>Mahalakshmi Rentals & Sellers â€“ Bridal Jewellery</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script src="config.js"></script>
-<script src="cart-manager.js"></script>
+<script src="../config.js"></script>
+<script src="../cart-manager.js"></script>
 <style>
 :root{--gold:#C9963A;--gold-light:#F0C96B;--gold-dark:#8B6220;--maroon:#6B1A1A;--maroon-deep:#3D0A0A;--cream:#FAF4E8;--cream-dark:#F0E6CC;--text-dark:#1A0A00;--text-mid:#4A2C0A;--green:#1a5c1a;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -44,7 +44,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 #hero{min-height:100vh;background:var(--maroon-deep);display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:100px 20px 60px;}
 .hero-bg-pattern{position:absolute;inset:0;background-image:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(107,26,26,0.8) 0%,transparent 70%),repeating-linear-gradient(45deg,rgba(201,150,58,0.04) 0px,rgba(201,150,58,0.04) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(-45deg,rgba(201,150,58,0.04) 0px,rgba(201,150,58,0.04) 1px,transparent 1px,transparent 40px);pointer-events:none;}
 .hero-border{position:absolute;inset:20px;border:1px solid rgba(201,150,58,0.2);pointer-events:none;}
-.hero-border::before,.hero-border::after{content:'❖';position:absolute;color:var(--gold);font-size:1.2rem;background:var(--maroon-deep);padding:4px 8px;}
+.hero-border::before,.hero-border::after{content:'â–';position:absolute;color:var(--gold);font-size:1.2rem;background:var(--maroon-deep);padding:4px 8px;}
 .hero-border::before{top:-16px;left:50%;transform:translateX(-50%);}
 .hero-border::after{bottom:-16px;left:50%;transform:translateX(-50%);}
 .hero-content{position:relative;z-index:2;max-width:780px;}
@@ -465,22 +465,22 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 
 <!-- NAV -->
 <nav>
-  <a href="mahalakshmi-client.html" class="nav-logo">🪷 Mahalakshmi</a>
+  <a href="index.html" class="nav-logo">ðŸª· Mahalakshmi</a>
   <ul class="nav-links">
-    <li><a href="mahalakshmi-client.html">Home</a></li>
-    <li><a href="buy.html">💍 <span class="full-text">Buy Jewellery</span><span class="short-text">Buy</span></a></li>
-    <li><a href="rental.html">📅 <span class="full-text">Rent Jewellery</span><span class="short-text">Rent</span></a></li>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="buy.html">ðŸ’ <span class="full-text">Buy Jewellery</span><span class="short-text">Buy</span></a></li>
+    <li><a href="rental.html">ðŸ“… <span class="full-text">Rent Jewellery</span><span class="short-text">Rent</span></a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
   <div style="display:flex;gap:12px;align-items:center;">
     <button class="cart-btn" id="loginBtn" onclick="openLoginModal()" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
-      👤 Login
+      ðŸ‘¤ Login
     </button>
     <button class="cart-btn" onclick="openMyOrders()" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
-      📋 My Orders
+      ðŸ“‹ My Orders
     </button>
     <button class="cart-btn" onclick="openCart()">
-      🛒 Cart
+      ðŸ›’ Cart
       <span class="cart-badge" id="cartBadge">0</span>
     </button>
   </div>
@@ -491,10 +491,10 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
   <div class="hero-bg-pattern"></div>
   <div class="hero-border"></div>
   <div class="hero-content">
-    <div class="hero-tag">✦ Tirunelveli's Finest ✦</div>
+    <div class="hero-tag">âœ¦ Tirunelveli's Finest âœ¦</div>
     <h1 class="hero-title">Bridal Jewellery<em>Reimagined.</em></h1>
-    <p class="hero-sub">Premium duplicate gold jewellery — rent for your special occasion or own it forever. Temple-inspired craftsmanship at a fraction of the cost.</p>
-    <div class="hero-divider"><span class="ornament"></span>❖<span class="ornament"></span></div>
+    <p class="hero-sub">Premium duplicate gold jewellery â€” rent for your special occasion or own it forever. Temple-inspired craftsmanship at a fraction of the cost.</p>
+    <div class="hero-divider"><span class="ornament"></span>â–<span class="ornament"></span></div>
     <div class="hero-btns">
       <a href="#products" class="btn-primary">Browse Collection</a>
       <a href="#contact" class="btn-outline">Send Enquiry</a>
@@ -509,45 +509,45 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 
 <!-- TRUST -->
 <div id="trust">
-  <div class="trust-item"><span class="trust-icon">🔒</span><span class="trust-text">Deposit-Based Safe Rental</span></div>
-  <div class="trust-item"><span class="trust-icon">🚚</span><span class="trust-text">Home Delivery Available</span></div>
-  <div class="trust-item"><span class="trust-icon">💎</span><span class="trust-text">Temple-Grade Quality</span></div>
-  <div class="trust-item"><span class="trust-icon">📸</span><span class="trust-text">Photos Before Delivery</span></div>
+  <div class="trust-item"><span class="trust-icon">ðŸ”’</span><span class="trust-text">Deposit-Based Safe Rental</span></div>
+  <div class="trust-item"><span class="trust-icon">ðŸšš</span><span class="trust-text">Home Delivery Available</span></div>
+  <div class="trust-item"><span class="trust-icon">ðŸ’Ž</span><span class="trust-text">Temple-Grade Quality</span></div>
+  <div class="trust-item"><span class="trust-icon">ðŸ“¸</span><span class="trust-text">Photos Before Delivery</span></div>
 </div>
 
 <!-- HOW IT WORKS -->
 <section id="how">
-  <div class="section-label">✦ Simple Process ✦</div>
+  <div class="section-label">âœ¦ Simple Process âœ¦</div>
   <h2 class="section-title">How It <em>Works</em></h2>
   <p class="section-sub">Renting or buying jewellery has never been this easy. Four steps to shimmer on your special day.</p>
   <div class="steps-grid">
-    <div class="step"><span class="step-num">01</span><span class="step-icon">🔍</span><div class="step-title">Browse & Select</div><p class="step-desc">Explore our collection. Filter by type, occasion, or price. Add to cart.</p></div>
-    <div class="step"><span class="step-num">02</span><span class="step-icon">🛒</span><div class="step-title">Add to Cart</div><p class="step-desc">Select Buy or Book Rental. For rentals, choose your event dates.</p></div>
-    <div class="step"><span class="step-num">03</span><span class="step-icon">✅</span><div class="step-title">Checkout & Confirm</div><p class="step-desc">Enter your details and submit. Admin sees your order in real-time.</p></div>
-    <div class="step"><span class="step-num">04</span><span class="step-icon">📦</span><div class="step-title">Receive & Enjoy</div><p class="step-desc">Pick up or get home delivery. Return rentals after your occasion.</p></div>
+    <div class="step"><span class="step-num">01</span><span class="step-icon">ðŸ”</span><div class="step-title">Browse & Select</div><p class="step-desc">Explore our collection. Filter by type, occasion, or price. Add to cart.</p></div>
+    <div class="step"><span class="step-num">02</span><span class="step-icon">ðŸ›’</span><div class="step-title">Add to Cart</div><p class="step-desc">Select Buy or Book Rental. For rentals, choose your event dates.</p></div>
+    <div class="step"><span class="step-num">03</span><span class="step-icon">âœ…</span><div class="step-title">Checkout & Confirm</div><p class="step-desc">Enter your details and submit. Admin sees your order in real-time.</p></div>
+    <div class="step"><span class="step-num">04</span><span class="step-icon">ðŸ“¦</span><div class="step-title">Receive & Enjoy</div><p class="step-desc">Pick up or get home delivery. Return rentals after your occasion.</p></div>
   </div>
 </section>
 
 <!-- CATEGORIES -->
 <section id="categories">
-  <div class="section-label">✦ Our Collections ✦</div>
+  <div class="section-label">âœ¦ Our Collections âœ¦</div>
   <h2 class="section-title">Browse by <em>Category</em></h2>
-  <p class="section-sub">From head to toe — every piece you need to complete your bridal or celebration look.</p>
+  <p class="section-sub">From head to toe â€” every piece you need to complete your bridal or celebration look.</p>
   <div class="cat-grid">
-    <div class="cat-card" onclick="filterByCategory('Maang Tikka')"><div class="cat-icon">👑</div><div class="cat-name">Maang Tikka</div><div class="cat-count">42 Pieces</div></div>
-    <div class="cat-card" onclick="filterByCategory('Necklace')"><div class="cat-icon">📿</div><div class="cat-name">Necklace Sets</div><div class="cat-count">86 Pieces</div></div>
-    <div class="cat-card" onclick="filterByCategory('Haram')"><div class="cat-icon">💛</div><div class="cat-name">Haram</div><div class="cat-count">38 Pieces</div></div>
-    <div class="cat-card" onclick="filterByCategory('Bangles')"><div class="cat-icon">⭕</div><div class="cat-name">Bangles & Kadas</div><div class="cat-count">65 Pieces</div></div>
-    <div class="cat-card" onclick="filterByCategory('Rings')"><div class="cat-icon">💍</div><div class="cat-name">Finger Rings</div><div class="cat-count">54 Pieces</div></div>
-    <div class="cat-card" onclick="filterByCategory('Earrings')"><div class="cat-icon">👂</div><div class="cat-name">Earrings / Jimikki</div><div class="cat-count">72 Pieces</div></div>
-    <div class="cat-card" onclick="filterByCategory('Anklets')"><div class="cat-icon">🦶</div><div class="cat-name">Anklets / Payal</div><div class="cat-count">30 Pieces</div></div>
-    <div class="cat-card" onclick="filterByCategory('Bridal')"><div class="cat-icon">🌸</div><div class="cat-name">Full Bridal Sets</div><div class="cat-count">24 Sets</div></div>
+    <div class="cat-card" onclick="filterByCategory('Maang Tikka')"><div class="cat-icon">ðŸ‘‘</div><div class="cat-name">Maang Tikka</div><div class="cat-count">42 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Necklace')"><div class="cat-icon">ðŸ“¿</div><div class="cat-name">Necklace Sets</div><div class="cat-count">86 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Haram')"><div class="cat-icon">ðŸ’›</div><div class="cat-name">Haram</div><div class="cat-count">38 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Bangles')"><div class="cat-icon">â­•</div><div class="cat-name">Bangles & Kadas</div><div class="cat-count">65 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Rings')"><div class="cat-icon">ðŸ’</div><div class="cat-name">Finger Rings</div><div class="cat-count">54 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Earrings')"><div class="cat-icon">ðŸ‘‚</div><div class="cat-name">Earrings / Jimikki</div><div class="cat-count">72 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Anklets')"><div class="cat-icon">ðŸ¦¶</div><div class="cat-name">Anklets / Payal</div><div class="cat-count">30 Pieces</div></div>
+    <div class="cat-card" onclick="filterByCategory('Bridal')"><div class="cat-icon">ðŸŒ¸</div><div class="cat-name">Full Bridal Sets</div><div class="cat-count">24 Sets</div></div>
   </div>
 </section>
 
 <!-- PRODUCTS -->
 <section id="products">
-  <div class="section-label">✦ Featured Items ✦</div>
+  <div class="section-label">âœ¦ Featured Items âœ¦</div>
   <h2 class="section-title">Popular <em>Pieces</em></h2>
   <p class="section-sub">Add to cart to buy or book a rental. All orders appear live in admin dashboard.</p>
   <div class="filter-tabs">
@@ -561,31 +561,31 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 
 <!-- REVIEWS -->
 <section id="reviews">
-  <div class="section-label">✦ Customer Love ✦</div>
+  <div class="section-label">âœ¦ Customer Love âœ¦</div>
   <h2 class="section-title">What They <em>Say</em></h2>
   <p class="section-sub">Thousands of brides and families have trusted Mahalakshmi for their most precious moments.</p>
   <div class="reviews-grid">
-    <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Rented the full bridal set for my daughter's wedding. The quality was stunning — everyone kept asking if it was real gold. Returned smoothly and deposit back the same day."</p><div class="review-author"><div class="review-avatar">🙍‍♀️</div><div><div class="review-name">Kavitha Sundaram</div><div class="review-occasion">Bride's Mother – Chennai</div></div></div></div>
-    <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Bought a Haram set for my wife's anniversary. Delivery was on time, packaging beautiful. The craftsmanship is excellent. Booking through the cart was so easy!"</p><div class="review-author"><div class="review-avatar">👨</div><div><div class="review-name">Rajesh Kumar</div><div class="review-occasion">Purchase – Tirunelveli</div></div></div></div>
-    <div class="review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Used the portal at midnight and the admin confirmed by morning! Added items to cart, booked rental dates — the whole process was seamless and professional."</p><div class="review-author"><div class="review-avatar">🙍‍♀️</div><div><div class="review-name">Priya Devi</div><div class="review-occasion">Rental – Madurai</div></div></div></div>
+    <div class="review-card"><div class="review-stars">â˜…â˜…â˜…â˜…â˜…</div><p class="review-text">"Rented the full bridal set for my daughter's wedding. The quality was stunning â€” everyone kept asking if it was real gold. Returned smoothly and deposit back the same day."</p><div class="review-author"><div class="review-avatar">ðŸ™â€â™€ï¸</div><div><div class="review-name">Kavitha Sundaram</div><div class="review-occasion">Bride's Mother â€“ Chennai</div></div></div></div>
+    <div class="review-card"><div class="review-stars">â˜…â˜…â˜…â˜…â˜…</div><p class="review-text">"Bought a Haram set for my wife's anniversary. Delivery was on time, packaging beautiful. The craftsmanship is excellent. Booking through the cart was so easy!"</p><div class="review-author"><div class="review-avatar">ðŸ‘¨</div><div><div class="review-name">Rajesh Kumar</div><div class="review-occasion">Purchase â€“ Tirunelveli</div></div></div></div>
+    <div class="review-card"><div class="review-stars">â˜…â˜…â˜…â˜…â˜…</div><p class="review-text">"Used the portal at midnight and the admin confirmed by morning! Added items to cart, booked rental dates â€” the whole process was seamless and professional."</p><div class="review-author"><div class="review-avatar">ðŸ™â€â™€ï¸</div><div><div class="review-name">Priya Devi</div><div class="review-occasion">Rental â€“ Madurai</div></div></div></div>
   </div>
 </section>
 
 <!-- CONTACT -->
 <section id="contact">
-  <div class="section-label">✦ Get In Touch ✦</div>
+  <div class="section-label">âœ¦ Get In Touch âœ¦</div>
   <h2 class="section-title" style="color:#fff;">Contact <em>Us</em></h2>
   <p class="section-sub">Send a direct request and admin sees it live. We reply within the hour.</p>
   <div class="contact-wrap">
     <div class="contact-info">
-      <a href="https://wa.me/919876543210" class="contact-method" target="_blank"><div class="cm-icon">💬</div><div><div class="cm-label">WhatsApp</div><div class="cm-val">+91 98765 43210</div></div></a>
-      <a href="tel:+919876543210" class="contact-method"><div class="cm-icon">📞</div><div><div class="cm-label">Phone Call</div><div class="cm-val">+91 98765 43210</div></div></a>
-      <a href="/cdn-cgi/l/email-protection#7910171f1639141811181518120a1114100b1c170d18150a571017" class="contact-method"><div class="cm-icon">✉️</div><div><div class="cm-label">Email Us</div><div class="cm-val"><span class="__cf_email__" data-cfemail="99f0f7fff6d9f4f8f1f8f5f8f2eaf1f4f0ebfcf7edf8f5eab7f0f7">[email&#160;protected]</span></div></div></a>
-      <div class="contact-method" style="cursor:default;"><div class="cm-icon">📍</div><div><div class="cm-label">Visit Store</div><div class="cm-val">Main Bazaar Street, Tirunelveli – 627001</div></div></div>
+      <a href="https://wa.me/919876543210" class="contact-method" target="_blank"><div class="cm-icon">ðŸ’¬</div><div><div class="cm-label">WhatsApp</div><div class="cm-val">+91 98765 43210</div></div></a>
+      <a href="tel:+919876543210" class="contact-method"><div class="cm-icon">ðŸ“ž</div><div><div class="cm-label">Phone Call</div><div class="cm-val">+91 98765 43210</div></div></a>
+      <a href="/cdn-cgi/l/email-protection#7910171f1639141811181518120a1114100b1c170d18150a571017" class="contact-method"><div class="cm-icon">âœ‰ï¸</div><div><div class="cm-label">Email Us</div><div class="cm-val"><span class="__cf_email__" data-cfemail="99f0f7fff6d9f4f8f1f8f5f8f2eaf1f4f0ebfcf7edf8f5eab7f0f7">[email&#160;protected]</span></div></div></a>
+      <div class="contact-method" style="cursor:default;"><div class="cm-icon">ðŸ“</div><div><div class="cm-label">Visit Store</div><div class="cm-val">Main Bazaar Street, Tirunelveli â€“ 627001</div></div></div>
     </div>
     <div class="portal-form">
-      <h3>🪷 Direct Portal Request</h3>
-      <p style="color:rgba(240,201,107,0.5);font-size:.82rem;margin-bottom:4px;">Admin sees this in real-time ✓</p>
+      <h3>ðŸª· Direct Portal Request</h3>
+      <p style="color:rgba(240,201,107,0.5);font-size:.82rem;margin-bottom:4px;">Admin sees this in real-time âœ“</p>
       <div class="form-row">
         <div class="form-group"><label>Your Name</label><input type="text" id="f-name" placeholder="e.g. Priya Devi"/></div>
         <div class="form-group"><label>Phone Number</label><input type="tel" id="f-phone" placeholder="+91 XXXXX XXXXX"/></div>
@@ -596,41 +596,41 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
         <div class="form-group"><label>Event / Occasion</label><input type="text" id="f-event" placeholder="e.g. Wedding, Seemantham"/></div>
       </div>
       <div class="form-group"><label>Message / Details</label><textarea id="f-msg" placeholder="Describe the jewellery you're looking for, event date, quantity needed..."></textarea></div>
-      <button class="form-submit" onclick="submitEnquiry()">✦ Send Request to Admin</button>
-      <p class="form-note">📲 We respond within 1 hour during business hours (9 AM – 8 PM)</p>
+      <button class="form-submit" onclick="submitEnquiry()">âœ¦ Send Request to Admin</button>
+      <p class="form-note">ðŸ“² We respond within 1 hour during business hours (9 AM â€“ 8 PM)</p>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="footer-grid">
-    <div><div class="footer-brand-name">🪷 Mahalakshmi Rentals & Sellers</div><p class="footer-desc">Tirunelveli's most trusted destination for premium duplicate gold jewellery. Serving brides and families since 2014 with honesty, quality, and care.</p></div>
+    <div><div class="footer-brand-name">ðŸª· Mahalakshmi Rentals & Sellers</div><p class="footer-desc">Tirunelveli's most trusted destination for premium duplicate gold jewellery. Serving brides and families since 2014 with honesty, quality, and care.</p></div>
     <div class="footer-col"><h4>Quick Links</h4><ul><li><a href="#how">How It Works</a></li><li><a href="#categories">Collections</a></li><li><a href="#products">Products</a></li><li><a href="#reviews">Reviews</a></li><li><a href="#contact">Contact</a></li></ul></div>
     <div class="footer-col"><h4>Categories</h4><ul><li><a href="#">Full Bridal Sets</a></li><li><a href="#">Necklace Sets</a></li><li><a href="#">Haram</a></li><li><a href="#">Bangles</a></li><li><a href="#">Earrings</a></li></ul></div>
   </div>
-  <div class="footer-bottom">© 2025 Mahalakshmi Rentals & Sellers. All rights reserved. | Tirunelveli, Tamil Nadu.</div>
+  <div class="footer-bottom">Â© 2025 Mahalakshmi Rentals & Sellers. All rights reserved. | Tirunelveli, Tamil Nadu.</div>
 </footer>
 
 <!-- FLOATING BUTTONS -->
 <div class="float-btns">
-  <a href="https://wa.me/919876543210" class="float-btn float-wa" target="_blank">💬</a>
-  <a href="tel:+919876543210" class="float-btn float-call">📞</a>
+  <a href="https://wa.me/919876543210" class="float-btn float-wa" target="_blank">ðŸ’¬</a>
+  <a href="tel:+919876543210" class="float-btn float-call">ðŸ“ž</a>
 </div>
 
 <!-- CART DRAWER -->
 <div class="cart-overlay" id="cartOverlay" onclick="closeCart()"></div>
 <div class="cart-drawer" id="cartDrawer">
   <div class="cart-header">
-    <h2>🛒 Your Cart</h2>
-    <button class="cart-close" onclick="closeCart()">✕</button>
+    <h2>ðŸ›’ Your Cart</h2>
+    <button class="cart-close" onclick="closeCart()">âœ•</button>
   </div>
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-footer" id="cartFooter" style="display:none;">
     <div class="cart-total-row">
       <span class="cart-total-label">Total Amount</span>
-      <span class="cart-total-val" id="cartTotal">₹0</span>
+      <span class="cart-total-val" id="cartTotal">â‚¹0</span>
     </div>
-    <button type="button" class="btn-checkout" onclick="openCheckout()">✦ Proceed to Checkout</button>
+    <button type="button" class="btn-checkout" onclick="openCheckout()">âœ¦ Proceed to Checkout</button>
     <button class="btn-clear" onclick="clearCart()">Clear Cart</button>
   </div>
 </div>
@@ -638,8 +638,8 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 <!-- RENTAL DATE MODAL -->
 <div class="modal-overlay" id="rentalModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeRentalModal()">✕</button>
-    <h2>📅 Book Rental</h2>
+    <button class="modal-close" onclick="closeRentalModal()">âœ•</button>
+    <h2>ðŸ“… Book Rental</h2>
     <p class="modal-subtitle" id="rentalProductName">Select your rental dates</p>
     <div class="rental-dates">
       <div class="form-group"><label>From Date</label><input type="date" id="rent-from" onchange="calcDays()"/></div>
@@ -648,7 +648,7 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
     <div class="form-group" style="margin-bottom:14px;">
       <label>Quantity</label>
       <div style="display:flex;align-items:center;gap:12px;">
-        <button onclick="updateRentalQty(-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:36px;height:36px;cursor:pointer;font-size:1.2rem;">−</button>
+        <button onclick="updateRentalQty(-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:36px;height:36px;cursor:pointer;font-size:1.2rem;">âˆ’</button>
         <input type="number" id="rental-qty" value="1" min="1" readonly style="width:60px;text-align:center;background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:8px;font-size:1rem;"/>
         <button onclick="updateRentalQty(1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:36px;height:36px;cursor:pointer;font-size:1.2rem;">+</button>
         <span id="rental-avail-info" style="color:rgba(240,201,107,0.6);font-size:.85rem;"></span>
@@ -658,7 +658,7 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
     <div class="form-group" style="margin-bottom:14px;"><label>Special Note (optional)</label><textarea id="rent-note" placeholder="Any special requirements..." style="min-height:70px;background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px;font-family:'Alegreya Sans',sans-serif;font-size:.9rem;outline:none;width:100%;resize:vertical;"></textarea></div>
     <div class="modal-btns">
       <button class="modal-btn-back" onclick="closeRentalModal()">Cancel</button>
-      <button class="modal-btn-next" onclick="confirmRental()">✦ Add to Cart</button>
+      <button class="modal-btn-next" onclick="confirmRental()">âœ¦ Add to Cart</button>
     </div>
   </div>
 </div>
@@ -666,20 +666,20 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 <!-- CHECKOUT MODAL -->
 <div class="modal-overlay" id="checkoutModal">
   <div class="modal" style="max-width:600px;">
-    <button class="modal-close" onclick="closeCheckout()">✕</button>
+    <button class="modal-close" onclick="closeCheckout()">âœ•</button>
     <h2>Checkout</h2>
     <div class="checkout-steps">
-      <div class="cstep active" id="cstep1">① Order Review</div>
-      <div class="cstep" id="cstep2">② Your Details</div>
-      <div class="cstep" id="cstep3">③ Confirm</div>
+      <div class="cstep active" id="cstep1">â‘  Order Review</div>
+      <div class="cstep" id="cstep2">â‘¡ Your Details</div>
+      <div class="cstep" id="cstep3">â‘¢ Confirm</div>
     </div>
 
     <!-- STEP 1: Order Review -->
     <div class="checkout-panel active" id="cpanel1">
       <h3 style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-size:1.3rem;margin-bottom:16px;">Order Summary</h3>
       <div class="order-summary-items" id="orderSummaryItems"></div>
-      <div class="summary-total"><span>Total</span><span id="summaryTotal">₹0</span></div>
-      <div class="modal-btns"><button class="modal-btn-next" onclick="goStep(2)" style="flex:1;">Continue →</button></div>
+      <div class="summary-total"><span>Total</span><span id="summaryTotal">â‚¹0</span></div>
+      <div class="modal-btns"><button class="modal-btn-next" onclick="goStep(2)" style="flex:1;">Continue â†’</button></div>
     </div>
 
     <!-- STEP 2: Customer Details -->
@@ -692,12 +692,12 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
         </div>
         <div class="form-group"><label>Email Address</label><input type="email" id="co-email" placeholder="your@email.com"/></div>
         <div class="form-group"><label>Delivery Address</label><textarea id="co-address" placeholder="Enter your full address for delivery (or write 'Store Pickup')" style="min-height:80px;background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px;font-family:'Alegreya Sans',sans-serif;font-size:.9rem;outline:none;width:100%;resize:vertical;"></textarea></div>
-        <div class="form-group"><label>Event / Occasion</label><input type="text" id="co-event" placeholder="e.g. Wedding – 15th March 2025"/></div>
+        <div class="form-group"><label>Event / Occasion</label><input type="text" id="co-event" placeholder="e.g. Wedding â€“ 15th March 2025"/></div>
         <div class="form-group"><label>Additional Notes</label><textarea id="co-notes" placeholder="Any special requests or instructions..." style="min-height:70px;background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px;font-family:'Alegreya Sans',sans-serif;font-size:.9rem;outline:none;width:100%;resize:vertical;"></textarea></div>
       </div>
       <div class="modal-btns" style="margin-top:20px;">
-        <button class="modal-btn-back" onclick="goStep(1)">← Back</button>
-        <button class="modal-btn-next" onclick="goStep(3)">Review Order →</button>
+        <button class="modal-btn-back" onclick="goStep(1)">â† Back</button>
+        <button class="modal-btn-next" onclick="goStep(3)">Review Order â†’</button>
       </div>
     </div>
 
@@ -707,51 +707,51 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
       <div id="confirmSummary" style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,150,58,0.15);padding:20px;margin-bottom:20px;font-size:.9rem;color:rgba(240,201,107,0.7);line-height:2;"></div>
       
       <!-- PAYMENT METHOD SELECTION -->
-      <h4 style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-size:1.1rem;margin-bottom:12px;">💳 Select Payment Method</h4>
+      <h4 style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-size:1.1rem;margin-bottom:12px;">ðŸ’³ Select Payment Method</h4>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;">
         <label class="payment-option-label" style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(201,150,58,0.2);background:rgba(255,255,255,0.03);cursor:pointer;transition:all .2s;">
           <input type="radio" name="paymentMethod" value="cod" checked style="width:18px;height:18px;cursor:pointer;">
           <div style="flex:1;">
-            <div style="color:var(--gold-light);font-weight:600;margin-bottom:2px;">💵 Cash on Delivery</div>
+            <div style="color:var(--gold-light);font-weight:600;margin-bottom:2px;">ðŸ’µ Cash on Delivery</div>
             <div style="font-size:.75rem;color:rgba(240,201,107,0.5);">Pay when you receive the items</div>
           </div>
         </label>
         <label class="payment-option-label" style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(201,150,58,0.2);background:rgba(255,255,255,0.03);cursor:pointer;transition:all .2s;">
           <input type="radio" name="paymentMethod" value="cash_at_shop" style="width:18px;height:18px;cursor:pointer;">
           <div style="flex:1;">
-            <div style="color:var(--gold-light);font-weight:600;margin-bottom:2px;">🏪 Cash at Shop</div>
+            <div style="color:var(--gold-light);font-weight:600;margin-bottom:2px;">ðŸª Cash at Shop</div>
             <div style="font-size:.75rem;color:rgba(240,201,107,0.5);">Pay when you pick up from our store</div>
           </div>
         </label>
         <label class="payment-option-label" style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(201,150,58,0.2);background:rgba(255,255,255,0.03);cursor:pointer;transition:all .2s;">
           <input type="radio" name="paymentMethod" value="upi" style="width:18px;height:18px;cursor:pointer;">
           <div style="flex:1;">
-            <div style="color:var(--gold-light);font-weight:600;margin-bottom:2px;">📱 Pay via UPI</div>
+            <div style="color:var(--gold-light);font-weight:600;margin-bottom:2px;">ðŸ“± Pay via UPI</div>
             <div style="font-size:.75rem;color:rgba(240,201,107,0.5);">Google Pay, PhonePe, Paytm - Instant payment</div>
           </div>
         </label>
         <label class="payment-option-label" id="onlinePaymentOption" style="display:none;align-items:center;gap:12px;padding:12px;border:1px solid rgba(201,150,58,0.2);background:rgba(255,255,255,0.03);cursor:pointer;transition:all .2s;">
           <input type="radio" name="paymentMethod" value="online" style="width:18px;height:18px;cursor:pointer;">
           <div style="flex:1;">
-            <div style="color:var(--gold-light);font-weight:600;margin-bottom:2px;">💳 Pay Online</div>
+            <div style="color:var(--gold-light);font-weight:600;margin-bottom:2px;">ðŸ’³ Pay Online</div>
             <div style="font-size:.75rem;color:rgba(240,201,107,0.5);">Secure payment via Razorpay (Cards, UPI, Wallets)</div>
           </div>
         </label>
       </div>
       
       <div style="background:rgba(201,150,58,0.08);border:1px solid rgba(201,150,58,0.2);padding:14px;font-size:.8rem;color:rgba(240,201,107,0.5);margin-bottom:20px;">
-        ℹ️ For rentals, a refundable deposit will be collected separately. Admin will confirm your order via phone/WhatsApp.
+        â„¹ï¸ For rentals, a refundable deposit will be collected separately. Admin will confirm your order via phone/WhatsApp.
       </div>
       <div class="modal-btns">
-        <button class="modal-btn-back" onclick="goStep(2)">← Back</button>
-        <button class="modal-btn-next" onclick="placeOrder()" id="placeOrderBtn">✦ Place Order</button>
+        <button class="modal-btn-back" onclick="goStep(2)">â† Back</button>
+        <button class="modal-btn-next" onclick="placeOrder()" id="placeOrderBtn">âœ¦ Place Order</button>
       </div>
     </div>
 
     <!-- SUCCESS -->
     <div class="checkout-panel" id="cpanelSuccess">
       <div class="success-screen">
-        <div class="success-icon">🎉</div>
+        <div class="success-icon">ðŸŽ‰</div>
         <h3>Order Placed Successfully!</h3>
         <p>Your order has been sent to the admin dashboard. They will contact you shortly to confirm.</p>
         <div class="order-id" id="successOrderId">Order ID: #MLR-0000</div>
@@ -768,8 +768,8 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 <!-- LOGIN/SIGNUP MODAL -->
 <div class="modal-overlay" id="loginModal">
   <div class="modal" style="max-width:450px;">
-    <button class="modal-close" onclick="closeLoginModal()">✕</button>
-    <h2 id="loginTitle">👤 Customer Login</h2>
+    <button class="modal-close" onclick="closeLoginModal()">âœ•</button>
+    <h2 id="loginTitle">ðŸ‘¤ Customer Login</h2>
     <p class="modal-subtitle">Login is optional. You can checkout as guest or login to track orders easily.</p>
     
     <div id="loginForm">
@@ -782,7 +782,7 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
         <input type="text" id="loginName" placeholder="Your name (optional)" style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px 16px;font-size:.95rem;outline:none;width:100%;"/>
       </div>
       <button onclick="doCustomerLogin()" style="width:100%;background:var(--gold);color:var(--maroon-deep);border:none;padding:14px;font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;font-weight:500;cursor:pointer;margin-bottom:10px;">
-        ✦ Login / Sign Up
+        âœ¦ Login / Sign Up
       </button>
       <button onclick="closeLoginModal()" style="width:100%;background:transparent;color:rgba(240,201,107,0.6);border:1px solid rgba(201,150,58,0.2);padding:10px;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;">
         Continue as Guest
@@ -794,8 +794,8 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 <!-- MY ORDERS MODAL -->
 <div class="modal-overlay" id="myOrdersModal">
   <div class="modal" style="max-width:800px;max-height:90vh;display:flex;flex-direction:column;">
-    <button class="modal-close" onclick="closeMyOrders()">✕</button>
-    <h2>📋 My Orders</h2>
+    <button class="modal-close" onclick="closeMyOrders()">âœ•</button>
+    <h2>ðŸ“‹ My Orders</h2>
     <p class="modal-subtitle">Track your orders and rental history</p>
     
     <div id="myOrdersList" style="flex:1;overflow-y:auto;margin-top:20px;">
@@ -805,11 +805,11 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 </div>
 
 <script>
-// ── PRODUCTS DATA (loaded from API) ───────────────────────────────────────
+// â”€â”€ PRODUCTS DATA (loaded from API) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let products = [];
 
 
-// ── CART STATE ────────────────────────────────────────────────────────────
+// â”€â”€ CART STATE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let cart = CartManager.getCart(); // Load from localStorage
 let currentFilter = 'all';
 let rentalProductId = null;
@@ -829,7 +829,7 @@ async function loadProducts() {
 
     if(Array.isArray(allProducts) && allProducts.length > 0){
       products = allProducts;
-      console.log("✅ Products loaded from API:", products.length);
+      console.log("âœ… Products loaded from API:", products.length);
       renderProducts(currentFilter);
     } else {
       products = [];
@@ -837,11 +837,11 @@ async function loadProducts() {
     }
 
   } catch(error) {
-    console.error("❌ Error loading products:", error);
+    console.error("âŒ Error loading products:", error);
     showNoProducts();
   }
 }
-// ── RENDER PRODUCTS ───────────────────────────────────────────────────────
+// â”€â”€ RENDER PRODUCTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderProducts(filter='all'){
   const grid = document.getElementById('productsGrid');
   let list = filter==='all' ? products : products.filter(p=>p.type===filter);
@@ -864,7 +864,7 @@ function renderProducts(filter='all'){
     const inCartQty = cartItem ? cartItem.quantity : 0;
     
     const rentBtn = (p.type==='rent'||p.type==='both') && canAct
-      ? `<button class="btn-rent" onclick="openRentalModal(${p.id})">📅 Book Rental</button>`
+      ? `<button class="btn-rent" onclick="openRentalModal(${p.id})">ðŸ“… Book Rental</button>`
       : '';
     
     let buyBtn = '';
@@ -874,18 +874,18 @@ function renderProducts(filter='all'){
       } else if(inCartQty > 0){
         // Show quantity controls if in cart
         buyBtn = `<div class="btn-cart btn-added" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:8px;">
-          <button onclick="event.stopPropagation();decreaseFromProduct(${p.id})" style="background:var(--gold-dark);color:#fff;border:none;width:28px;height:28px;cursor:pointer;font-size:1.1rem;border-radius:2px;">−</button>
+          <button onclick="event.stopPropagation();decreaseFromProduct(${p.id})" style="background:var(--gold-dark);color:#fff;border:none;width:28px;height:28px;cursor:pointer;font-size:1.1rem;border-radius:2px;">âˆ’</button>
           <span style="font-weight:700;min-width:30px;text-align:center;">${inCartQty}</span>
           <button onclick="event.stopPropagation();addToCart(${p.id},'buy')" style="background:var(--gold-dark);color:#fff;border:none;width:28px;height:28px;cursor:pointer;font-size:1.1rem;border-radius:2px;">+</button>
         </div>`;
       } else {
-        buyBtn = `<button class="btn-cart" id="bcart-${p.id}" onclick="addToCart(${p.id},'buy')">🛒 Add to Cart</button>`;
+        buyBtn = `<button class="btn-cart" id="bcart-${p.id}" onclick="addToCart(${p.id},'buy')">ðŸ›’ Add to Cart</button>`;
       }
     }
     
     let actions = '';
     if(!canAct){
-      actions = `<button class="btn-full" style="opacity:.5;cursor:not-allowed;background:#3a1010;color:#ff8888;border:1px solid #8B1A1A;">✗ Sold</button>`;
+      actions = `<button class="btn-full" style="opacity:.5;cursor:not-allowed;background:#3a1010;color:#ff8888;border:1px solid #8B1A1A;">âœ— Sold</button>`;
     } else if(rentBtn && buyBtn){
       actions = `<div class="product-actions">${buyBtn}${rentBtn}</div>`;
     } else if(rentBtn){
@@ -904,9 +904,9 @@ function renderProducts(filter='all'){
         <div class="product-name">${p.name}</div>
         <div class="product-material">${p.material}</div>
         <div class="product-pricing">
-          ${p.rentPerDay?`<div><div class="price-label">Rent/Day</div><div class="price-val">₹${p.rentPerDay}</div></div>`:''}
+          ${p.rentPerDay?`<div><div class="price-label">Rent/Day</div><div class="price-val">â‚¹${p.rentPerDay}</div></div>`:''}
           ${p.rentPerDay&&p.buy?'<div class="price-divider"></div>':''}
-          ${p.buy?`<div><div class="price-label">Buy</div><div class="price-val">₹${p.buy}</div></div>`:''}
+          ${p.buy?`<div><div class="price-label">Buy</div><div class="price-val">â‚¹${p.buy}</div></div>`:''}
         </div>
         ${actions}
       </div>
@@ -960,7 +960,7 @@ function showNoProducts(){
       padding:80px 20px;
       color:rgba(240,201,107,0.6);
     ">
-      <div style="font-size:3rem;margin-bottom:10px;">📦</div>
+      <div style="font-size:3rem;margin-bottom:10px;">ðŸ“¦</div>
       <h3 style="color:var(--gold-light);margin-bottom:10px;">
         No Products Available
       </h3>
@@ -971,7 +971,7 @@ function showNoProducts(){
   `;
 }
 
-// ── CART LOGIC ────────────────────────────────────────────────────────────
+// â”€â”€ CART LOGIC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function addToCart(id, mode, rentalData=null){
   const p = products.find(x=>x.id===id);
   if(!p) return;
@@ -992,7 +992,7 @@ function addToCart(id, mode, rentalData=null){
     existing.price = mode==='buy' ? p.buy * existing.quantity : (rentalData ? rentalData.total * existing.quantity : p.rentPerDay * existing.quantity);
   } else {
     const item = {
-  id: p.id,           // ⭐ REQUIRED for backend
+  id: p.id,           // â­ REQUIRED for backend
   productId: p.id,
   name: p.name,
   icon: p.icon,
@@ -1011,11 +1011,11 @@ function addToCart(id, mode, rentalData=null){
     const btn = document.getElementById(`bcart-${id}`);
     if(btn){ 
       const qty = cart.find(c=>c.id===id&&c.mode===mode)?.quantity || 1;
-      btn.innerHTML = `✓ In Cart (${qty})`;
+      btn.innerHTML = `âœ“ In Cart (${qty})`;
       btn.classList.add('btn-added');
     }
   }
-  showToast(`✓ "${p.name}" added to cart!`);
+  showToast(`âœ“ "${p.name}" added to cart!`);
 }
 
 function removeFromCart(idx){
@@ -1046,7 +1046,7 @@ function updateCartUI(){
     if(item.mode === 'buy') {
       const btn = document.getElementById(`bcart-${item.id}`);
       if(btn) {
-        btn.innerHTML = `✓ In Cart (${item.quantity})`;
+        btn.innerHTML = `âœ“ In Cart (${item.quantity})`;
         btn.classList.add('btn-added');
       }
     }
@@ -1067,7 +1067,7 @@ function renderCartItems(){
   const el = document.getElementById('cartItems');
   const footer = document.getElementById('cartFooter');
   if(cart.length===0){
-    el.innerHTML=`<div class="cart-empty"><div class="empty-icon">🛒</div><p>Your cart is empty</p><p style="margin-top:8px;font-size:.8rem;">Browse our collection and add items!</p></div>`;
+    el.innerHTML=`<div class="cart-empty"><div class="empty-icon">ðŸ›’</div><p>Your cart is empty</p><p style="margin-top:8px;font-size:.8rem;">Browse our collection and add items!</p></div>`;
     footer.style.display='none'; return;
   }
   footer.style.display='block';
@@ -1083,7 +1083,7 @@ function renderCartItems(){
   if (buyItems.length > 0) {
     html += `<div style="margin-bottom:20px;">
       <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(201,150,58,0.1);border-left:3px solid var(--gold);margin-bottom:12px;">
-        <span style="font-size:1.1rem;">💰</span>
+        <span style="font-size:1.1rem;">ðŸ’°</span>
         <span style="font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-light);flex:1;">Buy Items</span>
         <span style="font-size:.7rem;color:rgba(240,201,107,0.6);background:rgba(201,150,58,0.2);padding:2px 8px;border-radius:10px;">${buyItems.length}</span>
       </div>`;
@@ -1100,13 +1100,13 @@ function renderCartItems(){
           <div class="ci-name">${item.name}</div>
           <span class="ci-type buy">Purchase</span>
           <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
-            <button onclick="updateQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;">−</button>
+            <button onclick="updateQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;">âˆ’</button>
             <span style="color:var(--gold-light);font-weight:600;min-width:20px;text-align:center;">${qty}</span>
             <button onclick="updateQuantity(${idx},1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;">+</button>
           </div>
-          <div class="ci-price">₹${itemTotal.toLocaleString()} ${qty>1?`(₹${item.unitPrice} × ${qty})`:''}</div>
+          <div class="ci-price">â‚¹${itemTotal.toLocaleString()} ${qty>1?`(â‚¹${item.unitPrice} Ã— ${qty})`:''}</div>
         </div>
-        <button class="ci-remove" onclick="removeFromCart(${idx})">✕</button>
+        <button class="ci-remove" onclick="removeFromCart(${idx})">âœ•</button>
       </div>`;
     });
     
@@ -1117,7 +1117,7 @@ function renderCartItems(){
   if (rentItems.length > 0) {
     html += `<div style="margin-bottom:20px;">
       <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(201,150,58,0.1);border-left:3px solid var(--gold);margin-bottom:12px;">
-        <span style="font-size:1.1rem;">📅</span>
+        <span style="font-size:1.1rem;">ðŸ“…</span>
         <span style="font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-light);flex:1;">Rental Items</span>
         <span style="font-size:.7rem;color:rgba(240,201,107,0.6);background:rgba(201,150,58,0.2);padding:2px 8px;border-radius:10px;">${rentItems.length}</span>
       </div>`;
@@ -1127,7 +1127,7 @@ function renderCartItems(){
       const itemTotal = item.price;
       total += itemTotal;
       const qty = item.quantity || 1;
-      const datesHtml = item.rentalData ? `<div class="ci-dates">📅 ${item.rentalData.from} → ${item.rentalData.to} (${item.rentalData.days} days)</div>`:'';
+      const datesHtml = item.rentalData ? `<div class="ci-dates">ðŸ“… ${item.rentalData.from} â†’ ${item.rentalData.to} (${item.rentalData.days} days)</div>`:'';
       
       html += `<div class="cart-item">
         <div class="ci-icon">${item.icon}</div>
@@ -1136,13 +1136,13 @@ function renderCartItems(){
           <span class="ci-type rent">Rental</span>
           ${datesHtml}
           <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
-            <button onclick="updateQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;">−</button>
+            <button onclick="updateQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;">âˆ’</button>
             <span style="color:var(--gold-light);font-weight:600;min-width:20px;text-align:center;">${qty}</span>
             <button onclick="updateQuantity(${idx},1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;">+</button>
           </div>
-          <div class="ci-price">₹${itemTotal.toLocaleString()} ${qty>1?`(₹${item.unitPrice}/day × ${qty})`:''}</div>
+          <div class="ci-price">â‚¹${itemTotal.toLocaleString()} ${qty>1?`(â‚¹${item.unitPrice}/day Ã— ${qty})`:''}</div>
         </div>
-        <button class="ci-remove" onclick="removeFromCart(${idx})">✕</button>
+        <button class="ci-remove" onclick="removeFromCart(${idx})">âœ•</button>
       </div>`;
     });
     
@@ -1150,7 +1150,7 @@ function renderCartItems(){
   }
   
   el.innerHTML = html;
-  document.getElementById('cartTotal').textContent='₹'+total.toLocaleString();
+  document.getElementById('cartTotal').textContent='â‚¹'+total.toLocaleString();
 }
 
 function updateQuantity(idx, change) {
@@ -1179,11 +1179,11 @@ function updateQuantity(idx, change) {
   loadProducts();
 }
 
-// ── RENTAL MODAL ──────────────────────────────────────────────────────────
+// â”€â”€ RENTAL MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function openRentalModal(id){
   rentalProductId=id;
   const p=products.find(x=>x.id===id);
-  document.getElementById('rentalProductName').textContent=`📿 ${p.name} — ₹${p.rentPerDay}/day`;
+  document.getElementById('rentalProductName').textContent=`ðŸ“¿ ${p.name} â€” â‚¹${p.rentPerDay}/day`;
   document.getElementById('rental-qty').value = 1;
   document.getElementById('rental-avail-info').textContent = `${p.availableQty} available`;
   const today=new Date().toISOString().split('T')[0];
@@ -1217,12 +1217,12 @@ function calcDays(){
   const info=document.getElementById('rentalDaysInfo');
   if(!from||!to){ info.textContent='Select both dates'; return; }
   const d1=new Date(from), d2=new Date(to);
-  if(d2<=d1){ info.textContent='⚠️ End date must be after start date'; return; }
+  if(d2<=d1){ info.textContent='âš ï¸ End date must be after start date'; return; }
   const days=Math.ceil((d2-d1)/(1000*60*60*24));
   const p=products.find(x=>x.id===rentalProductId);
   const unitTotal=days*p.rentPerDay;
   const total=unitTotal*qty;
-  info.innerHTML=`📅 <strong>${days} day${days>1?'s':''}</strong> rental &nbsp;|&nbsp; ₹${p.rentPerDay}/day × ${days} ${qty>1?`× ${qty} items`:''} = <strong>₹${total.toLocaleString()}</strong>`;
+  info.innerHTML=`ðŸ“… <strong>${days} day${days>1?'s':''}</strong> rental &nbsp;|&nbsp; â‚¹${p.rentPerDay}/day Ã— ${days} ${qty>1?`Ã— ${qty} items`:''} = <strong>â‚¹${total.toLocaleString()}</strong>`;
 }
 
 function confirmRental(){
@@ -1245,7 +1245,7 @@ function confirmRental(){
   closeRentalModal();
 }
 
-// ── CHECKOUT ──────────────────────────────────────────────────────────────
+// â”€â”€ CHECKOUT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function openCheckout(){
   if(cart.length===0){ showToast('Your cart is empty!','error'); return; }
   closeCart();
@@ -1302,10 +1302,10 @@ function populateOrderSummary(){
     total+=item.price;
     const typeClass=item.mode==='rent'?'badge-rent':'badge-buy';
     const typeText=item.mode==='rent'?'Rental':'Purchase';
-    const dates=item.rentalData?`<br><small style="color:rgba(240,201,107,0.4);">📅 ${item.rentalData.from} → ${item.rentalData.to} (${item.rentalData.days}d)</small>`:'';
-    return `<div class="osi"><div><span class="osi-name">${item.icon} ${item.name}</span><span class="osi-type ${typeClass}">${typeText}</span>${dates}</div><span class="osi-price">₹${item.price.toLocaleString()}</span></div>`;
+    const dates=item.rentalData?`<br><small style="color:rgba(240,201,107,0.4);">ðŸ“… ${item.rentalData.from} â†’ ${item.rentalData.to} (${item.rentalData.days}d)</small>`:'';
+    return `<div class="osi"><div><span class="osi-name">${item.icon} ${item.name}</span><span class="osi-type ${typeClass}">${typeText}</span>${dates}</div><span class="osi-price">â‚¹${item.price.toLocaleString()}</span></div>`;
   }).join('');
-  document.getElementById('summaryTotal').textContent='₹'+total.toLocaleString();
+  document.getElementById('summaryTotal').textContent='â‚¹'+total.toLocaleString();
 }
 
 function populateConfirm(){
@@ -1324,7 +1324,7 @@ function populateConfirm(){
     ${event?`<strong style="color:var(--gold-light);">Occasion:</strong> ${event}<br>`:''}
     ${notes?`<strong style="color:var(--gold-light);">Notes:</strong> ${notes}<br>`:''}
     <strong style="color:var(--gold-light);">Items:</strong> ${cart.length} item(s)<br>
-    <strong style="color:var(--gold-light);font-size:1.1em;">Total: ₹${total.toLocaleString()}</strong>
+    <strong style="color:var(--gold-light);font-size:1.1em;">Total: â‚¹${total.toLocaleString()}</strong>
   `;
 }
 
@@ -1347,7 +1347,7 @@ async function placeOrder(){
     // Validate phone length
     if (phone.length < 10 || phone.length > 15) {
       showToast('Please enter a valid phone number (10-15 digits)', 'error');
-      btn.textContent='✦ Place Order'; btn.disabled=false;
+      btn.textContent='âœ¦ Place Order'; btn.disabled=false;
       return;
     }
     
@@ -1372,7 +1372,7 @@ async function placeOrder(){
       orders.unshift(order);
       localStorage.setItem('mlr_orders', JSON.stringify(orders));
       document.getElementById('successOrderId').textContent='Order ID: #'+orderId;
-      showToast('⚠️ Order saved locally. Please contact admin to confirm.', 'error');
+      showToast('âš ï¸ Order saved locally. Please contact admin to confirm.', 'error');
       currentStep=4; updateStepUI();
       cart = [];
       CartManager.clearCart();
@@ -1390,7 +1390,7 @@ async function placeOrder(){
       } else {
         // COD or Cash at Shop - show success
         document.getElementById('successOrderId').textContent='Order ID: #'+result.orderId;
-        showToast('✅ Order placed successfully!');
+        showToast('âœ… Order placed successfully!');
         currentStep=4; updateStepUI();
         cart = [];
         CartManager.clearCart();
@@ -1401,7 +1401,7 @@ async function placeOrder(){
   } catch (error) {
     console.error('Error placing order:', error);
     showToast('Failed to place order. Please try again.', 'error');
-    btn.textContent='✦ Place Order'; btn.disabled=false;
+    btn.textContent='âœ¦ Place Order'; btn.disabled=false;
   }
 }
 
@@ -1450,7 +1450,7 @@ async function initiateOnlinePayment(order, orderData) {
       modal: {
         ondismiss: function() {
           showToast('Payment cancelled', 'error');
-          document.getElementById('placeOrderBtn').textContent='✦ Place Order';
+          document.getElementById('placeOrderBtn').textContent='âœ¦ Place Order';
           document.getElementById('placeOrderBtn').disabled=false;
         }
       }
@@ -1461,7 +1461,7 @@ async function initiateOnlinePayment(order, orderData) {
   } catch (error) {
     console.error('Payment initiation error:', error);
     showToast('Failed to initiate payment: ' + error.message, 'error');
-    document.getElementById('placeOrderBtn').textContent='✦ Place Order';
+    document.getElementById('placeOrderBtn').textContent='âœ¦ Place Order';
     document.getElementById('placeOrderBtn').disabled=false;
   }
 }
@@ -1484,7 +1484,7 @@ async function verifyPayment(razorpayResponse, orderId) {
     
     if (result.success) {
       document.getElementById('successOrderId').textContent='Order ID: #'+orderId;
-      showToast('✅ Payment successful! Order confirmed.');
+      showToast('âœ… Payment successful! Order confirmed.');
       currentStep=4; updateStepUI();
       cart = [];
       CartManager.clearCart();
@@ -1497,7 +1497,7 @@ async function verifyPayment(razorpayResponse, orderId) {
     console.error('Payment verification error:', error);
     showToast('Payment verification failed', 'error');
   } finally {
-    document.getElementById('placeOrderBtn').textContent='✦ Place Order';
+    document.getElementById('placeOrderBtn').textContent='âœ¦ Place Order';
     document.getElementById('placeOrderBtn').disabled=false;
   }
 }
@@ -1527,10 +1527,10 @@ async function submitEnquiry(){
       const enquiries = JSON.parse(localStorage.getItem('mlr_enquiries') || '[]');
       enquiries.unshift(enquiry);
       localStorage.setItem('mlr_enquiries', JSON.stringify(enquiries));
-      showToast('⚠️ Enquiry saved locally. Please call admin directly.');
+      showToast('âš ï¸ Enquiry saved locally. Please call admin directly.');
     } else {
       await api.createEnquiry(enquiryData);
-      showToast('✅ Request sent! Admin will contact you within 1 hour.');
+      showToast('âœ… Request sent! Admin will contact you within 1 hour.');
     }
     
     ['f-name','f-phone','f-email','f-event','f-msg'].forEach(id=>document.getElementById(id).value='');
@@ -1548,7 +1548,7 @@ function showToast(msg, type='success'){  const
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// ── CUSTOMER LOGIN ───────────────────────────────────────────────────────
+// â”€â”€ CUSTOMER LOGIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let currentUser = CartManager.getCustomer(); // Load from CartManager
 
 function checkUserSession(){
@@ -1568,10 +1568,10 @@ function checkUserSession(){
 function updateLoginButton(){
   const btn = document.getElementById('loginBtn');
   if(currentUser){
-    btn.innerHTML = `👤 ${currentUser.name.split(' ')[0]}`;
+    btn.innerHTML = `ðŸ‘¤ ${currentUser.name.split(' ')[0]}`;
     btn.onclick = showUserMenu;
   } else {
-    btn.innerHTML = '👤 Login';
+    btn.innerHTML = 'ðŸ‘¤ Login';
     btn.onclick = openLoginModal;
   }
 }
@@ -1670,7 +1670,7 @@ function doCustomerLogout(){
   showToast('Logged out successfully');
 }
 
-// ── MY ORDERS ─────────────────────────────────────────────────────────────
+// â”€â”€ MY ORDERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function openMyOrders(){
   document.getElementById('myOrdersModal').classList.add('open');
   await loadMyOrders();
@@ -1704,7 +1704,7 @@ async function loadMyOrders(){
     if(orders.length === 0){
       el.innerHTML = `
         <div style="text-align:center;padding:60px 20px;">
-          <div style="font-size:4rem;margin-bottom:16px;">📦</div>
+          <div style="font-size:4rem;margin-bottom:16px;">ðŸ“¦</div>
           <p style="color:rgba(240,201,107,0.6);font-size:1.1rem;margin-bottom:8px;">No orders yet</p>
           <p style="color:rgba(240,201,107,0.4);font-size:.9rem;">Your orders will appear here after checkout</p>
         </div>
@@ -1742,8 +1742,8 @@ async function loadMyOrders(){
           <div style="border-top:1px solid rgba(201,150,58,0.1);padding-top:12px;margin-bottom:12px;">
             ${(order.items || []).map(item => `
               <div style="display:flex;justify-content:space-between;padding:8px 0;color:rgba(240,201,107,0.8);font-size:.9rem;">
-                <span>${item.icon || item.product_icon} ${item.name || item.product_name} ${item.quantity > 1 ? `(×${item.quantity})` : ''}</span>
-                <span style="color:var(--gold-light);">₹${(item.price || 0).toLocaleString()}</span>
+                <span>${item.icon || item.product_icon} ${item.name || item.product_name} ${item.quantity > 1 ? `(Ã—${item.quantity})` : ''}</span>
+                <span style="color:var(--gold-light);">â‚¹${(item.price || 0).toLocaleString()}</span>
               </div>
             `).join('')}
           </div>
@@ -1756,7 +1756,7 @@ async function loadMyOrders(){
             <div style="text-align:right;">
               <div style="color:rgba(240,201,107,0.6);font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;">Total</div>
               <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold-light);font-weight:700;">
-                ₹${(order.total || 0).toLocaleString()}
+                â‚¹${(order.total || 0).toLocaleString()}
               </div>
             </div>
           </div>
@@ -1768,7 +1768,7 @@ async function loadMyOrders(){
     console.error('Error loading orders:', error);
     el.innerHTML = `
       <div style="text-align:center;padding:40px;color:#ff6b6b;">
-        <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+        <div style="font-size:3rem;margin-bottom:16px;">âš ï¸</div>
         <p>Failed to load orders</p>
         <p style="font-size:.85rem;margin-top:8px;color:rgba(240,201,107,0.4);">${error.message}</p>
       </div>
@@ -1792,17 +1792,17 @@ function openUPIPayment(order, orderData) {
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
   modal.innerHTML = `
     <div style="background:var(--maroon-deep);border:1px solid var(--gold);padding:30px;max-width:400px;width:100%;border-radius:10px;text-align:center;">
-      <h3 style="color:var(--gold-light);margin-bottom:20px;">📱 Pay via UPI</h3>
+      <h3 style="color:var(--gold-light);margin-bottom:20px;">ðŸ“± Pay via UPI</h3>
       <div style="background:white;padding:20px;border-radius:10px;margin-bottom:20px;">
         <div id="qrcode" style="display:flex;justify-content:center;"></div>
       </div>
       <p style="color:rgba(240,201,107,0.8);margin-bottom:15px;">Scan QR code or click button below</p>
-      <p style="color:var(--gold-light);font-size:1.2rem;margin-bottom:20px;">₹${amount}</p>
+      <p style="color:var(--gold-light);font-size:1.2rem;margin-bottom:20px;">â‚¹${amount}</p>
       <button id="upiLaunchBtn" style="width:100%;padding:15px;background:var(--gold);color:var(--maroon-deep);border:none;border-radius:5px;font-weight:bold;font-size:1rem;cursor:pointer;margin-bottom:10px;">
         Open UPI App
       </button>
       <button onclick="confirmUPIPayment('${order.orderId}')" style="width:100%;padding:12px;background:var(--green);color:white;border:none;border-radius:5px;font-weight:bold;cursor:pointer;margin-bottom:10px;">
-        ✓ I've Paid
+        âœ“ I've Paid
       </button>
       <button onclick="document.getElementById('upiModal')?.remove()" style="width:100%;padding:10px;background:transparent;color:rgba(240,201,107,0.5);border:1px solid rgba(201,150,58,0.3);border-radius:5px;cursor:pointer;">
         Cancel
@@ -1830,9 +1830,9 @@ function openUPIPayment(order, orderData) {
       if (document.getElementById('upiModal')) {
         const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
         if (!isMobile) {
-          showToast('📱 UPI payments work on mobile devices only. Use the QR code with your mobile.', 'info');
+          showToast('ðŸ“± UPI payments work on mobile devices only. Use the QR code with your mobile.', 'info');
         } else {
-          showToast('⚠️ UPI app not found. Please install a UPI app.', 'error');
+          showToast('âš ï¸ UPI app not found. Please install a UPI app.', 'error');
         }
         if (upiBtn) upiBtn.disabled = false;
       }
@@ -1845,7 +1845,7 @@ function confirmUPIPayment(orderId) {
   const modal = document.getElementById('upiModal');
   if (modal) modal.remove();
   document.getElementById('successOrderId').textContent='Order ID: #'+orderId;
-  showToast('✅ Payment confirmation received! Admin will verify.');
+  showToast('âœ… Payment confirmation received! Admin will verify.');
   currentStep=4; updateStepUI();
   cart = [];
   CartManager.clearCart();
@@ -1853,7 +1853,7 @@ function confirmUPIPayment(orderId) {
   loadProducts();
 }
 
-// ── LOAD PAYMENT METHODS ──────────────────────────────────────────────────
+// â”€â”€ LOAD PAYMENT METHODS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadPaymentMethods() {
   try {
     if (typeof api === 'undefined' || !api.getPaymentMethods) return;
@@ -1874,7 +1874,7 @@ async function loadPaymentMethods() {
   }
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────
+// â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 checkUserSession();
 loadProducts();
 loadPaymentMethods(); // Load available payment methods
@@ -1901,8 +1901,8 @@ if(window.location.hash === '#checkout'){
 <!-- Footer with Admin Link -->
 <footer style="background:var(--maroon-deep);padding:20px;text-align:center;border-top:1px solid rgba(201,150,58,0.3);">
   <p style="color:rgba(240,201,107,0.5);font-size:.85rem;">
-    © 2026 Mahalakshmi Jewellery | 
-    <a href="mahalakshmi-admin.html" style="color:var(--gold-light);text-decoration:none;margin-left:8px;">🔐 Admin Panel</a>
+    Â© 2026 Mahalakshmi Jewellery | 
+    <a href="admin.html" style="color:var(--gold-light);text-decoration:none;margin-left:8px;">ðŸ” Admin Panel</a>
   </p>
 </footer>
 

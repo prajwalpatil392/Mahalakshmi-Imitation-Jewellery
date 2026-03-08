@@ -79,19 +79,19 @@ app.use('/api/payments', require('./routes/payments'));
 
 // Frontend routes
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'mahalakshmi-client.html'));
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'index.html'));
 });
 
 app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'mahalakshmi-admin.html'));
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'admin.html'));
 });
 
 app.get('/buy', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'buy.html'));
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'buy.html'));
 });
 
 app.get('/rental', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'rental.html'));
+  res.sendFile(path.join(__dirname, 'public', 'pages', 'rental.html'));
 });
 
 // 404 handler

@@ -1,12 +1,12 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Rent Jewellery - Mahalakshmi</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/>
-<script src="config.js"></script>
-<script src="cart-manager.js"></script>
+<script src="../config.js"></script>
+<script src="../cart-manager.js"></script>
 <style>
 :root{--gold:#C9963A;--gold-light:#F0C96B;--gold-dark:#8B6220;--maroon:#6B1A1A;--maroon-deep:#3D0A0A;--cream:#FAF4E8;--cream-dark:#F0E6CC;--text-dark:#1A0A00;--text-mid:#4A2C0A;--green:#1a5c1a;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -37,7 +37,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 .hero{min-height:60vh;background:var(--maroon-deep);display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:100px 20px 60px;}
 .hero-bg-pattern{position:absolute;inset:0;background-image:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(107,26,26,0.8) 0%,transparent 70%),repeating-linear-gradient(45deg,rgba(201,150,58,0.04) 0px,rgba(201,150,58,0.04) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(-45deg,rgba(201,150,58,0.04) 0px,rgba(201,150,58,0.04) 1px,transparent 1px,transparent 40px);pointer-events:none;}
 .hero-border{position:absolute;inset:20px;border:1px solid rgba(201,150,58,0.2);pointer-events:none;}
-.hero-border::before,.hero-border::after{content:'❖';position:absolute;color:var(--gold);font-size:1.2rem;background:var(--maroon-deep);padding:4px 8px;}
+.hero-border::before,.hero-border::after{content:'â–';position:absolute;color:var(--gold);font-size:1.2rem;background:var(--maroon-deep);padding:4px 8px;}
 .hero-border::before{top:-16px;left:50%;transform:translateX(-50%);}
 .hero-border::after{bottom:-16px;left:50%;transform:translateX(-50%);}
 .hero-content{position:relative;z-index:2;max-width:780px;}
@@ -130,22 +130,22 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 <body>
 
 <nav>
-  <a href="mahalakshmi-client.html" class="nav-logo">🪷 Mahalakshmi</a>
+  <a href="index.html" class="nav-logo">ðŸª· Mahalakshmi</a>
   <ul class="nav-links">
-    <li><a href="mahalakshmi-client.html">Home</a></li>
-    <li><a href="buy.html">💍 <span class="full-text">Buy Jewellery</span><span class="short-text">Buy</span></a></li>
-    <li><a href="rental.html">📅 <span class="full-text">Rent Jewellery</span><span class="short-text">Rent</span></a></li>
-    <li><a href="mahalakshmi-client.html#contact">Contact</a></li>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="buy.html">ðŸ’ <span class="full-text">Buy Jewellery</span><span class="short-text">Buy</span></a></li>
+    <li><a href="rental.html">ðŸ“… <span class="full-text">Rent Jewellery</span><span class="short-text">Rent</span></a></li>
+    <li><a href="index.html#contact">Contact</a></li>
   </ul>
   <div style="display:flex;gap:12px;align-items:center;">
-    <button class="cart-btn" id="loginBtn" onclick="window.location.href='mahalakshmi-client.html'" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
-      👤 Login
+    <button class="cart-btn" id="loginBtn" onclick="window.location.href='index.html'" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
+      ðŸ‘¤ Login
     </button>
-    <button class="cart-btn" onclick="window.location.href='mahalakshmi-client.html#orders'" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
-      📋 My Orders
+    <button class="cart-btn" onclick="window.location.href='index.html#orders'" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
+      ðŸ“‹ My Orders
     </button>
     <button class="cart-btn" onclick="openCart()">
-      🛒 Cart
+      ðŸ›’ Cart
       <span class="cart-badge" id="cartBadge">0</span>
     </button>
   </div>
@@ -155,8 +155,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 <div class="cart-overlay-drawer" id="cartOverlayDrawer" onclick="closeCart()"></div>
 <div class="cart-drawer" id="cartDrawer">
   <div class="cart-header">
-    <h2>🛒 Your Cart</h2>
-    <button class="cart-close-btn" onclick="closeCart()">✕ Close</button>
+    <h2>ðŸ›’ Your Cart</h2>
+    <button class="cart-close-btn" onclick="closeCart()">âœ• Close</button>
   </div>
   <div class="cart-body" id="cartBody">
     <!-- Cart items will be rendered here -->
@@ -164,9 +164,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
   <div class="cart-footer" id="cartFooter" style="display:none;">
     <div class="cart-total">
       <span>Total:</span>
-      <span id="cartTotal">₹0</span>
+      <span id="cartTotal">â‚¹0</span>
     </div>
-    <button type="button" class="cart-checkout-btn" onclick="goToCheckout()">✦ Proceed to Checkout</button>
+    <button type="button" class="cart-checkout-btn" onclick="goToCheckout()">âœ¦ Proceed to Checkout</button>
   </div>
 </div>
 
@@ -174,14 +174,14 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
   <div class="hero-bg-pattern"></div>
   <div class="hero-border"></div>
   <div class="hero-content">
-    <span class="hero-tag">📅 RENTAL COLLECTION</span>
+    <span class="hero-tag">ðŸ“… RENTAL COLLECTION</span>
     <h1 class="hero-title">Rent <em>Jewellery</em></h1>
     <p class="hero-sub">Rent stunning bridal jewellery for your special occasion. Affordable daily rates with deposit-based security.</p>
   </div>
 </div>
 
 <div class="products-section">
-  <div class="section-label">📅 AVAILABLE FOR RENTAL</div>
+  <div class="section-label">ðŸ“… AVAILABLE FOR RENTAL</div>
   <h2 class="section-title">Our <em>Rental</em> Collection</h2>
   <p class="section-sub">Exquisite pieces for your special day. Rent premium jewellery at affordable daily rates.</p>
   <div class="products-grid" id="productsGrid"></div>
@@ -189,8 +189,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 
 <div class="modal-overlay" id="rentalModal">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <h2>📅 Book Rental</h2>
+    <button class="modal-close" onclick="closeModal()">âœ•</button>
+    <h2>ðŸ“… Book Rental</h2>
     <p class="modal-subtitle" id="productName">Select your rental dates</p>
     <div class="rental-dates">
       <div class="form-group">
@@ -205,7 +205,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
     <div class="form-group">
       <label>Quantity</label>
       <div style="display:flex;align-items:center;gap:12px;">
-        <button onclick="updateQty(-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:36px;height:36px;cursor:pointer;font-size:1.2rem;">−</button>
+        <button onclick="updateQty(-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:36px;height:36px;cursor:pointer;font-size:1.2rem;">âˆ’</button>
         <input type="number" id="rentalQty" value="1" min="1" readonly style="width:60px;text-align:center;background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:8px;"/>
         <button onclick="updateQty(1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:36px;height:36px;cursor:pointer;font-size:1.2rem;">+</button>
         <span id="availInfo" style="color:rgba(240,201,107,0.6);font-size:.85rem;"></span>
@@ -214,7 +214,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
     <div class="rental-info" id="rentalInfo">Select dates to see rental cost</div>
     <div class="modal-btns">
       <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
-      <button class="modal-btn modal-btn-add" onclick="confirmRental()">✦ Add to Cart</button>
+      <button class="modal-btn modal-btn-add" onclick="confirmRental()">âœ¦ Add to Cart</button>
     </div>
   </div>
 </div>
@@ -224,8 +224,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 <!-- Footer with Admin Link -->
 <footer style="background:var(--maroon-deep);padding:20px;text-align:center;border-top:1px solid rgba(201,150,58,0.3);">
   <p style="color:rgba(240,201,107,0.5);font-size:.85rem;">
-    © 2026 Mahalakshmi Jewellery | 
-    <a href="mahalakshmi-admin.html" style="color:var(--gold-light);text-decoration:none;margin-left:8px;">🔐 Admin Panel</a>
+    Â© 2026 Mahalakshmi Jewellery | 
+    <a href="admin.html" style="color:var(--gold-light);text-decoration:none;margin-left:8px;">ðŸ” Admin Panel</a>
   </p>
 </footer>
 
@@ -247,22 +247,22 @@ async function loadProducts() {
       }
     } else {
       products = [
-        {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"📿",rentPerDay:150,availableQty:5,isAvailable:true},
-        {id:2,name:"Bridal Maang Tikka",material:"Kundan & Meenakari",icon:"👑",rentPerDay:80,availableQty:5,isAvailable:true},
-        {id:3,name:"Temple Necklace",material:"Gold-Plated Copper",icon:"💛",rentPerDay:120,availableQty:5,isAvailable:true},
-        {id:4,name:"Jimikki Earrings",material:"South Indian Style",icon:"👂",rentPerDay:50,availableQty:5,isAvailable:true},
-        {id:5,name:"Full Bridal Set",material:"Antique Gold 12-Piece",icon:"🌸",rentPerDay:600,availableQty:3,isAvailable:true}
+        {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"ðŸ“¿",rentPerDay:150,availableQty:5,isAvailable:true},
+        {id:2,name:"Bridal Maang Tikka",material:"Kundan & Meenakari",icon:"ðŸ‘‘",rentPerDay:80,availableQty:5,isAvailable:true},
+        {id:3,name:"Temple Necklace",material:"Gold-Plated Copper",icon:"ðŸ’›",rentPerDay:120,availableQty:5,isAvailable:true},
+        {id:4,name:"Jimikki Earrings",material:"South Indian Style",icon:"ðŸ‘‚",rentPerDay:50,availableQty:5,isAvailable:true},
+        {id:5,name:"Full Bridal Set",material:"Antique Gold 12-Piece",icon:"ðŸŒ¸",rentPerDay:600,availableQty:3,isAvailable:true}
       ];
     }
   } catch (error) {
     console.error('Error loading products:', error);
     // Fallback to local demo products if API fails
     products = [
-      {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"📿",rentPerDay:150,availableQty:5,isAvailable:true},
-      {id:2,name:"Bridal Maang Tikka",material:"Kundan & Meenakari",icon:"👑",rentPerDay:80,availableQty:5,isAvailable:true},
-      {id:3,name:"Temple Necklace",material:"Gold-Plated Copper",icon:"💛",rentPerDay:120,availableQty:5,isAvailable:true},
-      {id:4,name:"Jimikki Earrings",material:"South Indian Style",icon:"👂",rentPerDay:50,availableQty:5,isAvailable:true},
-      {id:5,name:"Full Bridal Set",material:"Antique Gold 12-Piece",icon:"🌸",rentPerDay:600,availableQty:3,isAvailable:true}
+      {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"ðŸ“¿",rentPerDay:150,availableQty:5,isAvailable:true},
+      {id:2,name:"Bridal Maang Tikka",material:"Kundan & Meenakari",icon:"ðŸ‘‘",rentPerDay:80,availableQty:5,isAvailable:true},
+      {id:3,name:"Temple Necklace",material:"Gold-Plated Copper",icon:"ðŸ’›",rentPerDay:120,availableQty:5,isAvailable:true},
+      {id:4,name:"Jimikki Earrings",material:"South Indian Style",icon:"ðŸ‘‚",rentPerDay:50,availableQty:5,isAvailable:true},
+      {id:5,name:"Full Bridal Set",material:"Antique Gold 12-Piece",icon:"ðŸŒ¸",rentPerDay:600,availableQty:3,isAvailable:true}
     ];
   }
   renderProducts();
@@ -280,8 +280,8 @@ function renderProducts() {
     else{ availClass='avail-yes'; availText=`${availQty} Available`; }
     
     let rentBtn = isAvail 
-      ? `<button class="btn-rent" onclick="openRentalModal(${p.id})">📅 Book Rental</button>`
-      : `<button class="btn-rent" style="opacity:.5;cursor:not-allowed;background:#3a1010;">✗ Unavailable</button>`;
+      ? `<button class="btn-rent" onclick="openRentalModal(${p.id})">ðŸ“… Book Rental</button>`
+      : `<button class="btn-rent" style="opacity:.5;cursor:not-allowed;background:#3a1010;">âœ— Unavailable</button>`;
     
     return `
       <div class="product-card">
@@ -292,7 +292,7 @@ function renderProducts() {
         <div class="product-info">
           <div class="product-name">${p.name}</div>
           <div class="product-material">${p.material}</div>
-          <div class="product-price">₹${p.rentPerDay}/day</div>
+          <div class="product-price">â‚¹${p.rentPerDay}/day</div>
           ${rentBtn}
         </div>
       </div>
@@ -304,7 +304,7 @@ function openRentalModal(id) {
   selectedProduct = products.find(p => p.id === id);
   if(!selectedProduct) return;
   
-  document.getElementById('productName').textContent = `${selectedProduct.icon} ${selectedProduct.name} — ₹${selectedProduct.rentPerDay}/day`;
+  document.getElementById('productName').textContent = `${selectedProduct.icon} ${selectedProduct.name} â€” â‚¹${selectedProduct.rentPerDay}/day`;
   document.getElementById('rentalQty').value = 1;
   document.getElementById('availInfo').textContent = `${selectedProduct.availableQty} available`;
   
@@ -350,7 +350,7 @@ function calcDays() {
   const d2 = new Date(to);
   
   if(d2 <= d1){
-    info.textContent = '⚠️ End date must be after start date';
+    info.textContent = 'âš ï¸ End date must be after start date';
     return;
   }
   
@@ -358,7 +358,7 @@ function calcDays() {
   const unitTotal = days * selectedProduct.rentPerDay;
   const total = unitTotal * qty;
   
-  info.innerHTML = `📅 <strong>${days} day${days>1?'s':''}</strong> × ₹${selectedProduct.rentPerDay}/day ${qty>1?`× ${qty} items`:''} = <strong>₹${total.toLocaleString()}</strong>`;
+  info.innerHTML = `ðŸ“… <strong>${days} day${days>1?'s':''}</strong> Ã— â‚¹${selectedProduct.rentPerDay}/day ${qty>1?`Ã— ${qty} items`:''} = <strong>â‚¹${total.toLocaleString()}</strong>`;
 }
 
 function confirmRental() {
@@ -398,7 +398,7 @@ function confirmRental() {
   CartManager.saveCart(cart); // Save using cart manager
   updateCartBadge();
   closeModal();
-  showToast(`✓ "${selectedProduct.name}" added to cart!`);
+  showToast(`âœ“ "${selectedProduct.name}" added to cart!`);
 }
 
 function updateCartBadge() {
@@ -439,7 +439,7 @@ function renderCart() {
   const footer = document.getElementById('cartFooter');
   
   if (cart.length === 0) {
-    body.innerHTML = '<div class="cart-empty">🛒<br><br>Your cart is empty<br><small>Add items to get started</small></div>';
+    body.innerHTML = '<div class="cart-empty">ðŸ›’<br><br>Your cart is empty<br><small>Add items to get started</small></div>';
     footer.style.display = 'none';
     return;
   }
@@ -457,7 +457,7 @@ function renderCart() {
   if (buyItems.length > 0) {
     html += `<div style="margin-bottom:20px;">
       <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(201,150,58,0.1);border-left:3px solid #C9963A;margin-bottom:12px;">
-        <span style="font-size:1.1rem;">💰</span>
+        <span style="font-size:1.1rem;">ðŸ’°</span>
         <span style="font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#F0C96B;flex:1;">Buy Items</span>
         <span style="font-size:.7rem;color:rgba(240,201,107,0.6);background:rgba(201,150,58,0.2);padding:2px 8px;border-radius:10px;">${buyItems.length}</span>
       </div>`;
@@ -470,15 +470,15 @@ function renderCart() {
         <div class="cart-item-icon">${item.icon}</div>
         <div class="cart-item-info">
           <div class="cart-item-name">${item.name}</div>
-          <div class="cart-item-mode">💰 Purchase</div>
+          <div class="cart-item-mode">ðŸ’° Purchase</div>
           <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
-            <button onclick="updateCartQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">−</button>
+            <button onclick="updateCartQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">âˆ’</button>
             <span style="color:var(--gold-light);font-weight:600;min-width:20px;text-align:center;">${qty}</span>
             <button onclick="updateCartQuantity(${idx},1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">+</button>
           </div>
-          <div class="cart-item-price">₹${item.price.toLocaleString()} ${qty>1?`(₹${item.unitPrice} × ${qty})`:''}</div>
+          <div class="cart-item-price">â‚¹${item.price.toLocaleString()} ${qty>1?`(â‚¹${item.unitPrice} Ã— ${qty})`:''}</div>
         </div>
-        <button class="cart-item-remove" onclick="removeFromCart(${idx})">✕</button>
+        <button class="cart-item-remove" onclick="removeFromCart(${idx})">âœ•</button>
       </div>`;
     });
     html += `</div>`;
@@ -488,7 +488,7 @@ function renderCart() {
   if (rentItems.length > 0) {
     html += `<div style="margin-bottom:20px;">
       <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(201,150,58,0.1);border-left:3px solid #C9963A;margin-bottom:12px;">
-        <span style="font-size:1.1rem;">📅</span>
+        <span style="font-size:1.1rem;">ðŸ“…</span>
         <span style="font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#F0C96B;flex:1;">Rental Items</span>
         <span style="font-size:.7rem;color:rgba(240,201,107,0.6);background:rgba(201,150,58,0.2);padding:2px 8px;border-radius:10px;">${rentItems.length}</span>
       </div>`;
@@ -501,25 +501,25 @@ function renderCart() {
         <div class="cart-item-icon">${item.icon}</div>
         <div class="cart-item-info">
           <div class="cart-item-name">${item.name}</div>
-          <div class="cart-item-mode">📅 Rental</div>
+          <div class="cart-item-mode">ðŸ“… Rental</div>
           ${item.rentalData ? `<div style="font-size:.75rem;color:rgba(240,201,107,0.5);margin-top:4px;">
-            ${item.rentalData.from} → ${item.rentalData.to} (${item.rentalData.days} days)
+            ${item.rentalData.from} â†’ ${item.rentalData.to} (${item.rentalData.days} days)
           </div>` : ''}
           <div style="display:flex;align-items:center;gap:10px;margin:8px 0;">
-            <button onclick="updateCartQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">−</button>
+            <button onclick="updateCartQuantity(${idx},-1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">âˆ’</button>
             <span style="color:var(--gold-light);font-weight:600;min-width:20px;text-align:center;">${qty}</span>
             <button onclick="updateCartQuantity(${idx},1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;border-radius:2px;">+</button>
           </div>
-          <div class="cart-item-price">₹${item.price.toLocaleString()} ${qty>1?`(₹${item.unitPrice}/day × ${qty})`:''}</div>
+          <div class="cart-item-price">â‚¹${item.price.toLocaleString()} ${qty>1?`(â‚¹${item.unitPrice}/day Ã— ${qty})`:''}</div>
         </div>
-        <button class="cart-item-remove" onclick="removeFromCart(${idx})">✕</button>
+        <button class="cart-item-remove" onclick="removeFromCart(${idx})">âœ•</button>
       </div>`;
     });
     html += `</div>`;
   }
   
   body.innerHTML = html;
-  document.getElementById('cartTotal').textContent = '₹' + total.toLocaleString();
+  document.getElementById('cartTotal').textContent = 'â‚¹' + total.toLocaleString();
 }
 
 function updateCartQuantity(idx, change) {
@@ -565,15 +565,15 @@ function goToCheckout() {
 
   CartManager.saveCart(cart);
 
-  // same logic as buy.js – if we're not on the client homepage, send the
+  // same logic as buy.js â€“ if we're not on the client homepage, send the
   // user there directly with #checkout.  avoid the extra confirmation step
   // so only one interaction is required.
-  if (!window.location.pathname.includes('mahalakshmi-client.html')) {
-    window.location.href = 'mahalakshmi-client.html#checkout';
+  if (!window.location.pathname.includes('index.html')) {
+    window.location.href = 'index.html#checkout';
     return;
   }
 
-  // already on client page – open checkout right away
+  // already on client page â€“ open checkout right away
   window.location.hash = 'checkout';
   if (typeof openCheckout === 'function') {
     openCheckout();

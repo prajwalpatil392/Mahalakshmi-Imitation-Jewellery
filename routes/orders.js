@@ -71,6 +71,8 @@ router.post('/', validateOrder, asyncHandler(async (req, res) => {
     const orderId = 'MLR-' + Date.now().toString().slice(-6);
     const { customer, items, total, status, customerId, paymentMethod } = req.body;
     
+    logger.info('Creating order', { orderId, customer: customer.name, items: items.length, total });
+    
     // Check stock availability for all items (optional - only if migration ran)
     try {
       for (const item of items) {

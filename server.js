@@ -8,10 +8,17 @@ const db = require('./config/database');
 
 const app = express();
 const server = http.createServer(app);
+
+// CORS configuration
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',') 
+  : ['http://localhost:3000', 'http://localhost:5000'];
+
 const io = socketIo(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true
   },
   pingTimeout: 60000,
   pingInterval: 25000,
@@ -22,7 +29,10 @@ const io = socketIo(server, {
 app.set('io', io);
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
@@ -81,6 +91,17 @@ db.query('SELECT NOW()', (err, result) => {
   } else {
     console.log('✅ Database Connected');
   }
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Route not found' });
 });
 
 // Start Server

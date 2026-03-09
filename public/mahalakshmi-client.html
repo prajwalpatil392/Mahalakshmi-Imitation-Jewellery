@@ -15,7 +15,7 @@ body{font-family:'Alegreya Sans',sans-serif;background:var(--cream);color:var(--
 .ornament{display:inline-block;width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);vertical-align:middle;margin:0 12px;}
 
 /* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.97);backdrop-filter:blur(8px);border-bottom:1px solid rgba(201,150,58,0.3);display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;animation:slideDown .6s ease both;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(61,10,10,0.97);backdrop-filter:blur(8px);border-bottom:1px solid rgba(201,150,58,0.3);display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:64px;animation:slideDown .6s ease both;}
 @keyframes slideDown{from{transform:translateY(-100%);opacity:0;}to{transform:translateY(0);opacity:1;}}
 .nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--gold-light);letter-spacing:.04em;text-decoration:none;display:flex;align-items:center;gap:10px;}
 .nav-links{display:flex;gap:28px;list-style:none;align-items:center;}
@@ -28,7 +28,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 .nav-cta::after{display:none!important;}
 
 /* HAMBURGER MENU */
-.hamburger{display:none;flex-direction:column;gap:5px;background:transparent;border:none;cursor:pointer;padding:8px;z-index:101;}
+.hamburger{display:none;flex-direction:column;gap:5px;background:transparent;border:none;cursor:pointer;padding:8px;z-index:1001;}
 .hamburger span{width:25px;height:2px;background:var(--gold-light);transition:all .3s;}
 .hamburger.active span:nth-child(1){transform:rotate(45deg) translate(7px, 7px);}
 .hamburger.active span:nth-child(2){opacity:0;}
@@ -57,7 +57,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
     max-height:0;
     overflow:hidden;
     transition:max-height .3s ease;
-    z-index:200;
+    z-index:1002;
     border-bottom:1px solid rgba(201,150,58,0.3);
   }
   
@@ -393,9 +393,9 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 .float-call{background:var(--gold);color:var(--maroon-deep);}
 
 /* ===== CART DRAWER ===== */
-.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:300;pointer-events:none;transition:background .3s;}
+.cart-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:1500;pointer-events:none;transition:background .3s;}
 .cart-overlay.open{background:rgba(0,0,0,0.6);pointer-events:all;}
-.cart-drawer{position:fixed;top:0;right:-480px;width:460px;max-width:95vw;height:100vh;background:var(--maroon-deep);border-left:1px solid rgba(201,150,58,0.3);z-index:301;display:flex;flex-direction:column;transition:right .35s cubic-bezier(.4,0,.2,1);}
+.cart-drawer{position:fixed;top:0;right:-480px;width:460px;max-width:95vw;height:100vh;background:var(--maroon-deep);border-left:1px solid rgba(201,150,58,0.3);z-index:1501;display:flex;flex-direction:column;transition:right .35s cubic-bezier(.4,0,.2,1);}
 .cart-drawer.open{right:0;}
 .cart-header{padding:24px 28px;border-bottom:1px solid rgba(201,150,58,0.2);display:flex;align-items:center;justify-content:space-between;}
 .cart-header h2{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--gold-light);}
@@ -435,7 +435,7 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 }
 
 /* ===== BOOKING MODAL ===== */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:400;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:2000;align-items:center;justify-content:center;padding:20px;}
 .modal-overlay.open{display:flex;}
 .modal{background:var(--maroon-deep);border:1px solid rgba(201,150,58,0.3);padding:40px;max-width:560px;width:100%;position:relative;max-height:90vh;overflow-y:auto;animation:fadeUp .4s ease both;}
 .modal-close{position:absolute;top:16px;right:20px;background:none;border:none;color:var(--gold);font-size:1.4rem;cursor:pointer;}
@@ -475,7 +475,7 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 .order-id{background:rgba(201,150,58,0.1);border:1px solid rgba(201,150,58,0.3);padding:12px;margin:16px 0;font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--gold-light);letter-spacing:.1em;}
 
 /* TOAST */
-.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#fff;padding:14px 28px;border-radius:2px;opacity:0;transition:all .4s;z-index:500;font-size:.9rem;white-space:nowrap;pointer-events:none;}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--green);color:#fff;padding:14px 28px;border-radius:2px;opacity:0;transition:all .4s;z-index:3000;font-size:.9rem;white-space:nowrap;pointer-events:none;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.error-toast{background:#8B1A1A;}
 
@@ -1907,7 +1907,7 @@ function openUPIPayment(orderData) {
   // Show UPI payment modal
   const modal = document.createElement('div');
   modal.id = 'upiModal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:5000;display:flex;align-items:center;justify-content:center;padding:20px;';
   modal.innerHTML = `
     <div style="background:var(--maroon-deep);border:1px solid var(--gold);padding:30px;max-width:400px;width:100%;border-radius:10px;text-align:center;">
       <h3 style="color:var(--gold-light);margin-bottom:20px;">📱 Pay via UPI</h3>

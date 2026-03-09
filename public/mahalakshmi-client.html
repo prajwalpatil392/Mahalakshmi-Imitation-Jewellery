@@ -28,8 +28,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(61,10,10,0.
 .nav-cta::after{display:none!important;}
 
 /* HAMBURGER MENU */
-.hamburger{display:none;flex-direction:column;gap:5px;background:transparent;border:none;cursor:pointer;padding:8px;z-index:1001;}
-.hamburger span{width:25px;height:2px;background:var(--gold-light);transition:all .3s;}
+.hamburger{display:none;flex-direction:column;gap:5px;background:transparent;border:none;cursor:pointer;padding:8px;z-index:1001;position:relative;}
+.hamburger span{width:25px;height:2px;background:var(--gold-light);transition:all .3s;display:block;}
 .hamburger.active span:nth-child(1){transform:rotate(45deg) translate(7px, 7px);}
 .hamburger.active span:nth-child(2){opacity:0;}
 .hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(7px, -7px);}
@@ -43,26 +43,26 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(61,10,10,0.
 @media (max-width: 768px) {
   nav{padding:0 20px;height:56px;}
   .nav-logo{font-size:1.1rem;}
-  .hamburger{display:flex;}
+  .hamburger{display:flex !important;}
   
   .nav-links{
-    position:fixed;
-    top:56px;
-    left:0;
-    right:0;
-    background:var(--maroon-deep);
-    flex-direction:column;
+    position:fixed !important;
+    top:56px !important;
+    left:0 !important;
+    right:0 !important;
+    background:var(--maroon-deep) !important;
+    flex-direction:column !important;
     gap:0;
     padding:0;
-    max-height:0;
-    overflow:hidden;
+    max-height:0 !important;
+    overflow:hidden !important;
     transition:max-height .3s ease;
-    z-index:1002;
+    z-index:1002 !important;
     border-bottom:1px solid rgba(201,150,58,0.3);
   }
   
   .nav-links.active{
-    max-height:600px;
+    max-height:600px !important;
     box-shadow:0 8px 16px rgba(0,0,0,0.3);
   }
   
@@ -519,6 +519,26 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
     </button>
   </div>
 </nav>
+
+<script>
+// Test script - ensure functions are available immediately
+console.log('Nav script loaded');
+window.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded');
+  const hamburger = document.getElementById('hamburger');
+  const navLinks = document.getElementById('navLinks');
+  console.log('Hamburger element:', hamburger);
+  console.log('NavLinks element:', navLinks);
+  
+  if (hamburger) {
+    hamburger.addEventListener('click', function(e) {
+      console.log('Hamburger clicked via event listener');
+      e.preventDefault();
+      toggleMobileMenu();
+    });
+  }
+});
+</script>
 
 <!-- HERO -->
 <section id="hero">

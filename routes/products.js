@@ -95,12 +95,13 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, material, icon, rentPerDay, buy, type, category, baseStock, imageUrl } = req.body;
-    const [result] = await db.query(
+    const result = await db.query(
       `INSERT INTO products (name, material, icon, rent_per_day, buy_price, type, category, base_stock, image_url) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
       [name, material, icon || '💎', rentPerDay, buy, type, category, baseStock || 5, imageUrl || null]
     );
-    res.status(201).json({ id: result.insertId, ...req.body });
+    const insertedId = (result.rows || result)[0].id;
+    res.status(201).json({ id: insertedId, ...req.body });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -111,7 +112,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { name, material, icon, rentPerDay, buy, type, category, baseStock, available } = req.body;
     await db.query(
-      `UPDATE products SET name=?, material=?, icon=?, rent_per_day=?, buy_price=?, type=?, category=?, base_stock=?, available=? WHERE id=?`,
+      `UPDATE products SET name=$1, material=$2, icon=$3, rent_per_day=$4, buy_price=$5, type=$6, category=$7, base_stock=$8, available=$9 WHERE id=$10`,
       [name, material, icon, rentPerDay, buy, type, category, baseStock, available, req.params.id]
     );
     

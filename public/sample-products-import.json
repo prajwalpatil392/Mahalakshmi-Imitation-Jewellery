@@ -1,0 +1,102 @@
+[
+  {
+    "name": "Gold Necklace Set",
+    "material": "22K Gold Plated",
+    "icon": "💎",
+    "category": "Necklace",
+    "type": "both",
+    "rentPerDay": 150,
+    "buy": 3200,
+    "baseStock": 5
+  },
+  {
+    "name": "Silver Earrings",
+    "material": "Pure Silver",
+    "icon": "✨",
+    "category": "Earrings",
+    "type": "buy",
+    "rentPerDay": null,
+    "buy": 1500,
+    "baseStock": 10
+  },
+  {
+    "name": "Diamond Ring",
+    "material": "Cubic Zirconia",
+    "icon": "💍",
+    "category": "Ring",
+    "type": "rent",
+    "rentPerDay": 200,
+    "buy": null,
+    "baseStock": 3
+  },
+  {
+    "name": "Pearl Bracelet",
+    "material": "Freshwater Pearls",
+    "icon": "📿",
+    "category": "Bracelet",
+    "type": "both",
+    "rentPerDay": 100,
+    "buy": 2500,
+    "baseStock": 8
+  },
+  {
+    "name": "Ruby Pendant",
+    "material": "Lab Ruby",
+    "icon": "❤️",
+    "category": "Pendant",
+    "type": "buy",
+    "rentPerDay": null,
+    "buy": 1800,
+    "baseStock": 6
+  },
+  {
+    "name": "Emerald Necklace",
+    "material": "Lab Emerald",
+    "icon": "💚",
+    "category": "Necklace",
+    "type": "rent",
+    "rentPerDay": 180,
+    "buy": null,
+    "baseStock": 4
+  },
+  {
+    "name": "Gold Bangles Set",
+    "material": "18K Gold Plated",
+    "icon": "⭐",
+    "category": "Bangles",
+    "type": "both",
+    "rentPerDay": 120,
+    "buy": 2800,
+    "baseStock": 7
+  },
+  {
+    "name": "Sapphire Ring",
+    "material": "Lab Sapphire",
+    "icon": "💙",
+    "category": "Ring",
+    "type": "buy",
+    "rentPerDay": null,
+    "buy": 2200,
+    "baseStock": 5
+  },
+  {
+    "name": "Kundan Maang Tikka",
+    "material": "Kundan Work",
+    "icon": "👑",
+    "category": "Maang Tikka",
+    "type": "rent",
+    "rentPerDay": 90,
+    "buy": null,
+    "baseStock": 10
+  },
+  {
+    "name": "Temple Jewellery Set",
+    "material": "Antique Gold",
+    "icon": "🕉️",
+    "category": "Temple Set",
+    "type": "both",
+    "rentPerDay": 250,
+    "buy": 4500,
+    "baseStock": 3
+  }
+]

@@ -434,6 +434,7 @@ tr:last-child td{border-bottom:none;}
                 <button class="tab" onclick="filterProductsByType('both', this)">🔄 Both</button>
               </div>
               <button class="refresh-btn" onclick="openAddProductModal()" style="background:var(--gold);color:var(--maroon-deep);border:none;">+ Add Product</button>
+              <button class="refresh-btn" onclick="openBulkImportModal()" style="background:#4CAF50;color:#fff;border:none;">📦 Bulk Import</button>
               <div style="display:flex;gap:16px;align-items:center;font-size:.72rem;letter-spacing:.08em;margin-left:auto;">
                 <span style="color:var(--green-bright);">● In Stock</span>
                 <span style="color:#ffaa44;">● Low Stock (≤2)</span>
@@ -467,6 +468,66 @@ tr:last-child td{border-bottom:none;}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Bulk Import Modal -->
+<div class="modal-overlay" id="bulkImportModal">
+  <div class="modal" style="max-width:700px;">
+    <button class="modal-close" onclick="closeBulkImportModal()">✕</button>
+    <h2>📦 Bulk Import Products</h2>
+    <p class="modal-subtitle">Import multiple products at once using CSV or JSON format</p>
+    
+    <div class="form-group">
+      <label>Upload File (CSV or JSON) *</label>
+      <input type="file" id="bulkImportFile" accept=".csv,.json" style="background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px;width:100%;"/>
+      <p style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-top:8px;">
+        Supported formats: CSV, JSON | 
+        <a href="sample-products-import.csv" download style="color:var(--gold);text-decoration:underline;">Download CSV Template</a> | 
+        <a href="sample-products-import.json" download style="color:var(--gold);text-decoration:underline;">Download JSON Template</a>
+      </p>
+    </div>
+    
+    <div class="form-group">
+      <label>CSV Format Example:</label>
+      <pre style="background:rgba(0,0,0,0.3);padding:12px;border-radius:6px;font-size:0.8rem;overflow-x:auto;color:#c9963a;">name,material,icon,category,type,rentPerDay,buy,baseStock
+Gold Necklace,22K Gold Plated,💎,Necklace,both,150,3200,5
+Silver Earrings,Pure Silver,✨,Earrings,buy,,1500,10</pre>
+    </div>
+    
+    <div class="form-group">
+      <label>JSON Format Example:</label>
+      <pre style="background:rgba(0,0,0,0.3);padding:12px;border-radius:6px;font-size:0.8rem;overflow-x:auto;color:#c9963a;">[
+  {
+    "name": "Gold Necklace",
+    "material": "22K Gold Plated",
+    "icon": "💎",
+    "category": "Necklace",
+    "type": "both",
+    "rentPerDay": 150,
+    "buy": 3200,
+    "baseStock": 5
+  }
+]</pre>
+    </div>
+    
+    <div id="bulkImportProgress" style="display:none;margin-top:20px;">
+      <div style="background:rgba(0,0,0,0.3);padding:16px;border-radius:8px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span id="progressText">Processing...</span>
+          <span id="progressCount">0/0</span>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);height:8px;border-radius:4px;overflow:hidden;">
+          <div id="progressBar" style="background:var(--gold);height:100%;width:0%;transition:width 0.3s;"></div>
+        </div>
+      </div>
+      <div id="importResults" style="margin-top:12px;max-height:200px;overflow-y:auto;"></div>
+    </div>
+    
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeBulkImportModal()">Cancel</button>
+      <button class="modal-btn modal-btn-add" onclick="processBulkImport()">📦 Import Products</button>
+    </div>
+  </div>
+</div>
 
 <!-- Add Product Modal -->
 <div class="modal-overlay" id="addProductModal">
@@ -1314,6 +1375,157 @@ function showToast(msg,type='success'){
 
 // ── CHECK SESSION ON PAGE LOAD ───────────────────────────────────────────
 checkSession();
+
+// ── BULK IMPORT FUNCTIONS ─────────────────────────────────────────────────
+function openBulkImportModal() {
+  document.getElementById('bulkImportModal').classList.add('open');
+  document.getElementById('bulkImportFile').value = '';
+  document.getElementById('bulkImportProgress').style.display = 'none';
+  document.getElementById('importResults').innerHTML = '';
+}
+
+function closeBulkImportModal() {
+  document.getElementById('bulkImportModal').classList.remove('open');
+}
+
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  
+  const headers = lines[0].split(',').map(h => h.trim());
+  const products = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(',').map(v => v.trim());
+    if (values.length !== headers.length) continue;
+    
+    const product = {};
+    headers.forEach((header, index) => {
+      const value = values[index];
+      if (header === 'rentPerDay' || header === 'buy') {
+        product[header] = value ? parseFloat(value) : null;
+      } else if (header === 'baseStock') {
+        product[header] = value ? parseInt(value) : 5;
+      } else {
+        product[header] = value || null;
+      }
+    });
+    
+    if (product.name && product.material && product.category && product.type) {
+      products.push(product);
+    }
+  }
+  
+  return products;
+}
+
+async function processBulkImport() {
+  const fileInput = document.getElementById('bulkImportFile');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    showToast('Please select a file to import', 'error');
+    return;
+  }
+  
+  const progressDiv = document.getElementById('bulkImportProgress');
+  const progressText = document.getElementById('progressText');
+  const progressCount = document.getElementById('progressCount');
+  const progressBar = document.getElementById('progressBar');
+  const resultsDiv = document.getElementById('importResults');
+  
+  progressDiv.style.display = 'block';
+  resultsDiv.innerHTML = '';
+  
+  try {
+    const text = await file.text();
+    let products = [];
+    
+    if (file.name.endsWith('.json')) {
+      products = JSON.parse(text);
+      if (!Array.isArray(products)) {
+        throw new Error('JSON must be an array of products');
+      }
+    } else if (file.name.endsWith('.csv')) {
+      products = parseCSV(text);
+    } else {
+      throw new Error('Unsupported file format. Use CSV or JSON.');
+    }
+    
+    if (products.length === 0) {
+      throw new Error('No valid products found in file');
+    }
+    
+    progressText.textContent = 'Importing products...';
+    progressCount.textContent = `0/${products.length}`;
+    
+    let successCount = 0;
+    let failCount = 0;
+    const errors = [];
+    
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      
+      try {
+        // Validate required fields
+        if (!product.name || !product.material || !product.category || !product.type) {
+          throw new Error('Missing required fields');
+        }
+        
+        // Validate type-specific prices
+        if (product.type === 'rent' && !product.rentPerDay) {
+          throw new Error('Rent price required for rent type');
+        }
+        if (product.type === 'buy' && !product.buy) {
+          throw new Error('Buy price required for buy type');
+        }
+        if (product.type === 'both' && (!product.rentPerDay || !product.buy)) {
+          throw new Error('Both prices required for both type');
+        }
+        
+        // Set defaults
+        product.icon = product.icon || '💎';
+        product.baseStock = product.baseStock || 5;
+        product.imageUrl = product.imageUrl || null;
+        
+        // Create product via API
+        await api.createProduct(product);
+        successCount++;
+        
+        resultsDiv.innerHTML += `<div style="color:#4CAF50;font-size:0.85rem;padding:4px;">✓ ${product.name}</div>`;
+      } catch (error) {
+        failCount++;
+        errors.push({ product: product.name || `Row ${i + 1}`, error: error.message });
+        resultsDiv.innerHTML += `<div style="color:#ff6b6b;font-size:0.85rem;padding:4px;">✗ ${product.name || `Row ${i + 1}`}: ${error.message}</div>`;
+      }
+      
+      // Update progress
+      const progress = ((i + 1) / products.length) * 100;
+      progressBar.style.width = `${progress}%`;
+      progressCount.textContent = `${i + 1}/${products.length}`;
+      
+      // Small delay to prevent overwhelming the server
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    progressText.textContent = `Complete: ${successCount} succeeded, ${failCount} failed`;
+    
+    if (successCount > 0) {
+      showToast(`✅ Successfully imported ${successCount} products!`);
+      await loadProductsFromAPI();
+      renderProductsPage();
+    }
+    
+    if (failCount > 0) {
+      showToast(`⚠️ ${failCount} products failed to import`, 'error');
+    }
+    
+  } catch (error) {
+    console.error('Bulk import error:', error);
+    showToast(`Import failed: ${error.message}`, 'error');
+    progressText.textContent = 'Import failed';
+  }
+}
 
 // ── ADD PRODUCT FUNCTIONS ─────────────────────────────────────────────────
 function openAddProductModal() {

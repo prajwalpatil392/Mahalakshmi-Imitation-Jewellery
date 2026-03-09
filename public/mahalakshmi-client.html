@@ -55,7 +55,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
   }
   
   .nav-links.active{
-    max-height:400px;
+    max-height:500px;
   }
   
   .nav-links li{
@@ -78,7 +78,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
   nav.mobile-nav-open > div:last-child{
     display:flex !important;
     position:fixed;
-    top:calc(56px + 4 * 47px);
+    top:calc(56px + 4 * 48px);
     left:0;
     right:0;
     background:var(--maroon-deep);
@@ -2017,34 +2017,39 @@ if(window.location.hash === '#checkout'){
 }
 
 // ── REAL-TIME UPDATES WITH SOCKET.IO ──────────────────────────────────────
-const socket = io({
-  reconnection: true,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  reconnectionAttempts: 5,
-  transports: ['websocket', 'polling']
-});
+// Initialize Socket.IO only if available
+if (typeof io !== 'undefined') {
+  const socket = io({
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    reconnectionAttempts: 5,
+    transports: ['websocket', 'polling']
+  });
 
-socket.on('connect', () => {
-  console.log('✅ Real-time updates connected');
-});
+  socket.on('connect', () => {
+    console.log('✅ Real-time updates connected');
+  });
 
-socket.on('productAdded', async () => {
-  await loadProducts();
-  showToast('✨ New products available!');
-});
+  socket.on('productAdded', async () => {
+    await loadProducts();
+    showToast('✨ New products available!');
+  });
 
-socket.on('productUpdated', async () => {
-  await loadProducts();
-});
+  socket.on('productUpdated', async () => {
+    await loadProducts();
+  });
 
-socket.on('productDeleted', async () => {
-  await loadProducts();
-});
+  socket.on('productDeleted', async () => {
+    await loadProducts();
+  });
 
-socket.on('disconnect', () => {
-  console.log('⚠️ Real-time updates disconnected');
-});
+  socket.on('disconnect', () => {
+    console.log('⚠️ Real-time updates disconnected');
+  });
+} else {
+  console.log('⚠️ Socket.IO not available - real-time updates disabled');
+}
 </script>
 
 <!-- Footer with Admin Link -->

@@ -62,12 +62,14 @@ router.get('/', async (req, res) => {
 // Get single product
 router.get('/:id', async (req, res) => {
   try {
-    const [products] = await db.query('SELECT * FROM products WHERE id = ?', [req.params.id]);
+    const result = await db.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
+    const products = result.rows || result;
+    
     if (products.length === 0) return res.status(404).json({ error: 'Product not found' });
     
     const product = products[0];
     const consumed = await getConsumedStock(product.id);
-    const available = Math.max(0, product.base_stock - consumed);
+    const available = Math.max(0, (product.base_stock || 0) - consumed);
     
     res.json({
       id: product.id,
@@ -131,22 +133,40 @@ router.put('/:id', async (req, res) => {
 // Delete product (admin)
 router.delete('/:id', async (req, res) => {
   try {
-    await db.query('DELETE FROM products WHERE id = ?', [req.params.id]);
-    res.json({ message: 'Product deleted' });
+    const productId = req.params.id;
+    
+    // First check if product exists
+    const checkResult = await db.query('SELECT id, name FROM products WHERE id = $1', [productId]);
+    const product = checkResult.rows?.[0] || checkResult[0];
+    
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    
+    // Delete the product
+    await db.query('DELETE FROM products WHERE id = $1', [productId]);
+    
+    res.json({ 
+      message: 'Product deleted successfully',
+      productId: productId,
+      productName: product.name
+    });
   } catch (error) {
+    console.error('Error deleting product:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
 // Helper function to calculate consumed stock
 async function getConsumedStock(productId) {
-  const [items] = await db.query(
+  const result = await db.query(
     `SELECT COALESCE(SUM(oi.quantity), 0) as count FROM order_items oi
      JOIN orders o ON oi.order_id = o.id
-     WHERE oi.product_id = ? AND o.status IN ('New', 'Confirmed')`,
+     WHERE oi.product_id = $1 AND o.status IN ('New', 'Confirmed')`,
     [productId]
   );
-  return items[0].count;
+  const items = result.rows || result;
+  return items[0]?.count || 0;
 }
 
 module.exports = router;

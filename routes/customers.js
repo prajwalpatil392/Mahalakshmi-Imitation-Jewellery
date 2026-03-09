@@ -182,6 +182,37 @@ router.get('/:id/cart', async (req, res) => {
   } catch (error) {
     console.error('Get cart error:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// Get customer orders
+router.get('/:id/orders', async (req, res) => {
+  try {
+    const customerId = req.params.id;
+    const [orders] = await db.queryCompat(
+      `SELECT o.* FROM orders o
+      WHERE o.customer_id = $1
+      ORDER BY o.created_at DESC`,
+      [customerId]
+    );
+    
+    // Get items for each order
+    if (orders.length > 0) {
+      const orderIds = orders.map(o => o.id);
+      const [allItems] = await db.queryCompat(
+        'SELECT * FROM order_items WHERE order_id = ANY($1)',
+        [orderIds]
+      );
+      
+      // Group items by order_id
+      orders.forEach(order => {
+        order.items = allItems.filter(item => item.order_id === order.id);
+      });
+    }
+    
+    res.json(orders);
+  } catch (error) {
+    console.error('Get customer orders error:', error);
     res.status(500).json({ error: error.message });
   }
 });

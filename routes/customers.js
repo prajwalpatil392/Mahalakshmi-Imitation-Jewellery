@@ -13,7 +13,7 @@ router.post('/login', async (req, res) => {
     }
     
     // Check if customer exists
-    const [customers] = await db.query('SELECT * FROM customers WHERE phone = ?', [phone]);
+    const [customers] = await db.queryCompat('SELECT * FROM customers WHERE phone = $1', [phone]);
     
     if (customers.length > 0) {
       // Existing customer - login
@@ -43,13 +43,13 @@ router.post('/login', async (req, res) => {
         hashedPassword = await bcrypt.hash(password, 10);
       }
       
-      const [result] = await db.query(
-        'INSERT INTO customers (phone, name, password) VALUES (?, ?, ?)',
+      const result = await db.queryCompat(
+        'INSERT INTO customers (phone, name, password) VALUES ($1, $2, $3) RETURNING id',
         [phone, name, hashedPassword]
       );
       
       const newCustomer = {
-        id: result.insertId,
+        id: (result.rows || result)[0].id,
         phone,
         name,
         created_at: new Date()
@@ -69,7 +69,7 @@ router.post('/login', async (req, res) => {
 // Get customer by phone
 router.get('/phone/:phone', async (req, res) => {
   try {
-    const [customers] = await db.query('SELECT * FROM customers WHERE phone = ?', [req.params.phone]);
+    const [customers] = await db.queryCompat('SELECT * FROM customers WHERE phone = $1', [req.params.phone]);
     
     if (customers.length === 0) {
       return res.status(404).json({ error: 'Customer not found' });
@@ -84,7 +84,7 @@ router.get('/phone/:phone', async (req, res) => {
 // Get all customers (for admin)
 router.get('/', async (req, res) => {
   try {
-    const [customers] = await db.query('SELECT * FROM customers ORDER BY created_at DESC');
+    const [customers] = await db.queryCompat('SELECT * FROM customers ORDER BY created_at DESC');
     res.json(customers);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -94,7 +94,7 @@ router.get('/', async (req, res) => {
 // Get customer by ID
 router.get('/:id', async (req, res) => {
   try {
-    const [customers] = await db.query('SELECT * FROM customers WHERE id = ?', [req.params.id]);
+    const [customers] = await db.queryCompat('SELECT * FROM customers WHERE id = $1', [req.params.id]);
     
     if (customers.length === 0) {
       return res.status(404).json({ error: 'Customer not found' });
@@ -121,12 +121,12 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Invalid email format' });
     }
     
-    const [result] = await db.query(
-      'INSERT INTO customers (name, email, phone, city, address) VALUES (?, ?, ?, ?, ?)',
+    const result = await db.queryCompat(
+      'INSERT INTO customers (name, email, phone, city, address) VALUES ($1, $2, $3, $4, $5) RETURNING id',
       [name, email, phone, city, address]
     );
     
-    res.status(201).json({ customerId: result.insertId, name, email, phone, city, address });
+    res.status(201).json({ customerId: (result.rows || result)[0].id, name, email, phone, city, address });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -136,8 +136,8 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { name, email, city, address } = req.body;
-    await db.query(
-      'UPDATE customers SET name = COALESCE(?, name), email = COALESCE(?, email), city = COALESCE(?, city), address = COALESCE(?, address) WHERE id = ?',
+    await db.queryCompat(
+      'UPDATE customers SET name = COALESCE($1, name), email = COALESCE($2, email), city = COALESCE($3, city), address = COALESCE($4, address) WHERE id = $5',
       [name, email, city, address, req.params.id]
     );
     res.json({ message: 'Customer updated successfully' });
@@ -153,8 +153,8 @@ router.post('/:id/cart', async (req, res) => {
     const { cart } = req.body;
     
     // Store cart as JSON in the database
-    await db.query(
-      'UPDATE customers SET cart_data = ? WHERE id = ?',
+    await db.queryCompat(
+      'UPDATE customers SET cart_data = $1 WHERE id = $2',
       [JSON.stringify(cart), customerId]
     );
     
@@ -169,7 +169,7 @@ router.post('/:id/cart', async (req, res) => {
 router.get('/:id/cart', async (req, res) => {
   try {
     const customerId = req.params.id;
-    const [customers] = await db.query('SELECT cart_data FROM customers WHERE id = ?', [customerId]);
+    const [customers] = await db.queryCompat('SELECT cart_data FROM customers WHERE id = $1', [customerId]);
     
     if (customers.length === 0) {
       return res.status(404).json({ error: 'Customer not found' });
@@ -182,43 +182,6 @@ router.get('/:id/cart', async (req, res) => {
   } catch (error) {
     console.error('Get cart error:', error);
     res.status(500).json({ error: error.message });
-  }
-});
-
-// Get customer orders
-router.get('/:id/orders', async (req, res) => {
-  try {
-    const customerId = req.params.id;
-    const [orders] = await db.query(
-      `SELECT o.*, 
-        GROUP_CONCAT(
-          JSON_OBJECT(
-            'product_id', oi.product_id,
-            'product_name', oi.product_name,
-            'quantity', oi.quantity,
-            'price', oi.price,
-            'mode', oi.mode,
-            'rental_from', oi.rental_from,
-            'rental_to', oi.rental_to
-          )
-        ) as items
-      FROM orders o
-      LEFT JOIN order_items oi ON o.id = oi.order_id
-      WHERE o.customer_id = ?
-      GROUP BY o.id
-      ORDER BY o.created_at DESC`,
-      [customerId]
-    );
-    
-    // Parse items JSON
-    const ordersWithItems = orders.map(order => ({
-      ...order,
-      items: order.items ? JSON.parse(`[${order.items}]`) : []
-    }));
-    
-    res.json(ordersWithItems);
-  } catch (error) {
-    console.error('Get customer orders error:', error);
     res.status(500).json({ error: error.message });
   }
 });

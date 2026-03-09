@@ -9,7 +9,7 @@ router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
     
-    const [admins] = await db.query('SELECT * FROM admins WHERE username = ?', [username]);
+    const [admins] = await db.queryCompat('SELECT * FROM admins WHERE username = $1', [username]);
     if (admins.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
     
     const admin = admins[0];
@@ -33,11 +33,11 @@ router.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
     
-    const [existing] = await db.query('SELECT * FROM admins WHERE username = ?', [username]);
+    const [existing] = await db.queryCompat('SELECT * FROM admins WHERE username = $1', [username]);
     if (existing.length > 0) return res.status(400).json({ error: 'Admin already exists' });
     
     const hashedPassword = await bcrypt.hash(password, 10);
-    await db.query('INSERT INTO admins (username, password) VALUES (?, ?)', [username, hashedPassword]);
+    await db.queryCompat('INSERT INTO admins (username, password) VALUES ($1, $2)', [username, hashedPassword]);
     
     res.status(201).json({ message: 'Admin created successfully' });
   } catch (error) {

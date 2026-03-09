@@ -25,8 +25,8 @@ router.get('/methods', (req, res) => {
 // Get payment by ID
 router.get('/:id', async (req, res) => {
   try {
-    const [payments] = await db.query(
-      'SELECT * FROM payments WHERE id = ?',
+    const [payments] = await db.queryCompat(
+      'SELECT * FROM payments WHERE id = $1',
       [req.params.id]
     );
     
@@ -51,7 +51,7 @@ router.post('/initiate', async (req, res) => {
     }
     
     // Get order
-    const [orders] = await db.query('SELECT * FROM orders WHERE id = ?', [order_id]);
+    const [orders] = await db.queryCompat('SELECT * FROM orders WHERE id = $1', [order_id]);
     if (orders.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
@@ -59,13 +59,13 @@ router.post('/initiate', async (req, res) => {
     const order = orders[0];
     
     // Create payment record
-    const [result] = await db.query(
-      'INSERT INTO payments (order_id, amount, payment_method, status) VALUES (?, ?, ?, ?)',
+    const result = await db.queryCompat(
+      'INSERT INTO payments (order_id, amount, payment_method, status) VALUES ($1, $2, $3, $4) RETURNING id',
       [order_id, order.total, payment_method, 'pending']
     );
     
     res.json({ 
-      paymentId: result.insertId,
+      paymentId: (result.rows || result)[0].id,
       orderId: order_id,
       amount: order.total,
       payment_method
@@ -127,13 +127,13 @@ router.post('/verify', async (req, res) => {
 
     // Handle test format with just payment_id
     if (payment_id && !razorpay_payment_id) {
-      const [payments] = await db.query('SELECT * FROM payments WHERE id = ?', [payment_id]);
+      const [payments] = await db.queryCompat('SELECT * FROM payments WHERE id = $1', [payment_id]);
       if (payments.length === 0) {
         return res.status(404).json({ error: 'Payment not found' });
       }
       
-      await db.query('UPDATE payments SET status = ? WHERE id = ?', ['verified', payment_id]);
-      await db.query('UPDATE orders SET payment_status = ? WHERE id = ?', ['paid', payments[0].order_id]);
+      await db.queryCompat('UPDATE payments SET status = $1 WHERE id = $2', ['verified', payment_id]);
+      await db.queryCompat('UPDATE orders SET payment_status = $1 WHERE id = $2', ['paid', payments[0].order_id]);
       
       return res.json({ 
         success: true, 
@@ -160,14 +160,14 @@ router.post('/verify', async (req, res) => {
     }
 
     // Update order with payment details
-    await db.query(
+    await db.queryCompat(
       `UPDATE orders SET 
         payment_status = 'paid',
         payment_method = 'online',
-        payment_id = ?,
-        razorpay_order_id = ?,
+        payment_id = $1,
+        razorpay_order_id = $2,
         payment_verified_at = NOW()
-      WHERE order_id = ?`,
+      WHERE order_id = $3`,
       [razorpay_payment_id, razorpay_order_id, order_id]
     );
 
@@ -199,11 +199,11 @@ router.patch('/update-method/:orderId', async (req, res) => {
       'online': 'Online Payment'
     };
 
-    await db.query(
+    await db.queryCompat(
       `UPDATE orders SET 
-        payment_method = ?,
-        payment_status = ?
-      WHERE order_id = ?`,
+        payment_method = $1,
+        payment_status = $2
+      WHERE order_id = $3`,
       [methodMap[paymentMethod], paymentMethod === 'online' ? 'pending' : 'pending', orderId]
     );
 
@@ -220,9 +220,9 @@ router.patch('/update-method/:orderId', async (req, res) => {
 // Get payment details for an order
 router.get('/order/:orderId', async (req, res) => {
   try {
-    const [orders] = await db.query(
+    const [orders] = await db.queryCompat(
       `SELECT payment_method, payment_status, payment_id, razorpay_order_id, payment_verified_at 
-       FROM orders WHERE order_id = ?`,
+       FROM orders WHERE order_id = $1`,
       [req.params.orderId]
     );
 

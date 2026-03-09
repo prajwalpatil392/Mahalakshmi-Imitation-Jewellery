@@ -6,6 +6,7 @@
 <title>Mahalakshmi – Admin Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/>
 <script src="config.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <style>
 :root{--gold:#C9963A;--gold-light:#F0C96B;--gold-dark:#8B6220;--maroon:#6B1A1A;--maroon-deep:#3D0A0A;--cream:#FAF4E8;--bg:#0F0800;--panel:#1A0D00;--panel2:#221200;--border:rgba(201,150,58,0.18);--text:#e8d5a3;--text-dim:rgba(232,213,163,0.5);--green:#1a6b1a;--green-bright:#4caf50;--red:#8B1A1A;--blue:#1a3a6b;--blue-bright:#5b9bd5;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -76,8 +77,9 @@ html,body{height:100%;font-family:'Alegreya Sans',sans-serif;background:var(--bg
 .search-input{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:6px 12px;font-family:'Alegreya Sans',sans-serif;font-size:.8rem;outline:none;width:200px;}
 .search-input:focus{border-color:var(--gold);}
 
-table{width:100%;border-collapse:collapse;}
-th{padding:10px 18px;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(201,150,58,0.5);border-bottom:1px solid var(--border);font-weight:400;}
+.table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;min-width:600px;}
+th{padding:10px 18px;text-align:left;font-size:.68rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(201,150,58,0.5);border-bottom:1px solid var(--border);font-weight:400;white-space:nowrap;}
 td{padding:13px 18px;font-size:.88rem;border-bottom:1px solid rgba(201,150,58,0.07);vertical-align:top;}
 tr:hover td{background:rgba(201,150,58,0.04);}
 tr:last-child td{border-bottom:none;}
@@ -216,23 +218,23 @@ tr:last-child td{border-bottom:none;}
 /* ORDER DETAIL MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:400;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;}
 .modal-overlay.open{display:flex;}
-.modal{background:var(--panel);border:1px solid var(--border);padding:36px;max-width:600px;width:100%;position:relative;animation:fadeUp .3s ease both;}
+.modal{background:var(--panel);border:1px solid var(--border);padding:36px;max-width:600px;width:100%;position:relative;animation:fadeUp .3s ease both;max-height:90vh;overflow-y:auto;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
-.modal-close{position:absolute;top:14px;right:18px;background:none;border:none;color:var(--gold);font-size:1.4rem;cursor:pointer;}
+.modal-close{position:absolute;top:14px;right:18px;background:none;border:none;color:var(--gold);font-size:1.4rem;cursor:pointer;z-index:1;}
 .modal h2{font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--gold-light);margin-bottom:20px;}
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
 .detail-field{background:var(--panel2);padding:12px 14px;}
 .detail-field label{display:block;font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:4px;}
-.detail-field span{color:var(--text);font-size:.9rem;}
+.detail-field span{color:var(--text);font-size:.9rem;word-break:break-word;}
 .detail-items{background:var(--panel2);padding:14px;margin-bottom:16px;}
 .detail-items h4{font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:rgba(201,150,58,0.5);margin-bottom:12px;}
-.di-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(201,150,58,0.08);}
+.di-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(201,150,58,0.08);gap:10px;}
 .di-row:last-child{border-bottom:none;}
-.di-name{color:var(--text);font-size:.9rem;}
-.di-price{color:var(--gold-light);font-family:'Cormorant Garamond',serif;font-size:1.05rem;}
+.di-name{color:var(--text);font-size:.9rem;flex:1;}
+.di-price{color:var(--gold-light);font-family:'Cormorant Garamond',serif;font-size:1.05rem;white-space:nowrap;}
 .status-change{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);}
 .status-change label{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);}
-.status-select{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:'Alegreya Sans',sans-serif;font-size:.85rem;outline:none;flex:1;}
+.status-select{background:var(--panel2);border:1px solid var(--border);color:var(--text);padding:8px 12px;font-family:'Alegreya Sans',sans-serif;font-size:.85rem;outline:none;flex:1;min-width:120px;}
 .status-update-btn{background:var(--gold);color:var(--maroon-deep);border:none;padding:8px 20px;font-family:'Alegreya Sans',sans-serif;font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;font-weight:700;}
 
 /* EMPTY STATE */
@@ -291,14 +293,226 @@ tr:last-child td{border-bottom:none;}
 .toast.show{opacity:1;}
 .toast.error-toast{background:var(--red);border-left-color:#ff4444;}
 
+/* TABS */
+.tab{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  color:var(--text-dim);
+  padding:8px 16px;
+  font-family:'Alegreya Sans',sans-serif;
+  font-size:.78rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all .2s;
+  white-space:nowrap;
+}
+.tab:hover{
+  background:rgba(201,150,58,0.1);
+  color:var(--gold-light);
+  border-color:var(--gold);
+}
+.tab.active{
+  background:var(--gold);
+  color:var(--maroon-deep);
+  border-color:var(--gold);
+  font-weight:600;
+}
+
+/* INVENTORY TABS CONTAINER */
+.inv-tabs-container{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+/* INVENTORY TABS HAMBURGER (Mobile Only) */
+.inv-tabs-hamburger{
+  display:none;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  color:var(--gold-light);
+  padding:8px 16px;
+  font-family:'Alegreya Sans',sans-serif;
+  font-size:.78rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all .2s;
+  align-items:center;
+  gap:8px;
+}
+.inv-tabs-hamburger:hover{
+  background:rgba(201,150,58,0.1);
+  border-color:var(--gold);
+}
+.inv-tabs-hamburger .hamburger-icon{
+  font-size:1rem;
+}
+
+/* INVENTORY TABS DROPDOWN */
+.inv-tabs-dropdown{
+  display:none;
+  position:absolute;
+  top:100%;
+  left:0;
+  right:0;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-top:none;
+  z-index:10;
+  flex-direction:column;
+  gap:0;
+  max-height:0;
+  overflow:hidden;
+  transition:max-height .3s ease;
+}
+.inv-tabs-dropdown.open{
+  max-height:400px;
+}
+.inv-tabs-dropdown .tab{
+  border:none;
+  border-bottom:1px solid var(--border);
+  border-radius:0;
+  width:100%;
+  text-align:left;
+}
+.inv-tabs-dropdown .tab:last-child{
+  border-bottom:none;
+}
+
 /* NOTIFICATION BELL */
 .notif-bell{position:relative;cursor:pointer;font-size:1.3rem;color:var(--text-dim);transition:color .2s;}
 .notif-bell:hover{color:var(--gold-light);}
 .notif-count{position:absolute;top:-6px;right:-6px;background:var(--gold);color:var(--maroon-deep);border-radius:50%;width:18px;height:18px;font-size:.62rem;font-weight:700;display:flex;align-items:center;justify-content:center;display:none;}
 .notif-count.visible{display:flex;}
 
-@media(max-width:900px){.stat-grid{grid-template-columns:1fr 1fr;}.sidebar{width:200px;}.detail-grid{grid-template-columns:1fr;}}
-@media(max-width:640px){.app{flex-direction:column;}.sidebar{width:100%;height:auto;}.stat-grid{grid-template-columns:1fr 1fr;}}
+/* HAMBURGER MENU */
+.hamburger{display:none;background:transparent;border:none;color:var(--gold-light);font-size:1.5rem;cursor:pointer;padding:8px;margin-right:12px;transition:color .2s;}
+.hamburger:hover{color:var(--gold);}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:199;}
+.sidebar-overlay.open{display:block;}
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .content{padding:20px;}
+  .topbar{padding:0 20px;}
+  table{min-width:500px;}
+}
+
+@media(max-width:768px){
+  .hamburger{display:block;}
+  
+  .sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    bottom:0;
+    width:260px;
+    z-index:200;
+    transform:translateX(-100%);
+    transition:transform .3s ease;
+  }
+  
+  .sidebar.open{transform:translateX(0);}
+  
+  .main{width:100%;}
+  
+  .topbar{height:56px;padding:0 16px;}
+  .topbar-title{font-size:1.2rem;}
+  .topbar-right{gap:10px;}
+  .topbar-date{display:none;}
+  .live-dot{font-size:.7rem;}
+  
+  .content{padding:16px;}
+  
+  .stat-grid{grid-template-columns:1fr 1fr;gap:12px;}
+  .stat-card{padding:16px;}
+  .sc-val{font-size:1.8rem;}
+  
+  .sc-header{padding:14px 16px;flex-direction:column;align-items:flex-start;gap:12px;}
+  .sc-header h3{font-size:1.1rem;}
+  .sc-header-right{width:100%;flex-direction:column;}
+  .search-input,.filter-select{width:100%;}
+  
+  /* INVENTORY TABS MOBILE */
+  .inv-tabs-container{
+    position:relative;
+    width:100%;
+  }
+  .inv-tabs-container > .tab{
+    display:none;
+  }
+  .inv-tabs-hamburger{
+    display:flex;
+    width:100%;
+    justify-content:space-between;
+  }
+  .inv-tabs-dropdown{
+    display:flex;
+  }
+  
+  /* INVENTORY BUTTONS MOBILE */
+  .sc-header > div:first-child{
+    width:100%;
+  }
+  .sc-header .refresh-btn{
+    width:100%;
+    margin-bottom:8px;
+  }
+  
+  /* HIDE STOCK LEGEND ON MOBILE */
+  .sc-header > div > div:last-child{
+    display:none !important;
+  }
+  
+  table{font-size:.82rem;min-width:500px;}
+  th,td{padding:10px 12px;font-size:.75rem;}
+  th{font-size:.6rem;}
+  
+  .detail-grid{grid-template-columns:1fr;}
+  .modal{padding:24px;margin:10px;}
+  .modal h2{font-size:1.3rem;}
+  
+  .prod-admin-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
+  
+  .action-btns{gap:4px;}
+  .ab{padding:4px 10px;font-size:.65rem;}
+  
+  .customer-card{flex-direction:column;gap:12px;padding:14px;}
+  .cust-stats{text-align:left;}
+  
+  .status-change{flex-direction:column;align-items:stretch;}
+  .status-select{width:100%;}
+  .status-update-btn{width:100%;}
+}
+
+@media(max-width:480px){
+  .stat-grid{grid-template-columns:1fr;gap:10px;}
+  
+  .topbar{padding:0 12px;}
+  .topbar-title{font-size:1rem;}
+  .refresh-btn{padding:6px 10px;font-size:.7rem;}
+  .notif-bell{font-size:1.1rem;}
+  
+  .content{padding:12px;}
+  
+  .prod-admin-grid{grid-template-columns:1fr;}
+  
+  table{min-width:400px;}
+  th{font-size:.55rem;padding:8px 8px;}
+  td{font-size:.72rem;padding:10px 8px;}
+  
+  .toast{bottom:12px;right:12px;left:12px;font-size:.75rem;padding:10px 16px;}
+  
+  .modal{padding:20px;margin:10px;}
+  .modal h2{font-size:1.2rem;}
+  .detail-field{padding:10px 12px;}
+  
+  .login-box{padding:16px;}
+  .login-logo{font-size:1.6rem;}
+}
 </style>
 </head>
 <body>
@@ -318,8 +532,11 @@ tr:last-child td{border-bottom:none;}
 <!-- APP -->
 <div class="app" id="app" style="display:none;">
 
+  <!-- Sidebar Overlay for Mobile -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
   <!-- SIDEBAR -->
-  <div class="sidebar">
+  <div class="sidebar" id="sidebar">
     <div class="sidebar-brand">
       <div class="sidebar-brand-name">🪷 Mahalakshmi</div>
       <div class="sidebar-brand-sub">Admin Portal</div>
@@ -343,6 +560,7 @@ tr:last-child td{border-bottom:none;}
   <!-- MAIN -->
   <div class="main">
     <div class="topbar">
+      <button class="hamburger" onclick="toggleSidebar()">☰</button>
       <div class="topbar-title" id="topbarTitle">Dashboard</div>
       <div class="topbar-right">
         <div class="live-dot">Live</div>
@@ -426,8 +644,23 @@ tr:last-child td{border-bottom:none;}
         <div class="section-card">
           <div class="sc-header">
             <h3>💍 Product Inventory</h3>
-            <div style="display:flex;gap:16px;align-items:center;">
-              <div style="display:flex;gap:8px;">
+            <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;width:100%;">
+              <div class="inv-tabs-container">
+                <!-- Mobile Hamburger Menu -->
+                <button class="inv-tabs-hamburger" id="invTabsHamburger" onclick="toggleInvTabs()">
+                  <span id="invTabsLabel">All Products</span>
+                  <span class="hamburger-icon">☰</span>
+                </button>
+                
+                <!-- Dropdown for mobile -->
+                <div class="inv-tabs-dropdown" id="invTabsDropdown">
+                  <button class="tab active" onclick="filterProductsByType('all', this); selectInvTab('All Products')">All Products</button>
+                  <button class="tab" onclick="filterProductsByType('buy', this); selectInvTab('💰 For Sale')">💰 For Sale</button>
+                  <button class="tab" onclick="filterProductsByType('rent', this); selectInvTab('📅 For Rent')">📅 For Rent</button>
+                  <button class="tab" onclick="filterProductsByType('both', this); selectInvTab('🔄 Both')">🔄 Both</button>
+                </div>
+                
+                <!-- Desktop Tabs (hidden on mobile) -->
                 <button class="tab active" onclick="filterProductsByType('all', this)">All Products</button>
                 <button class="tab" onclick="filterProductsByType('buy', this)">💰 For Sale</button>
                 <button class="tab" onclick="filterProductsByType('rent', this)">📅 For Rent</button>
@@ -598,6 +831,15 @@ Silver Earrings,Pure Silver,✨,Earrings,buy,,1500,10</pre>
 </div>
 
 <script>
+// ── HELPER FUNCTIONS ─────────────────────────────────────────────────────
+// Format price - remove .00 if whole number and remove leading zeros
+function formatPrice(price) {
+  const num = parseFloat(price);
+  if (isNaN(num)) return '0';
+  // If it's a whole number, don't show decimals
+  return num % 1 === 0 ? num.toLocaleString() : num.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
 // ── DATA STORE (shared via localStorage with client) ────────────────────
 const STORE_KEY='mlr_orders';
 const ENQUIRY_KEY='mlr_enquiries';
@@ -773,8 +1015,8 @@ function init(){
 
 async function refreshAll(){
   await loadOrdersFromAPI(); // Load orders from API first
-  renderDashboard();
-  renderOrdersPage();
+  await renderDashboard();
+  await renderOrdersPage();
   renderRentalsPage();
   renderEnquiriesPage();
   renderProductsPage();
@@ -792,6 +1034,24 @@ function showPage(id){
   if(nav) nav.classList.add('active');
   else document.querySelectorAll('.nav-item')[0].classList.add('active');
   document.getElementById('topbarTitle').textContent=pageTitles[id]||id;
+  
+  // Close sidebar on mobile after navigation
+  if(window.innerWidth <= 768) closeSidebar();
+}
+
+// ── SIDEBAR TOGGLE (MOBILE) ──────────────────────────────────────────────
+function toggleSidebar(){
+  const sidebar=document.getElementById('sidebar');
+  const overlay=document.getElementById('sidebarOverlay');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+
+function closeSidebar(){
+  const sidebar=document.getElementById('sidebar');
+  const overlay=document.getElementById('sidebarOverlay');
+  sidebar.classList.remove('open');
+  overlay.classList.remove('open');
 }
 
 // ── BADGE HELPERS ─────────────────────────────────────────────────────────
@@ -871,7 +1131,7 @@ async function renderDashboard(){
   document.getElementById('activeRentals').textContent=activeRentals.length;
   document.getElementById('totalEnquiries').textContent=enqs.length;
   document.getElementById('newEnquiriesCount').textContent=newEnqs.length+' pending';
-  document.getElementById('totalRevenue').textContent='₹'+revenue.toLocaleString();
+  document.getElementById('totalRevenue').textContent='₹'+formatPrice(revenue);
 
   // Recent orders table
   const tb=document.getElementById('recentOrdersTable');
@@ -909,7 +1169,7 @@ async function renderDashboard(){
       <td style="color:var(--text);">${customerName}</td>
       <td>${typeLabel}</td>
       <td style="color:var(--text-dim);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${itemDisplay}">${itemDisplay}</td>
-      <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">${isOrder?'₹'+(item.total||0).toLocaleString():'—'}</td>
+      <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">${isOrder?'₹'+formatPrice(item.total||0):'—'}</td>
       <td>${statusBadge(status)}</td>
       <td style="color:var(--text-dim);font-size:.78rem;">${placedAt}</td>
       <td><div class="action-btns">
@@ -950,51 +1210,50 @@ async function renderDashboard(){
 }
 
 // ── ORDERS PAGE ──────────────────────────────────────────────────────────
-function renderOrdersPage(search='',statusFilter=''){
-  loadOrdersFromAPI().then(orders => {
-    orders = orders.filter(o=>o.type==='order');
-    const tb=document.getElementById('allOrdersTable');
-    let filtered=orders;
-    if(search) filtered=filtered.filter(o=>o.customer?.name?.toLowerCase().includes(search.toLowerCase())||o.orderId.includes(search)||o.order_id?.includes(search));
-    if(statusFilter) filtered=filtered.filter(o=>getEffectiveStatus(o)===statusFilter);
-    if(filtered.length===0){tb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="ei">📭</div><p>No orders found.</p></div></td></tr>`;return;}
-    tb.innerHTML=filtered.map(o=>{
-      const status=getEffectiveStatus(o);
-      const items=(o.items||[]);
-      const hasRentals=items.some(i=>i.mode==='rent');
-      const orderId = o.orderId || o.order_id;
-      const customerName = o.customer?.name || o.customer_name || '—';
-      const customerPhone = o.customer?.phone || o.customer_phone || '—';
-      const customerEvent = o.customer?.event || o.customer_event;
-      const placedAt = o.placedAt || o.placed_at;
-      const total = o.total || 0;
-      
-      // Build product names list
-      const productNames = items.map(item => {
-        const qty = item.quantity || 1;
-        const name = item.product_name || item.name || item.productName || 'Unknown Item';
-        return qty > 1 ? `${name} (×${qty})` : name;
-      }).join(', ');
-      
-      const itemsDisplay = productNames || `${items.length} item(s)`;
-      
-      return `<tr>
-        <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">${orderId}</td>
-        <td><strong style="color:var(--text);">${customerName}</strong>${customerEvent?`<br><small style="color:var(--text-dim);">${customerEvent}</small>`:''}</td>
-        <td style="color:var(--text-dim);">${customerPhone}</td>
-        <td style="color:var(--text-dim);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${productNames}">${itemsDisplay}${hasRentals?' 📅':''}</td>
-        <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">₹${total.toLocaleString()}</td>
-        <td>${statusBadge(status)}</td>
-        <td style="color:var(--text-dim);font-size:.78rem;">${placedAt}</td>
-        <td><div class="action-btns">
-          ${status==='New'?`<button class="ab ab-confirm" onclick="setStatus('${orderId}','Confirmed')">Confirm</button>`:''}
-          ${status==='Confirmed'&&hasRentals?`<button class="ab ab-returned" onclick="setStatus('${orderId}','Returned')">Returned</button>`:''}
-          ${status!=='Cancelled'&&status!=='Returned'?`<button class="ab ab-cancel" onclick="setStatus('${orderId}','Cancelled')">Cancel</button>`:''}
-          <button class="ab ab-view" onclick="openDetail('${orderId}','order')">View</button>
-        </div></td>
-      </tr>`;
-    }).join('');
-  });
+async function renderOrdersPage(search='',statusFilter=''){
+  const orders = await loadOrdersFromAPI();
+  const allOrders = orders.filter(o=>o.type==='order');
+  const tb=document.getElementById('allOrdersTable');
+  let filtered=allOrders;
+  if(search) filtered=filtered.filter(o=>o.customer?.name?.toLowerCase().includes(search.toLowerCase())||o.orderId?.includes(search)||o.order_id?.includes(search));
+  if(statusFilter) filtered=filtered.filter(o=>getEffectiveStatus(o)===statusFilter);
+  if(filtered.length===0){tb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="ei">📭</div><p>No orders found.</p></div></td></tr>`;return;}
+  tb.innerHTML=filtered.map(o=>{
+    const status=getEffectiveStatus(o);
+    const items=(o.items||[]);
+    const hasRentals=items.some(i=>i.mode==='rent');
+    const orderId = o.orderId || o.order_id;
+    const customerName = o.customer?.name || o.customer_name || '—';
+    const customerPhone = o.customer?.phone || o.customer_phone || '—';
+    const customerEvent = o.customer?.event || o.customer_event;
+    const placedAt = o.placedAt || o.placed_at;
+    const total = o.total || 0;
+    
+    // Build product names list
+    const productNames = items.map(item => {
+      const qty = item.quantity || 1;
+      const name = item.product_name || item.name || item.productName || 'Unknown Item';
+      return qty > 1 ? `${name} (×${qty})` : name;
+    }).join(', ');
+    
+    const itemsDisplay = productNames || `${items.length} item(s)`;
+    
+    return `<tr>
+      <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">${orderId}</td>
+      <td><strong style="color:var(--text);">${customerName}</strong>${customerEvent?`<br><small style="color:var(--text-dim);">${customerEvent}</small>`:''}</td>
+      <td style="color:var(--text-dim);">${customerPhone}</td>
+      <td style="color:var(--text-dim);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${productNames}">${itemsDisplay}${hasRentals?' 📅':''}</td>
+      <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">₹${formatPrice(total)}</td>
+      <td>${statusBadge(status)}</td>
+      <td style="color:var(--text-dim);font-size:.78rem;">${placedAt}</td>
+      <td><div class="action-btns">
+        ${status==='New'?`<button class="ab ab-confirm" onclick="setStatus('${orderId}','Confirmed')">Confirm</button>`:''}
+        ${status==='Confirmed'&&hasRentals?`<button class="ab ab-returned" onclick="setStatus('${orderId}','Returned')">Returned</button>`:''}
+        ${status!=='Cancelled'&&status!=='Returned'?`<button class="ab ab-cancel" onclick="setStatus('${orderId}','Cancelled')">Cancel</button>`:''}
+        <button class="ab ab-view" onclick="openDetail('${orderId}','order')">View</button>
+      </div></td>
+    </tr>`;
+  }).join('');
 }
 
 // ── RENTALS PAGE ─────────────────────────────────────────────────────────
@@ -1022,7 +1281,7 @@ async function renderRentalsPage(){
       <td style="color:var(--text-dim);">${rd?.from||'—'}</td>
       <td style="color:var(--text-dim);">${rd?.to||'—'}</td>
       <td style="text-align:center;">${rd?.days||'—'}</td>
-      <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">₹${(item.price||0).toLocaleString()}</td>
+      <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">₹${formatPrice(item.price||0)}</td>
       <td>${statusBadge(status)}</td>
       <td><div class="action-btns">
         ${status==='New'?`<button class="ab ab-confirm" onclick="setStatus('${orderId}','Confirmed')">Confirm</button>`:''}
@@ -1075,6 +1334,32 @@ function filterProductsByType(type, btn) {
   renderProductsPage();
 }
 
+// Toggle inventory tabs dropdown (mobile)
+function toggleInvTabs() {
+  const dropdown = document.getElementById('invTabsDropdown');
+  const hamburger = document.getElementById('invTabsHamburger');
+  dropdown.classList.toggle('open');
+  
+  // Change icon
+  const icon = hamburger.querySelector('.hamburger-icon');
+  icon.textContent = dropdown.classList.contains('open') ? '✕' : '☰';
+}
+
+// Select inventory tab and update label (mobile)
+function selectInvTab(label) {
+  const labelEl = document.getElementById('invTabsLabel');
+  labelEl.textContent = label;
+  
+  // Close dropdown
+  const dropdown = document.getElementById('invTabsDropdown');
+  dropdown.classList.remove('open');
+  
+  // Reset icon
+  const hamburger = document.getElementById('invTabsHamburger');
+  const icon = hamburger.querySelector('.hamburger-icon');
+  icon.textContent = '☰';
+}
+
 function renderProductsPage(){
   const grid=document.getElementById('adminProductGrid');
   
@@ -1119,7 +1404,7 @@ function renderProductsPage(){
 
     return `<div class="prod-admin-card">
       ${outOverlay}
-      ${p.image_url ? `<div style="text-align:center;margin-bottom:10px;"><img src="http://localhost:5000${p.image_url}" alt="${p.name}" style="max-width:100%;height:150px;object-fit:cover;border-radius:4px;border:1px solid rgba(201,150,58,0.2);"/></div>` : ''}
+      ${p.image_url ? `<div style="text-align:center;margin-bottom:10px;"><img src="${p.image_url.startsWith('http') ? p.image_url : api.baseURL + p.image_url}" alt="${p.name}" style="max-width:100%;height:150px;object-fit:cover;border-radius:4px;border:1px solid rgba(201,150,58,0.2);"/></div>` : ''}
       <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px;">
         <span class="pac-icon" style="font-size:2rem;margin:0;">${p.icon}</span>
         <span class="badge ${available===0?'badge-cancelled':available<=2?'':'badge-confirmed'}" style="${available>2?'background:rgba(26,107,26,0.2);color:var(--green-bright);border:1px solid rgba(76,175,80,0.3);':''}">
@@ -1299,7 +1584,7 @@ function renderCustomersPage(search=''){
         <p style="margin-top:4px;">${c.orders.length} order(s) &nbsp;·&nbsp; ${c.enquiries.length} enquiry(ies)</p>
       </div>
       <div class="cust-stats">
-        <div class="cs-num">₹${totalSpend.toLocaleString()}</div>
+        <div class="cs-num">₹${formatPrice(totalSpend)}</div>
         <div class="cs-label">Total Value</div>
       </div>
     </div>`;
@@ -1338,9 +1623,9 @@ function openDetail(id, type){
       const tc=i.mode==='rent'?'badge-rent':'badge-buy';
       const dates=i.rentalData?`<br><small style="color:var(--text-dim);">📅 ${i.rentalData.from} → ${i.rentalData.to} (${i.rentalData.days} days)</small>`:'';
       const itemName = i.product_name || i.name || i.productName || 'Unknown Item';
-      html+=`<div class="di-row"><div class="di-name">${i.icon||''} ${itemName} <span class="badge ${tc}">${typeLabel}</span>${dates}</div><div class="di-price">₹${(i.price||0).toLocaleString()}</div></div>`;
+      html+=`<div class="di-row"><div class="di-name">${i.icon||''} ${itemName} <span class="badge ${tc}">${typeLabel}</span>${dates}</div><div class="di-price">₹${formatPrice(i.price||0)}</div></div>`;
     });
-    html+=`<div class="di-row" style="border-top:1px solid rgba(201,150,58,0.2);padding-top:10px;"><div style="color:var(--text-dim);text-transform:uppercase;font-size:.75rem;letter-spacing:.1em;">Total</div><div class="di-price" style="font-size:1.3rem;">₹${(item.total||0).toLocaleString()}</div></div></div>`;
+    html+=`<div class="di-row" style="border-top:1px solid rgba(201,150,58,0.2);padding-top:10px;"><div style="color:var(--text-dim);text-transform:uppercase;font-size:.75rem;letter-spacing:.1em;">Total</div><div class="di-price" style="font-size:1.3rem;">₹${formatPrice(item.total||0)}</div></div></div>`;
   }
   
   // Handle customer notes from both formats
@@ -1644,8 +1929,57 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+// ── REAL-TIME UPDATES WITH SOCKET.IO ──────────────────────────────────────
+const socket = io({
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  reconnectionAttempts: 5,
+  transports: ['websocket', 'polling']
+});
+
+socket.on('connect', () => {
+  console.log('✅ Real-time updates connected');
+});
+
+socket.on('productAdded', async (product) => {
+  console.log('New product added:', product);
+  await loadProductsFromAPI();
+  renderProductsPage();
+  showToast('✨ New product added!');
+});
+
+socket.on('productUpdated', async (product) => {
+  console.log('Product updated:', product);
+  await loadProductsFromAPI();
+  renderProductsPage();
+  showToast('✨ Product updated!');
+});
+
+socket.on('productDeleted', async (data) => {
+  console.log('Product deleted:', data);
+  await loadProductsFromAPI();
+  renderProductsPage();
+  showToast('Product deleted');
+});
+
+socket.on('orderCreated', async (order) => {
+  console.log('New order:', order);
+  await loadOrdersFromAPI();
+  refreshAll();
+  showToast('🔔 New order received!');
+});
+
+socket.on('orderUpdated', async (data) => {
+  console.log('Order updated:', data);
+  await loadOrdersFromAPI();
+  refreshAll();
+});
+
+socket.on('disconnect', () => {
+  console.log('⚠️ Real-time updates disconnected');
+});
 </script>
 </body>
 </html>
-
-

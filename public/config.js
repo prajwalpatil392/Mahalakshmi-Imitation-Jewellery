@@ -10,8 +10,8 @@ const API_BASE_URL = (function(){
 })();
 
 // UPI Configuration
-const UPI_ID = 'prajwal1111@slc'; // Your UPI ID
-const UPI_NAME = 'Mahalakshmi Jewellery';
+const UPI_ID = '9740390787@paytm'; // Your UPI ID
+const UPI_NAME = 'SHREE MAHALAXMI IMITATION JEWELLERY';
 
 const api = {
   baseURL: API_BASE_URL.replace('/api', ''),
@@ -227,6 +227,10 @@ const api = {
   
   // Customer Cart
   async syncCart(customerId, cartItems) {
+    if (!customerId) {
+      console.warn('Cannot sync cart: No customer ID');
+      return null;
+    }
     const response = await fetch(`${API_BASE_URL}/customers/${customerId}/cart`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -236,6 +240,10 @@ const api = {
   },
   
   async getCustomerCart(customerId) {
+    if (!customerId) {
+      console.warn('Cannot get cart: No customer ID');
+      return [];
+    }
     const response = await fetch(`${API_BASE_URL}/customers/${customerId}/cart`);
     return response.json();
   },

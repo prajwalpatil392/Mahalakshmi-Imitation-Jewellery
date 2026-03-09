@@ -9,4 +9,15 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+// Helper function to convert MySQL-style queries to PostgreSQL
+pool.queryCompat = async function(sql, params = []) {
+  // Convert ? placeholders to $1, $2, etc.
+  let index = 0;
+  const pgSql = sql.replace(/\?/g, () => `$${++index}`);
+  const result = await pool.query(pgSql, params);
+  
+  // Return MySQL-compatible format [rows]
+  return [result.rows];
+};
+
 module.exports = pool;

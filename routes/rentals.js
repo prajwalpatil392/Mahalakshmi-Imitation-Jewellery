@@ -20,19 +20,19 @@ router.get('/', async (req, res) => {
     
     const params = [];
     if (status) {
-      query += ' HAVING rental_status = ?';
+      query += ' AND CASE WHEN o.return_date IS NOT NULL THEN \'returned\' WHEN o.expected_return_date < NOW() THEN \'overdue\' ELSE \'active\' END = $1';
       params.push(status);
     }
     
     query += ' ORDER BY o.timestamp DESC';
     
-    const [rentals] = await db.query(query, params);
+    const [rentals] = await db.queryCompat(query, params);
     
     // Optimize: Get all items in one query
     if (rentals.length > 0) {
       const rentalIds = rentals.map(r => r.id);
-      const [allItems] = await db.query(
-        "SELECT * FROM order_items WHERE order_id IN (?) AND mode = 'rent'",
+      const [allItems] = await db.queryCompat(
+        "SELECT * FROM order_items WHERE order_id = ANY($1) AND mode = 'rent'",
         [rentalIds]
       );
       
@@ -50,52 +50,53 @@ router.get('/', async (req, res) => {
 
 // Mark rental as returned
 router.patch('/:id/return', async (req, res) => {
-  const connection = await db.getConnection();
+  const client = await db.connect();
   
   try {
-    await connection.beginTransaction();
+    await client.query('BEGIN');
     
     const { returnDate, condition, notes } = req.body;
     
     // Update order with return information
-    await connection.query(
+    await client.query(
       `UPDATE orders SET 
-        return_date = ?,
-        return_condition = ?,
-        return_notes = ?,
+        return_date = $1,
+        return_condition = $2,
+        return_notes = $3,
         status = 'Returned'
-      WHERE id = ?`,
+      WHERE id = $4`,
       [returnDate || new Date(), condition || 'Good', notes, req.params.id]
     );
     
     // Get rental items to restore inventory
-    const [items] = await connection.query(
-      "SELECT product_id, quantity FROM order_items WHERE order_id = ? AND mode = 'rent'",
+    const itemsResult = await client.query(
+      "SELECT product_id, quantity FROM order_items WHERE order_id = $1 AND mode = 'rent'",
       [req.params.id]
     );
+    const items = itemsResult.rows;
     
     // Restore inventory for each item
     for (const item of items) {
-      await connection.query(
-        'UPDATE products SET base_stock = base_stock + ? WHERE id = ?',
+      await client.query(
+        'UPDATE products SET base_stock = base_stock + $1 WHERE id = $2',
         [item.quantity, item.product_id]
       );
     }
     
-    await connection.commit();
+    await client.query('COMMIT');
     res.json({ message: 'Rental marked as returned', id: req.params.id });
   } catch (error) {
-    await connection.rollback();
+    await client.query('ROLLBACK');
     res.status(400).json({ error: error.message });
   } finally {
-    connection.release();
+    client.release();
   }
 });
 
 // Get overdue rentals
 router.get('/overdue', async (req, res) => {
   try {
-    const [rentals] = await db.query(`
+    const [rentals] = await db.queryCompat(`
       SELECT o.* FROM orders o
       WHERE o.type = 'order'
       AND o.return_date IS NULL
@@ -107,8 +108,8 @@ router.get('/overdue', async (req, res) => {
     // Optimize: Get all items in one query
     if (rentals.length > 0) {
       const rentalIds = rentals.map(r => r.id);
-      const [allItems] = await db.query(
-        "SELECT * FROM order_items WHERE order_id IN (?) AND mode = 'rent'",
+      const [allItems] = await db.queryCompat(
+        "SELECT * FROM order_items WHERE order_id = ANY($1) AND mode = 'rent'",
         [rentalIds]
       );
       

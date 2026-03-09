@@ -2,9 +2,24 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const http = require('http');
+const socketIo = require('socket.io');
 const db = require('./config/database');
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  },
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  transports: ['websocket', 'polling']
+});
+
+// Make io available to routes
+app.set('io', io);
 
 // Middleware
 app.use(cors());
@@ -50,10 +65,19 @@ app.get('/rental', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'rental.html'));
 });
 
+// WebSocket connection handling
+io.on('connection', (socket) => {
+  console.log('Client connected:', socket.id);
+  
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
+});
+
 // Test database connection
-db.connect(err => {
+db.query('SELECT NOW()', (err, result) => {
   if (err) {
-    console.error('⚠️ Database connection failed:', err.stack);
+    console.error('⚠️ Database connection failed:', err.message);
   } else {
     console.log('✅ Database Connected');
   }
@@ -61,6 +85,6 @@ db.connect(err => {
 
 // Start Server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });

@@ -4,9 +4,10 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Mahalakshmi Rentals & Sellers – Bridal Jewellery</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=block" rel="stylesheet"/>
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="config.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script src="cart-manager.js"></script>
 <style>
 :root{--gold:#C9963A;--gold-light:#F0C96B;--gold-dark:#8B6220;--maroon:#6B1A1A;--maroon-deep:#3D0A0A;--cream:#FAF4E8;--cream-dark:#F0E6CC;--text-dark:#1A0A00;--text-mid:#4A2C0A;--green:#1a5c1a;}
@@ -27,6 +28,75 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 .nav-cta{background:var(--gold)!important;color:var(--maroon-deep)!important;padding:8px 20px!important;font-weight:500;}
 .nav-cta:hover{background:var(--gold-light)!important;}
 .nav-cta::after{display:none!important;}
+
+/* HAMBURGER MENU */
+.hamburger{display:none;flex-direction:column;gap:5px;background:transparent;border:none;cursor:pointer;padding:8px;z-index:101;}
+.hamburger span{width:25px;height:2px;background:var(--gold-light);transition:all .3s;}
+.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(7px, 7px);}
+.hamburger.active span:nth-child(2){opacity:0;}
+.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(7px, -7px);}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+  nav{padding:0 20px;height:56px;}
+  .nav-logo{font-size:1.1rem;}
+  .hamburger{display:flex;}
+  
+  .nav-links{
+    position:fixed;
+    top:56px;
+    left:0;
+    right:0;
+    background:var(--maroon-deep);
+    flex-direction:column;
+    gap:0;
+    padding:0;
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .3s ease;
+    border-bottom:1px solid rgba(201,150,58,0.3);
+  }
+  
+  .nav-links.active{
+    max-height:400px;
+  }
+  
+  .nav-links li{
+    width:100%;
+    border-bottom:1px solid rgba(201,150,58,0.1);
+  }
+  
+  .nav-links a{
+    display:block;
+    padding:16px 20px;
+    font-size:.9rem;
+  }
+  
+  .nav-links a::after{display:none;}
+  
+  nav > div:last-child{
+    display:none !important;
+  }
+  
+  nav.mobile-nav-open > div:last-child{
+    display:flex !important;
+    position:fixed;
+    top:calc(56px + 4 * 53px);
+    left:0;
+    right:0;
+    background:var(--maroon-deep);
+    padding:12px 20px;
+    flex-direction:column;
+    gap:8px;
+    border-bottom:1px solid rgba(201,150,58,0.3);
+    z-index:99;
+  }
+  
+  nav.mobile-nav-open > div:last-child .cart-btn{
+    width:100%;
+    justify-content:center;
+  }
+}
 
 /* CART ICON */
 .cart-btn{position:relative;background:transparent;border:1px solid rgba(201,150,58,0.4);color:var(--gold-light);padding:8px 16px;cursor:pointer;font-family:'Alegreya Sans',sans-serif;font-size:.85rem;letter-spacing:.08em;display:flex;align-items:center;gap:8px;transition:border-color .2s,background .2s;}
@@ -417,13 +487,21 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 <body>
 
 <!-- NAV -->
-<nav>
+<nav id="mainNav">
   <a href="mahalakshmi-client.html" class="nav-logo">🪷 Mahalakshmi</a>
-  <ul class="nav-links">
-    <li><a href="mahalakshmi-client.html">Home</a></li>
-    <li><a href="buy.html">💍 Buy Jewellery</a></li>
-    <li><a href="rental.html">📅 Rent Jewellery</a></li>
-    <li><a href="#contact">Contact</a></li>
+  
+  <!-- Hamburger Menu -->
+  <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  
+  <ul class="nav-links" id="navLinks">
+    <li><a href="mahalakshmi-client.html" onclick="closeMobileMenu()">Home</a></li>
+    <li><a href="buy.html" onclick="closeMobileMenu()">💍 Buy Jewellery</a></li>
+    <li><a href="rental.html" onclick="closeMobileMenu()">📅 Rent Jewellery</a></li>
+    <li><a href="#contact" onclick="closeMobileMenu()">Contact</a></li>
   </ul>
   <div style="display:flex;gap:12px;align-items:center;">
     <button class="cart-btn" id="loginBtn" onclick="openLoginModal()" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
@@ -640,8 +718,8 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
       <h3 style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);font-size:1.3rem;margin-bottom:16px;">Your Details</h3>
       <div style="display:flex;flex-direction:column;gap:14px;">
         <div class="form-row">
-          <div class="form-group"><label>Full Name *</label><input type="text" id="co-name" placeholder="Your full name"/></div>
-          <div class="form-group"><label>Phone Number *</label><input type="tel" id="co-phone" placeholder="+91 XXXXXXXXXX"/></div>
+          <div class="form-group"><label>Full Name *</label><input type="text" id="co-name" placeholder="Your full name" required/></div>
+          <div class="form-group"><label>Phone Number *</label><input type="tel" id="co-phone" placeholder="+91 XXXXXXXXXX" required/></div>
         </div>
         <div class="form-group"><label>Email Address</label><input type="email" id="co-email" placeholder="your@email.com"/></div>
         <div class="form-group"><label>Delivery Address</label><textarea id="co-address" placeholder="Enter your full address for delivery (or write 'Store Pickup')" style="min-height:80px;background:rgba(255,255,255,0.05);border:1px solid rgba(201,150,58,0.2);color:#fff;padding:12px;font-family:'Alegreya Sans',sans-serif;font-size:.9rem;outline:none;width:100%;resize:vertical;"></textarea></div>
@@ -777,6 +855,36 @@ const fallbackProducts = [
 let cart = CartManager.getCart(); // Load from localStorage
 let currentFilter = 'all';
 let rentalProductId = null;
+
+// ── HELPER FUNCTIONS ─────────────────────────────────────────────────────
+// Format price - remove .00 if whole number
+function formatPrice(price) {
+  const num = parseFloat(price);
+  if (isNaN(num)) return '0';
+  // If it's a whole number, don't show decimals
+  return num % 1 === 0 ? num.toLocaleString() : num.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+// Mobile menu toggle
+function toggleMobileMenu() {
+  const nav = document.getElementById('mainNav');
+  const navLinks = document.getElementById('navLinks');
+  const hamburger = document.getElementById('hamburger');
+  
+  navLinks.classList.toggle('active');
+  hamburger.classList.toggle('active');
+  nav.classList.toggle('mobile-nav-open');
+}
+
+function closeMobileMenu() {
+  const nav = document.getElementById('mainNav');
+  const navLinks = document.getElementById('navLinks');
+  const hamburger = document.getElementById('hamburger');
+  
+  navLinks.classList.remove('active');
+  hamburger.classList.remove('active');
+  nav.classList.remove('mobile-nav-open');
+}
 let currentStep = 1;
 
 // Load products from API
@@ -863,7 +971,7 @@ function renderProducts(filter='all'){
     }
     return `
     <div class="product-card">
-      <div class="product-img" style="${p.image_url ? `background-image:url('http://localhost:5000${p.image_url}');background-size:cover;background-position:center;` : ''}">
+      <div class="product-img" style="${p.image_url ? `background-image:url('${p.image_url.startsWith('http') ? p.image_url : api.baseURL + p.image_url}');background-size:cover;background-position:center;` : ''}">>>
         ${!p.image_url ? p.icon : ''}
         <span class="product-badge ${badgeClass}">${badgeText}</span>
         <span class="avail-tag ${availClass}">${availText}</span>
@@ -1033,7 +1141,7 @@ function renderCartItems(){
     
     buyItems.forEach(item => {
       const idx = cart.indexOf(item);
-      const itemTotal = item.price;
+      const itemTotal = parseFloat(item.price || 0);
       total += itemTotal;
       const qty = item.quantity || 1;
       
@@ -1047,7 +1155,7 @@ function renderCartItems(){
             <span style="color:var(--gold-light);font-weight:600;min-width:20px;text-align:center;">${qty}</span>
             <button onclick="updateQuantity(${idx},1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;">+</button>
           </div>
-          <div class="ci-price">₹${itemTotal.toLocaleString()} ${qty>1?`(₹${item.unitPrice} × ${qty})`:''}</div>
+          <div class="ci-price">₹${formatPrice(itemTotal)} ${qty>1?`(₹${formatPrice(item.unitPrice)} × ${qty})`:''}</div>
         </div>
         <button class="ci-remove" onclick="removeFromCart(${idx})">✕</button>
       </div>`;
@@ -1067,7 +1175,7 @@ function renderCartItems(){
     
     rentItems.forEach(item => {
       const idx = cart.indexOf(item);
-      const itemTotal = item.price;
+      const itemTotal = parseFloat(item.price || 0);
       total += itemTotal;
       const qty = item.quantity || 1;
       const datesHtml = item.rentalData ? `<div class="ci-dates">📅 ${item.rentalData.from} → ${item.rentalData.to} (${item.rentalData.days} days)</div>`:'';
@@ -1083,7 +1191,7 @@ function renderCartItems(){
             <span style="color:var(--gold-light);font-weight:600;min-width:20px;text-align:center;">${qty}</span>
             <button onclick="updateQuantity(${idx},1)" style="background:var(--maroon);color:var(--gold-light);border:none;width:24px;height:24px;cursor:pointer;font-size:1rem;">+</button>
           </div>
-          <div class="ci-price">₹${itemTotal.toLocaleString()} ${qty>1?`(₹${item.unitPrice}/day × ${qty})`:''}</div>
+          <div class="ci-price">₹${formatPrice(itemTotal)} ${qty>1?`(₹${formatPrice(item.unitPrice)}/day × ${qty})`:''}</div>
         </div>
         <button class="ci-remove" onclick="removeFromCart(${idx})">✕</button>
       </div>`;
@@ -1093,7 +1201,7 @@ function renderCartItems(){
   }
   
   el.innerHTML = html;
-  document.getElementById('cartTotal').textContent='₹'+total.toLocaleString();
+  document.getElementById('cartTotal').textContent='₹'+formatPrice(total);
 }
 
 function updateQuantity(idx, change) {
@@ -1165,7 +1273,7 @@ function calcDays(){
   const p=products.find(x=>x.id===rentalProductId);
   const unitTotal=days*p.rentPerDay;
   const total=unitTotal*qty;
-  info.innerHTML=`📅 <strong>${days} day${days>1?'s':''}</strong> rental &nbsp;|&nbsp; ₹${p.rentPerDay}/day × ${days} ${qty>1?`× ${qty} items`:''} = <strong>₹${total.toLocaleString()}</strong>`;
+  info.innerHTML=`📅 <strong>${days} day${days>1?'s':''}</strong> rental &nbsp;|&nbsp; ₹${formatPrice(p.rentPerDay)}/day × ${days} ${qty>1?`× ${qty} items`:''} = <strong>₹${formatPrice(total)}</strong>`;
 }
 
 function confirmRental(){
@@ -1193,10 +1301,17 @@ function openCheckout(){
   if(cart.length===0){ showToast('Your cart is empty!','error'); return; }
   closeCart();
   
-  // Pre-fill customer details if logged in
+  // Pre-fill customer details if logged in (like Amazon)
   if(currentUser){
-    document.getElementById('co-name').value = currentUser.name;
-    document.getElementById('co-phone').value = currentUser.phone;
+    document.getElementById('co-name').value = currentUser.name || '';
+    document.getElementById('co-phone').value = currentUser.phone || '';
+    document.getElementById('co-email').value = currentUser.email || '';
+    document.getElementById('co-address').value = currentUser.address || '';
+    
+    // Show a subtle indicator that info is pre-filled
+    if(currentUser.name && currentUser.phone){
+      showToast('✓ Your details are pre-filled', 'success');
+    }
   }
   
   currentStep=1;
@@ -1219,7 +1334,27 @@ function goStep(n){
   if(n===3){
     const name=document.getElementById('co-name').value.trim();
     const phone=document.getElementById('co-phone').value.trim();
-    if(!name||!phone){ showToast('Please enter your name and phone number','error'); return; }
+    
+    // Validate required fields
+    if(!name){
+      showToast('⚠️ Please enter your full name','error');
+      document.getElementById('co-name').focus();
+      return;
+    }
+    if(!phone){
+      showToast('⚠️ Please enter your phone number','error');
+      document.getElementById('co-phone').focus();
+      return;
+    }
+    
+    // Validate phone number format (basic check)
+    const phoneRegex = /^[+]?[\d\s-]{10,}$/;
+    if(!phoneRegex.test(phone)){
+      showToast('⚠️ Please enter a valid phone number','error');
+      document.getElementById('co-phone').focus();
+      return;
+    }
+    
     populateConfirm();
   }
   currentStep=n; updateStepUI();
@@ -1282,7 +1417,7 @@ async function placeOrder(){
     const address=document.getElementById('co-address').value;
     const event=document.getElementById('co-event').value;
     const notes=document.getElementById('co-notes').value;
-    const total=cart.reduce((s,i)=>s+i.price,0);
+    const total=cart.reduce((s,i)=>s+parseFloat(i.price || 0),0);
     
     // Get selected payment method
     const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
@@ -1295,6 +1430,13 @@ async function placeOrder(){
       customerId: currentUser ? currentUser.id : null,
       paymentMethod: paymentMethod // Add payment method
     };
+    
+    // Update current user info for next time (like Amazon saves your details)
+    if(currentUser){
+      currentUser.email = email || currentUser.email;
+      currentUser.address = address || currentUser.address;
+      CartManager.saveCustomer(currentUser);
+    }
     
     // Check if API is available
     if(typeof api === 'undefined') {
@@ -1311,17 +1453,16 @@ async function placeOrder(){
       CartManager.clearCart();
       updateCartUI();
     } else {
-      // Online mode - send to API
-      const result = await api.createOrder(orderData);
-      
-      // Handle online payment
+      // Online mode - handle based on payment method
       if (paymentMethod === 'online') {
-        await initiateOnlinePayment(result, orderData);
+        // For online payment, initiate payment FIRST, create order AFTER verification
+        await initiateOnlinePayment(orderData);
       } else if (paymentMethod === 'upi') {
-        // Open UPI payment
-        openUPIPayment(result, orderData);
+        // For UPI, show payment UI FIRST, create order AFTER user confirms payment
+        openUPIPayment(orderData);
       } else {
-        // COD or Cash at Shop - show success
+        // COD or Cash at Shop - create order immediately
+        const result = await api.createOrder(orderData);
         document.getElementById('successOrderId').textContent='Order ID: #'+result.orderId;
         showToast('✅ Order placed successfully!');
         currentStep=4; updateStepUI();
@@ -1339,15 +1480,18 @@ async function placeOrder(){
 }
 
 // Handle online payment with Razorpay
-async function initiateOnlinePayment(order, orderData) {
+async function initiateOnlinePayment(orderData) {
   try {
-    // Create Razorpay order
+    // Generate temporary order ID for payment
+    const tempOrderId = 'MLR-' + Date.now().toString().slice(-6);
+    
+    // Create Razorpay order (no database order yet)
     const response = await fetch(`${api.baseURL}/payments/create-order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        amount: order.total,
-        orderId: order.orderId,
+        amount: orderData.total,
+        orderId: tempOrderId,
         customerInfo: {
           name: orderData.customer.name,
           phone: orderData.customer.phone
@@ -1367,10 +1511,11 @@ async function initiateOnlinePayment(order, orderData) {
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       name: 'Mahalakshmi Jewellery',
-      description: `Order ${order.orderId}`,
+      description: `Order ${tempOrderId}`,
       order_id: razorpayOrder.orderId,
       handler: async function(response) {
-        await verifyPayment(response, order.orderId);
+        // Payment successful - NOW create the order
+        await verifyPaymentAndCreateOrder(response, orderData);
       },
       prefill: {
         name: orderData.customer.name,
@@ -1399,24 +1544,31 @@ async function initiateOnlinePayment(order, orderData) {
   }
 }
 
-// Verify payment after Razorpay success
-async function verifyPayment(razorpayResponse, orderId) {
+// Verify payment and create order after successful payment
+async function verifyPaymentAndCreateOrder(razorpayResponse, orderData) {
   try {
-    const response = await fetch(`${api.baseURL}/payments/verify`, {
+    // First verify the payment signature
+    const verifyResponse = await fetch(`${api.baseURL}/payments/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         razorpay_order_id: razorpayResponse.razorpay_order_id,
         razorpay_payment_id: razorpayResponse.razorpay_payment_id,
-        razorpay_signature: razorpayResponse.razorpay_signature,
-        order_id: orderId
+        razorpay_signature: razorpayResponse.razorpay_signature
       })
     });
     
-    const result = await response.json();
+    const verifyResult = await verifyResponse.json();
     
-    if (result.success) {
-      document.getElementById('successOrderId').textContent='Order ID: #'+orderId;
+    if (verifyResult.success) {
+      // Payment verified - NOW create the order in database
+      const result = await api.createOrder({
+        ...orderData,
+        paymentId: razorpayResponse.razorpay_payment_id,
+        paymentStatus: 'paid'
+      });
+      
+      document.getElementById('successOrderId').textContent='Order ID: #'+result.orderId;
       showToast('✅ Payment successful! Order confirmed.');
       currentStep=4; updateStepUI();
       cart = [];
@@ -1425,11 +1577,12 @@ async function verifyPayment(razorpayResponse, orderId) {
       await loadProducts();
     } else {
       showToast('Payment verification failed', 'error');
+      document.getElementById('placeOrderBtn').textContent='✦ Place Order';
+      document.getElementById('placeOrderBtn').disabled=false;
     }
   } catch (error) {
     console.error('Payment verification error:', error);
-    showToast('Payment verification failed', 'error');
-  } finally {
+    showToast('Payment verification failed: ' + error.message, 'error');
     document.getElementById('placeOrderBtn').textContent='✦ Place Order';
     document.getElementById('placeOrderBtn').disabled=false;
   }
@@ -1676,7 +1829,7 @@ async function loadMyOrders(){
             ${(order.items || []).map(item => `
               <div style="display:flex;justify-content:space-between;padding:8px 0;color:rgba(240,201,107,0.8);font-size:.9rem;">
                 <span>${item.icon || item.product_icon} ${item.name || item.product_name} ${item.quantity > 1 ? `(×${item.quantity})` : ''}</span>
-                <span style="color:var(--gold-light);">₹${(item.price || 0).toLocaleString()}</span>
+                <span style="color:var(--gold-light);">₹${formatPrice(item.price || 0)}</span>
               </div>
             `).join('')}
           </div>
@@ -1689,7 +1842,7 @@ async function loadMyOrders(){
             <div style="text-align:right;">
               <div style="color:rgba(240,201,107,0.6);font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;">Total</div>
               <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold-light);font-weight:700;">
-                ₹${(order.total || 0).toLocaleString()}
+                ₹${formatPrice(order.total || 0)}
               </div>
             </div>
           </div>
@@ -1710,11 +1863,12 @@ async function loadMyOrders(){
 }
 
 // Open UPI payment (Google Pay, PhonePe, etc.)
-function openUPIPayment(order, orderData) {
+function openUPIPayment(orderData) {
   const upiId = UPI_ID; // From config.js
   const name = UPI_NAME;
-  const amount = order.total;
-  const note = `Order ${order.orderId}`;
+  const amount = orderData.total;
+  const tempOrderId = 'MLR-' + Date.now().toString().slice(-6);
+  const note = `Order ${tempOrderId}`;
   
   // Create UPI payment URL
   const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
@@ -1734,7 +1888,7 @@ function openUPIPayment(order, orderData) {
       <button id="upiLaunchBtn" style="width:100%;padding:15px;background:var(--gold);color:var(--maroon-deep);border:none;border-radius:5px;font-weight:bold;font-size:1rem;cursor:pointer;margin-bottom:10px;">
         Open UPI App
       </button>
-      <button onclick="confirmUPIPayment('${order.orderId}')" style="width:100%;padding:12px;background:var(--green);color:white;border:none;border-radius:5px;font-weight:bold;cursor:pointer;margin-bottom:10px;">
+      <button id="confirmPaymentBtn" style="width:100%;padding:12px;background:var(--green);color:white;border:none;border-radius:5px;font-weight:bold;cursor:pointer;margin-bottom:10px;">
         ✓ I've Paid
       </button>
       <button onclick="document.getElementById('upiModal')?.remove()" style="width:100%;padding:10px;background:transparent;color:rgba(240,201,107,0.5);border:1px solid rgba(201,150,58,0.3);border-radius:5px;cursor:pointer;">
@@ -1771,9 +1925,41 @@ function openUPIPayment(order, orderData) {
       }
     }, 1500);
   });
+  
+  // Handle payment confirmation - CREATE ORDER ONLY AFTER CONFIRMATION
+  document.getElementById('confirmPaymentBtn').addEventListener('click', async () => {
+    const confirmBtn = document.getElementById('confirmPaymentBtn');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Creating order...';
+    }
+    
+    try {
+      // NOW create the order after user confirms payment
+      const result = await api.createOrder(orderData);
+      
+      const modal = document.getElementById('upiModal');
+      if (modal) modal.remove();
+      
+      document.getElementById('successOrderId').textContent='Order ID: #'+result.orderId;
+      showToast('✅ Order placed! Payment will be verified by admin.');
+      currentStep=4; updateStepUI();
+      cart = [];
+      CartManager.clearCart();
+      updateCartUI();
+      await loadProducts();
+    } catch (error) {
+      console.error('Error creating order:', error);
+      showToast('Failed to create order. Please try again.', 'error');
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = '✓ I\'ve Paid';
+      }
+    }
+  });
 }
 
-// Confirm UPI payment
+// Confirm UPI payment (legacy function - kept for compatibility)
 function confirmUPIPayment(orderId) {
   const modal = document.getElementById('upiModal');
   if (modal) modal.remove();
@@ -1829,6 +2015,36 @@ if(window.location.hash === '#checkout'){
     history.replaceState(null, '', window.location.pathname);
   }
 }
+
+// ── REAL-TIME UPDATES WITH SOCKET.IO ──────────────────────────────────────
+const socket = io({
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  reconnectionAttempts: 5,
+  transports: ['websocket', 'polling']
+});
+
+socket.on('connect', () => {
+  console.log('✅ Real-time updates connected');
+});
+
+socket.on('productAdded', async () => {
+  await loadProducts();
+  showToast('✨ New products available!');
+});
+
+socket.on('productUpdated', async () => {
+  await loadProducts();
+});
+
+socket.on('productDeleted', async () => {
+  await loadProducts();
+});
+
+socket.on('disconnect', () => {
+  console.log('⚠️ Real-time updates disconnected');
+});
 </script>
 
 <!-- Footer with Admin Link -->

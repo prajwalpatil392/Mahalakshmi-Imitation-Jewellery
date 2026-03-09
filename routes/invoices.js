@@ -7,7 +7,7 @@ const path = require('path');
 // Get invoice for an order
 router.get('/:orderId', async (req, res) => {
   try {
-    const [invoices] = await db.query('SELECT * FROM invoices WHERE order_id = ?', [req.params.orderId]);
+    const [invoices] = await db.queryCompat('SELECT * FROM invoices WHERE order_id = $1', [req.params.orderId]);
     if (invoices.length === 0) {
       return res.status(404).json({ error: 'Invoice not found' });
     }
@@ -23,7 +23,7 @@ router.post('/', async (req, res) => {
   try {
     const { order_id } = req.body;
     
-    const [orders] = await db.query('SELECT * FROM orders WHERE id = ?', [order_id]);
+    const [orders] = await db.queryCompat('SELECT * FROM orders WHERE id = $1', [order_id]);
     if (orders.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
@@ -31,13 +31,13 @@ router.post('/', async (req, res) => {
     const order = orders[0];
     const invoiceNumber = 'INV-' + Date.now().toString().slice(-6);
     
-    const [result] = await db.query(
-      'INSERT INTO invoices (order_id, invoice_number, total_amount, status) VALUES (?, ?, ?, ?)',
+    const result = await db.queryCompat(
+      'INSERT INTO invoices (order_id, invoice_number, total_amount, status) VALUES ($1, $2, $3, $4) RETURNING id',
       [order_id, invoiceNumber, order.total, 'issued']
     );
     
     res.status(201).json({ 
-      invoiceId: result.insertId,
+      invoiceId: (result.rows || result)[0].id,
       invoice_number: invoiceNumber,
       order_id,
       total_amount: order.total
@@ -50,19 +50,19 @@ router.post('/', async (req, res) => {
 // Generate invoice PDF for an order
 router.post('/:orderId', async (req, res) => {
   try {
-    const [orders] = await db.query('SELECT * FROM orders WHERE id = ?', [req.params.orderId]);
+    const [orders] = await db.queryCompat('SELECT * FROM orders WHERE id = $1', [req.params.orderId]);
     if (orders.length === 0) {
       return res.status(404).json({ error: 'Order not found' });
     }
     
     const order = orders[0];
-    const [items] = await db.query('SELECT * FROM order_items WHERE order_id = ?', [order.id]);
+    const [items] = await db.queryCompat('SELECT * FROM order_items WHERE order_id = $1', [order.id]);
     order.items = items;
     
     const filepath = await generateInvoice(order);
     
     // Update order with invoice path
-    await db.query('UPDATE orders SET invoice_path = ? WHERE id = ?', [filepath, order.id]);
+    await db.queryCompat('UPDATE orders SET invoice_path = $1 WHERE id = $2', [filepath, order.id]);
     
     res.json({ message: 'Invoice generated', filepath });
   } catch (error) {
@@ -73,7 +73,7 @@ router.post('/:orderId', async (req, res) => {
 // Download invoice
 router.get('/:orderId/download', async (req, res) => {
   try {
-    const [orders] = await db.query('SELECT invoice_path FROM orders WHERE id = ?', [req.params.orderId]);
+    const [orders] = await db.queryCompat('SELECT invoice_path FROM orders WHERE id = $1', [req.params.orderId]);
     if (orders.length === 0 || !orders[0].invoice_path) {
       return res.status(404).json({ error: 'Invoice not found' });
     }

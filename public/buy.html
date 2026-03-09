@@ -27,6 +27,75 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 .cart-badge{position:absolute;top:-8px;right:-8px;background:var(--gold);color:var(--maroon-deep);border-radius:50%;width:20px;height:20px;font-size:.7rem;font-weight:700;display:none;}
 .cart-badge.visible{display:flex;align-items:center;justify-content:center;}
 
+/* HAMBURGER MENU */
+.hamburger{display:none;flex-direction:column;gap:5px;background:transparent;border:none;cursor:pointer;padding:8px;z-index:101;}
+.hamburger span{width:25px;height:2px;background:var(--gold-light);transition:all .3s;}
+.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(7px, 7px);}
+.hamburger.active span:nth-child(2){opacity:0;}
+.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(7px, -7px);}
+
+/* MOBILE RESPONSIVE */
+@media (max-width: 768px) {
+  nav{padding:0 20px;height:56px;}
+  .nav-logo{font-size:1.1rem;}
+  .hamburger{display:flex;}
+  
+  .nav-links{
+    position:fixed;
+    top:56px;
+    left:0;
+    right:0;
+    background:var(--maroon-deep);
+    flex-direction:column;
+    gap:0;
+    padding:0;
+    max-height:0;
+    overflow:hidden;
+    transition:max-height .3s ease;
+    border-bottom:1px solid rgba(201,150,58,0.3);
+  }
+  
+  .nav-links.active{
+    max-height:400px;
+  }
+  
+  .nav-links li{
+    width:100%;
+    border-bottom:1px solid rgba(201,150,58,0.1);
+  }
+  
+  .nav-links a{
+    display:block;
+    padding:16px 20px;
+    font-size:.9rem;
+  }
+  
+  .nav-links a::after{display:none;}
+  
+  nav > div:last-child{
+    display:none !important;
+  }
+  
+  nav.mobile-nav-open > div:last-child{
+    display:flex !important;
+    position:fixed;
+    top:calc(56px + 4 * 49px);
+    left:0;
+    right:0;
+    background:var(--maroon-deep);
+    padding:12px 20px;
+    flex-direction:column;
+    gap:8px;
+    border-bottom:1px solid rgba(201,150,58,0.3);
+    z-index:99;
+  }
+  
+  nav.mobile-nav-open > div:last-child .cart-btn{
+    width:100%;
+    justify-content:center;
+  }
+}
+
 /* HERO */
 .hero{min-height:60vh;background:var(--maroon-deep);display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;padding:100px 20px 60px;}
 .hero-bg-pattern{position:absolute;inset:0;background-image:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(107,26,26,0.8) 0%,transparent 70%),repeating-linear-gradient(45deg,rgba(201,150,58,0.04) 0px,rgba(201,150,58,0.04) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(-45deg,rgba(201,150,58,0.04) 0px,rgba(201,150,58,0.04) 1px,transparent 1px,transparent 40px);pointer-events:none;}
@@ -90,13 +159,21 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 </head>
 <body>
 
-<nav>
+<nav id="mainNav">
   <a href="mahalakshmi-client.html" class="nav-logo">🪷 Mahalakshmi</a>
-  <ul class="nav-links">
-    <li><a href="mahalakshmi-client.html">Home</a></li>
-    <li><a href="buy.html">💍 Buy Jewellery</a></li>
-    <li><a href="rental.html">📅 Rent Jewellery</a></li>
-    <li><a href="mahalakshmi-client.html#contact">Contact</a></li>
+  
+  <!-- Hamburger Menu -->
+  <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  
+  <ul class="nav-links" id="navLinks">
+    <li><a href="mahalakshmi-client.html" onclick="closeMobileMenu()">Home</a></li>
+    <li><a href="buy.html" onclick="closeMobileMenu()">Buy Jewellery</a></li>
+    <li><a href="rental.html" onclick="closeMobileMenu()">Rent Jewellery</a></li>
+    <li><a href="mahalakshmi-client.html#contact" onclick="closeMobileMenu()">Contact</a></li>
   </ul>
   <div style="display:flex;gap:12px;align-items:center;">
     <button class="cart-btn" id="loginBtn" onclick="window.location.href='mahalakshmi-client.html'" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">

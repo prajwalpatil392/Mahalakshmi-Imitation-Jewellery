@@ -333,3 +333,24 @@ function goToCheckout() {
 
 loadProducts();
 updateCartBadge();
+
+// Mobile menu toggle functions
+function toggleMobileMenu() {
+  const nav = document.getElementById('mainNav');
+  const navLinks = document.getElementById('navLinks');
+  const hamburger = document.getElementById('hamburger');
+  
+  navLinks.classList.toggle('active');
+  hamburger.classList.toggle('active');
+  nav.classList.toggle('mobile-nav-open');
+}
+
+function closeMobileMenu() {
+  const nav = document.getElementById('mainNav');
+  const navLinks = document.getElementById('navLinks');
+  const hamburger = document.getElementById('hamburger');
+  
+  navLinks.classList.remove('active');
+  hamburger.classList.remove('active');
+  nav.classList.remove('mobile-nav-open');
+}

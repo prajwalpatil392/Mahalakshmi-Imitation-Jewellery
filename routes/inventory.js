@@ -6,9 +6,13 @@ const db = require('../config/database');
 router.patch('/:id/stock', async (req, res) => {
   try {
     const { baseStock } = req.body;
-    await db.query('UPDATE products SET base_stock = ? WHERE id = ?', [Math.max(0, baseStock), req.params.id]);
+    const result = await db.queryCompat(
+      'UPDATE products SET base_stock = $1 WHERE id = $2 RETURNING *',
+      [Math.max(0, baseStock), req.params.id]
+    );
     res.json({ id: req.params.id, baseStock: Math.max(0, baseStock) });
   } catch (error) {
+    console.error('Stock update error:', error);
     res.status(400).json({ error: error.message });
   }
 });
@@ -17,9 +21,13 @@ router.patch('/:id/stock', async (req, res) => {
 router.patch('/:id/availability', async (req, res) => {
   try {
     const { available } = req.body;
-    await db.query('UPDATE products SET available = ? WHERE id = ?', [available, req.params.id]);
+    const result = await db.queryCompat(
+      'UPDATE products SET available = $1 WHERE id = $2 RETURNING *',
+      [available, req.params.id]
+    );
     res.json({ id: req.params.id, available });
   } catch (error) {
+    console.error('Availability update error:', error);
     res.status(400).json({ error: error.message });
   }
 });

@@ -6,8 +6,7 @@ const { sendLowStockAlert } = require('../services/emailService');
 // Get all products with availability
 router.get('/', async (req, res) => {
   try {
-    const productsResult = await db.query('SELECT * FROM products');
-    const products = productsResult.rows || productsResult;
+    const [products] = await db.queryCompat('SELECT * FROM products');
     
     if (products.length === 0) {
       return res.json([]);
@@ -15,7 +14,7 @@ router.get('/', async (req, res) => {
     
     // Optimize: Get all consumed stock in one query
     const productIds = products.map(p => p.id);
-    const consumedResult = await db.query(
+    const [consumedData] = await db.queryCompat(
       `SELECT oi.product_id, COALESCE(SUM(oi.quantity), 0) as count 
        FROM order_items oi
        JOIN orders o ON oi.order_id = o.id
@@ -23,7 +22,6 @@ router.get('/', async (req, res) => {
        GROUP BY oi.product_id`,
       [productIds]
     );
-    const consumedData = consumedResult.rows || consumedResult;
     
     // Create a map for quick lookup
     const consumedMap = {};
@@ -55,6 +53,7 @@ router.get('/', async (req, res) => {
     
     res.json(productsWithAvailability);
   } catch (error) {
+    console.error('Get products error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -62,8 +61,7 @@ router.get('/', async (req, res) => {
 // Get single product
 router.get('/:id', async (req, res) => {
   try {
-    const result = await db.query('SELECT * FROM products WHERE id = $1', [req.params.id]);
-    const products = result.rows || result;
+    const [products] = await db.queryCompat('SELECT * FROM products WHERE id = $1', [req.params.id]);
     
     if (products.length === 0) return res.status(404).json({ error: 'Product not found' });
     
@@ -87,6 +85,7 @@ router.get('/:id', async (req, res) => {
       image_url: product.image_url
     });
   } catch (error) {
+    console.error('Get product error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -95,14 +94,22 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, material, icon, rentPerDay, buy, type, category, baseStock, imageUrl } = req.body;
-    const result = await db.query(
+    const result = await db.queryCompat(
       `INSERT INTO products (name, material, icon, rent_per_day, buy_price, type, category, base_stock, image_url) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
       [name, material, icon || '💎', rentPerDay, buy, type, category, baseStock || 5, imageUrl || null]
     );
     const insertedId = (result.rows || result)[0].id;
+    
+    // Emit real-time update
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('productAdded', { id: insertedId, ...req.body });
+    }
+    
     res.status(201).json({ id: insertedId, ...req.body });
   } catch (error) {
+    console.error('Create product error:', error);
     res.status(400).json({ error: error.message });
   }
 });
@@ -111,10 +118,16 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { name, material, icon, rentPerDay, buy, type, category, baseStock, available } = req.body;
-    await db.query(
+    await db.queryCompat(
       `UPDATE products SET name=$1, material=$2, icon=$3, rent_per_day=$4, buy_price=$5, type=$6, category=$7, base_stock=$8, available=$9 WHERE id=$10`,
       [name, material, icon, rentPerDay, buy, type, category, baseStock, available, req.params.id]
     );
+    
+    // Emit real-time update
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('productUpdated', { id: req.params.id, ...req.body });
+    }
     
     // Check for low stock and send alert
     const consumed = await getConsumedStock(req.params.id);
@@ -127,6 +140,7 @@ router.put('/:id', async (req, res) => {
     
     res.json({ id: req.params.id, ...req.body });
   } catch (error) {
+    console.error('Update product error:', error);
     res.status(400).json({ error: error.message });
   }
 });
@@ -137,7 +151,7 @@ router.delete('/:id', async (req, res) => {
     const productId = req.params.id;
     
     // First check if product exists
-    const checkResult = await db.query('SELECT id, name FROM products WHERE id = $1', [productId]);
+    const checkResult = await db.queryCompat('SELECT id, name FROM products WHERE id = $1', [productId]);
     const product = checkResult.rows?.[0] || checkResult[0];
     
     if (!product) {
@@ -145,7 +159,13 @@ router.delete('/:id', async (req, res) => {
     }
     
     // Delete the product
-    await db.query('DELETE FROM products WHERE id = $1', [productId]);
+    await db.queryCompat('DELETE FROM products WHERE id = $1', [productId]);
+    
+    // Emit real-time update
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('productDeleted', { id: productId });
+    }
     
     res.json({ 
       message: 'Product deleted successfully',
@@ -160,13 +180,12 @@ router.delete('/:id', async (req, res) => {
 
 // Helper function to calculate consumed stock
 async function getConsumedStock(productId) {
-  const result = await db.query(
+  const [items] = await db.queryCompat(
     `SELECT COALESCE(SUM(oi.quantity), 0) as count FROM order_items oi
      JOIN orders o ON oi.order_id = o.id
      WHERE oi.product_id = $1 AND o.status IN ('New', 'Confirmed')`,
     [productId]
   );
-  const items = result.rows || result;
   return items[0]?.count || 0;
 }
 

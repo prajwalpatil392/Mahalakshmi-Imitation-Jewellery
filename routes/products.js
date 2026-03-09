@@ -6,29 +6,35 @@ const { sendLowStockAlert } = require('../services/emailService');
 // Get all products with availability
 router.get('/', async (req, res) => {
   try {
-    const [products] = await db.query('SELECT * FROM products');
+    const productsResult = await db.query('SELECT * FROM products');
+    const products = productsResult.rows || productsResult;
+    
+    if (products.length === 0) {
+      return res.json([]);
+    }
     
     // Optimize: Get all consumed stock in one query
     const productIds = products.map(p => p.id);
-    const [consumedData] = await db.query(
+    const consumedResult = await db.query(
       `SELECT oi.product_id, COALESCE(SUM(oi.quantity), 0) as count 
        FROM order_items oi
        JOIN orders o ON oi.order_id = o.id
-       WHERE oi.product_id IN (?) AND o.status IN ('New', 'Confirmed')
+       WHERE oi.product_id = ANY($1) AND o.status IN ('New', 'Confirmed')
        GROUP BY oi.product_id`,
       [productIds]
     );
+    const consumedData = consumedResult.rows || consumedResult;
     
     // Create a map for quick lookup
     const consumedMap = {};
     consumedData.forEach(item => {
-      consumedMap[item.product_id] = item.count;
+      consumedMap[item.product_id] = parseInt(item.count) || 0;
     });
     
     // Calculate available quantity for each product
     const productsWithAvailability = products.map(product => {
       const consumed = consumedMap[product.id] || 0;
-      const available = Math.max(0, product.base_stock - consumed);
+      const available = Math.max(0, (product.base_stock || 0) - consumed);
       
       return {
         id: product.id,

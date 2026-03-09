@@ -10,28 +10,32 @@ router.get('/', async (req, res) => {
     const { status, limit } = req.query;
     let query = "SELECT * FROM orders WHERE type = 'order'";
     const params = [];
+    let paramIndex = 1;
     
     if (status) {
-      query += ' AND status = ?';
+      query += ` AND status = $${paramIndex}`;
       params.push(status);
+      paramIndex++;
     }
     
     query += ' ORDER BY timestamp DESC';
     
     if (limit) {
-      query += ' LIMIT ?';
+      query += ` LIMIT $${paramIndex}`;
       params.push(parseInt(limit));
     }
     
-    const [orders] = await db.query(query, params);
+    const result = await db.query(query, params);
+    const orders = result.rows || result;
     
     // Optimize: Get all items in one query instead of N queries
     if (orders.length > 0) {
       const orderIds = orders.map(o => o.id);
-      const [allItems] = await db.query(
-        'SELECT * FROM order_items WHERE order_id IN (?)',
+      const itemsResult = await db.query(
+        'SELECT * FROM order_items WHERE order_id = ANY($1)',
         [orderIds]
       );
+      const allItems = itemsResult.rows || itemsResult;
       
       // Group items by order_id
       orders.forEach(order => {
@@ -41,6 +45,7 @@ router.get('/', async (req, res) => {
     
     res.json(orders);
   } catch (error) {
+    console.error('Error fetching orders:', error);
     res.status(500).json({ error: error.message });
   }
 });

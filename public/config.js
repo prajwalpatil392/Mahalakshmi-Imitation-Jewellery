@@ -17,18 +17,29 @@ const api = {
   baseURL: API_BASE_URL.replace('/api', ''),
   // Products
   async getProducts() {
-    const response = await fetch(`${API_BASE_URL}/products`);
-    const data = await response.json();
-
-    // Throw on HTTP errors so callers can handle gracefully
-    if (!response.ok) {
-      const message = (data && data.error) 
-        ? data.error 
-        : `Failed to fetch products (status ${response.status})`;
-      throw new Error(message);
+    try {
+      const response = await fetch(`${API_BASE_URL}/products`);
+      
+      if (!response.ok) {
+        console.error(`Products API error: ${response.status}`);
+        return []; // Return empty array on error
+      }
+      
+      const data = await response.json();
+      
+      // Ensure we always return an array
+      if (Array.isArray(data)) {
+        return data;
+      } else if (data && Array.isArray(data.products)) {
+        return data.products;
+      } else {
+        console.warn('Unexpected products response format:', data);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching products:', error);
+      return []; // Return empty array on error
     }
-
-    return data;
   },
   
   async getProduct(id) {
@@ -63,17 +74,31 @@ const api = {
   },
   
   async getOrders(status = null) {
-    let url = `${API_BASE_URL}/orders`;
-    if (status) url += `?status=${status}`;
-    const response = await fetch(url);
-    const data = await response.json();
-    if (!response.ok) {
-      const message = (data && data.error)
-        ? data.error
-        : `Failed to fetch orders (status ${response.status})`;
-      throw new Error(message);
+    try {
+      let url = `${API_BASE_URL}/orders`;
+      if (status) url += `?status=${status}`;
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        console.error(`Orders API error: ${response.status}`);
+        return []; // Return empty array on error
+      }
+      
+      const data = await response.json();
+      
+      // Ensure we always return an array
+      if (Array.isArray(data)) {
+        return data;
+      } else if (data && Array.isArray(data.orders)) {
+        return data.orders;
+      } else {
+        console.warn('Unexpected orders response format:', data);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      return []; // Return empty array on error
     }
-    return data;
   },
   
   async updateOrderStatus(id, status) {

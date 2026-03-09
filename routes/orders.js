@@ -74,6 +74,20 @@ router.post('/', async (req, res) => {
     const orderId = 'MLR-' + Date.now().toString().slice(-6);
     const { customer, items, total, status, customerId, paymentMethod } = req.body;
     
+    // Validate that all products exist in the database
+    const productIds = items.map(item => item.id);
+    const productCheckResult = await client.query(
+      'SELECT id FROM products WHERE id = ANY($1)',
+      [productIds]
+    );
+    
+    const existingProductIds = productCheckResult.rows.map(row => row.id);
+    const missingProductIds = productIds.filter(id => !existingProductIds.includes(id));
+    
+    if (missingProductIds.length > 0) {
+      throw new Error(`Products with IDs ${missingProductIds.join(', ')} do not exist. Please refresh your cart.`);
+    }
+    
     // Build product names summary
     const productNames = items.map(item => {
       const qty = item.quantity || 1;

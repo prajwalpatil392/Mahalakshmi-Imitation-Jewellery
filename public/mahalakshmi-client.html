@@ -45,7 +45,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(61,10,10,0.
   .nav-logo{font-size:1.1rem;}
   .hamburger{display:flex !important;}
   
-  .nav-links{
+  /* Hide desktop nav-links, show mobile dropdown */
+  nav > .nav-links{
+    display:flex !important;
     position:fixed !important;
     top:56px !important;
     left:0 !important;
@@ -61,7 +63,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(61,10,10,0.
     border-bottom:1px solid rgba(201,150,58,0.3);
   }
   
-  .nav-links.active{
+  nav > .nav-links.active{
     max-height:600px !important;
     box-shadow:0 8px 16px rgba(0,0,0,0.3);
   }
@@ -533,12 +535,17 @@ function toggleMobileMenu() {
   console.log('Hamburger:', hamburger);
   
   if (navLinks && hamburger && nav) {
+    const isActive = navLinks.classList.contains('active');
+    console.log('Is currently active:', isActive);
+    
     navLinks.classList.toggle('active');
     hamburger.classList.toggle('active');
     nav.classList.toggle('mobile-nav-open');
-    console.log('NavLinks classes:', navLinks.className);
+    
+    console.log('NavLinks classes after toggle:', navLinks.className);
+    console.log('Max-height:', window.getComputedStyle(navLinks).maxHeight);
   } else {
-    console.error('Elements not found!');
+    console.error('Elements not found!', {nav, navLinks, hamburger});
   }
 }
 
@@ -554,14 +561,26 @@ function closeMobileMenu() {
   }
 }
 
-// Test script - ensure functions are available immediately
-console.log('Nav script loaded');
-window.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM loaded');
+// Attach event listener as backup
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('DOM loaded - attaching hamburger listener');
   const hamburger = document.getElementById('hamburger');
   const navLinks = document.getElementById('navLinks');
-  console.log('Hamburger element:', hamburger);
-  console.log('NavLinks element:', navLinks);
+  
+  if (hamburger) {
+    console.log('Hamburger found, adding click listener');
+    hamburger.addEventListener('click', function(e) {
+      console.log('Hamburger clicked via addEventListener');
+      toggleMobileMenu();
+    });
+  } else {
+    console.error('Hamburger button not found!');
+  }
+  
+  if (navLinks) {
+    console.log('NavLinks initial classes:', navLinks.className);
+    console.log('NavLinks computed max-height:', window.getComputedStyle(navLinks).maxHeight);
+  }
 });
 </script>
 

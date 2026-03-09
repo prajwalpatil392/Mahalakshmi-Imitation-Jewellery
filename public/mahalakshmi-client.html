@@ -25,6 +25,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
 .nav-links a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--gold);transform:scaleX(0);transform-origin:center;transition:transform .25s;}
 .nav-links a:hover{color:var(--gold-light);}
 .nav-links a:hover::after{transform:scaleX(1);}
+.has-submenu{position:relative;}
+.submenu{display:none;list-style:none;padding:0;margin:0;}
+.submenu.active{display:block;}
+.dropdown-arrow{font-size:.7rem;margin-left:4px;transition:transform .3s;}
+.dropdown-arrow.rotated{transform:rotate(180deg);}
 .nav-cta{background:var(--gold)!important;color:var(--maroon-deep)!important;padding:8px 20px!important;font-weight:500;}
 .nav-cta:hover{background:var(--gold-light)!important;}
 .nav-cta::after{display:none!important;}
@@ -70,6 +75,19 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
     display:block;
     padding:16px 20px;
     font-size:.9rem;
+  }
+  
+  .submenu{
+    background:rgba(0,0,0,0.2);
+    padding-left:20px;
+  }
+  
+  .submenu li{
+    border-bottom:1px solid rgba(201,150,58,0.05);
+  }
+  
+  .submenu a{
+    padding:12px 20px;
   }
   
   .nav-links a::after{display:none;}
@@ -499,8 +517,13 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
   
   <ul class="nav-links" id="navLinks">
     <li><a href="mahalakshmi-client.html" onclick="closeMobileMenu()">Home</a></li>
-    <li><a href="buy.html" onclick="closeMobileMenu()">💍 Buy Jewellery</a></li>
-    <li><a href="rental.html" onclick="closeMobileMenu()">📅 Rent Jewellery</a></li>
+    <li class="has-submenu">
+      <a href="#" onclick="toggleSubmenu(event)">Jewellery <span class="dropdown-arrow">▼</span></a>
+      <ul class="submenu">
+        <li><a href="buy.html" onclick="closeMobileMenu()">💍 Buy Jewellery</a></li>
+        <li><a href="rental.html" onclick="closeMobileMenu()">📅 Rent Jewellery</a></li>
+      </ul>
+    </li>
     <li><a href="#contact" onclick="closeMobileMenu()">Contact</a></li>
   </ul>
   <div style="display:flex;gap:12px;align-items:center;">
@@ -885,6 +908,16 @@ function closeMobileMenu() {
   hamburger.classList.remove('active');
   nav.classList.remove('mobile-nav-open');
 }
+
+function toggleSubmenu(event) {
+  event.preventDefault();
+  const submenu = event.target.closest('.has-submenu').querySelector('.submenu');
+  const arrow = event.target.querySelector('.dropdown-arrow');
+  
+  submenu.classList.toggle('active');
+  if (arrow) arrow.classList.toggle('rotated');
+}
+
 let currentStep = 1;
 
 // Load products from API

@@ -354,3 +354,12 @@ function closeMobileMenu() {
   hamburger.classList.remove('active');
   nav.classList.remove('mobile-nav-open');
 }
+
+function toggleSubmenu(event) {
+  event.preventDefault();
+  const submenu = event.target.closest('.has-submenu').querySelector('.submenu');
+  const arrow = event.target.querySelector('.dropdown-arrow');
+  
+  submenu.classList.toggle('active');
+  if (arrow) arrow.classList.toggle('rotated');
+}

@@ -99,6 +99,115 @@ tr:last-child td{border-bottom:none;}
 .ab-confirm:hover{background:var(--green);color:#fff;}
 .ab-cancel{border-color:#ff8888;color:#ff8888;}
 .ab-cancel:hover{background:var(--red);color:#fff;}
+.ab-delete{border-color:#ff4444;color:#ff4444;}
+.ab-delete:hover{background:#ff4444;color:#fff;transform:scale(1.05);}
+.ab-edit{border-color:var(--blue-bright);color:var(--blue-bright);}
+.ab-edit:hover{background:var(--blue);color:#fff;}
+
+/* PRODUCT CARD DELETE BUTTON */
+.pac-delete-btn{
+  width:100%;
+  margin-top:10px;
+  padding:10px;
+  background:transparent;
+  border:1px solid rgba(255,68,68,0.3);
+  color:#ff4444;
+  font-family:'Alegreya Sans',sans-serif;
+  font-size:.75rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:all .3s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+.pac-delete-btn:hover{
+  background:rgba(255,68,68,0.1);
+  border-color:#ff4444;
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(255,68,68,0.2);
+}
+.pac-delete-btn:active{
+  transform:translateY(0);
+}
+
+/* INVENTORY CONTROLS - BEAUTIFIED */
+.inv-btn{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  color:var(--gold-light);
+  width:32px;
+  height:32px;
+  cursor:pointer;
+  font-size:1.1rem;
+  transition:all .2s;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.inv-btn:hover{
+  background:var(--gold);
+  color:var(--maroon-deep);
+  border-color:var(--gold);
+  transform:scale(1.1);
+}
+.inv-btn:active{
+  transform:scale(0.95);
+}
+
+.inv-qty{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  color:var(--text);
+  width:60px;
+  text-align:center;
+  padding:6px;
+  font-family:'Alegreya Sans',sans-serif;
+  font-size:.9rem;
+  outline:none;
+  transition:border-color .2s;
+}
+.inv-qty:focus{
+  border-color:var(--gold);
+  background:rgba(201,150,58,0.05);
+}
+
+/* TOGGLE AVAILABILITY - BEAUTIFIED */
+.toggle-avail{
+  padding:10px;
+  text-align:center;
+  font-size:.75rem;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  border:1px solid;
+  cursor:pointer;
+  transition:all .3s;
+  font-weight:600;
+  margin-top:10px;
+}
+.toggle-avail.avail{
+  border-color:var(--green-bright);
+  color:var(--green-bright);
+  background:rgba(26,107,26,0.05);
+}
+.toggle-avail.avail:hover{
+  background:rgba(26,107,26,0.15);
+  transform:translateY(-2px);
+  box-shadow:0 4px 12px rgba(76,175,80,0.2);
+}
+.toggle-avail.unavail{
+  border-color:#ff8888;
+  color:#ff8888;
+  background:rgba(139,26,26,0.05);
+}
+.toggle-avail.warn-btn{
+  border-color:#ffaa44;
+  color:#ffaa44;
+  background:rgba(255,170,68,0.05);
+}
+.ab-cancel:hover{background:var(--red);color:#fff;}
 .ab-returned{border-color:var(--blue-bright);color:var(--blue-bright);}
 .ab-returned:hover{background:var(--blue);color:#fff;}
 .ab-view{border-color:rgba(201,150,58,0.4);color:var(--text-dim);}
@@ -985,6 +1094,10 @@ function renderProductsPage(){
         style="${available<=2&&available>0?'border-color:#ffaa44;color:#ffaa44;':''}cursor:default;pointer-events:none;">
         ${statusLabel}
       </div>
+
+      <button class="pac-delete-btn" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
+        🗑️ Delete Product
+      </button>
     </div>`;
   }).join('');
 }
@@ -1009,6 +1122,51 @@ function setStockDirect(id,val){
   renderProductsPage();
   const p=products.find(x=>x.id===id);
   showToast(`"${p.name}" stock set to ${newVal}`);
+}
+
+// Delete product
+async function deleteProduct(id, name) {
+  // Confirm deletion
+  const confirmed = confirm(`⚠️ Are you sure you want to delete "${name}"?\n\nThis action cannot be undone!`);
+  
+  if (!confirmed) return;
+  
+  try {
+    // Check if API is available
+    if (typeof api === 'undefined') {
+      showToast('API not available - cannot delete product', 'error');
+      return;
+    }
+    
+    // Call API to delete product
+    const response = await fetch(`${api.baseURL}/api/products/${id}`, {
+      method: 'DELETE'
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to delete product');
+    }
+    
+    // Remove from local products array
+    const index = products.findIndex(p => p.id === id);
+    if (index > -1) {
+      products.splice(index, 1);
+    }
+    
+    // Re-render products page
+    renderProductsPage();
+    
+    showToast(`✅ "${name}" deleted successfully`);
+    
+    // Reload products from API to ensure sync
+    await loadProductsFromAPI();
+    renderProductsPage();
+    
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    showToast(`Failed to delete product: ${error.message}`, 'error');
+  }
 }
 
 // Keep old availability flag in sync so client side reflects out-of-stock

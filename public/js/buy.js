@@ -149,12 +149,15 @@ function decreaseQty(id, event) {
 
 function updateCartBadge() {
   const badge = document.getElementById('cartBadge');
+  const mobileBadge = document.getElementById('cartBadgeMobile');
   const total = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
   if(total > 0){
     badge.textContent = total;
     badge.classList.add('visible');
+    if(mobileBadge) mobileBadge.textContent = total;
   } else {
     badge.classList.remove('visible');
+    if(mobileBadge) mobileBadge.textContent = '0';
   }
 }
 
@@ -353,4 +356,13 @@ function closeMobileMenu() {
   navLinks.classList.remove('active');
   hamburger.classList.remove('active');
   nav.classList.remove('mobile-nav-open');
+}
+
+// Placeholder functions for login and orders (redirect to home page)
+function openLoginModal() {
+  window.location.href = 'mahalakshmi-client.html';
+}
+
+function openMyOrders() {
+  window.location.href = 'mahalakshmi-client.html#orders';
 }

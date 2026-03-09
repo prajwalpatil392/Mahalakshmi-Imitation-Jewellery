@@ -71,63 +71,28 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
   
   .nav-links a::after{display:none;}
   
-  .has-submenu > a{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
+  .mobile-only{
+    display:none;
   }
   
-  .dropdown-arrow{
+  @media (max-width: 768px) {
+    .mobile-only{
+      display:block;
+    }
+  }
+  
+  .cart-badge-inline{
+    background:var(--gold);
+    color:var(--maroon-deep);
+    padding:2px 8px;
+    border-radius:10px;
     font-size:.7rem;
-    transition:transform .3s;
-  }
-  
-  .has-submenu.open .dropdown-arrow{
-    transform:rotate(180deg);
-  }
-  
-  .submenu{
-    list-style:none;
-    max-height:0;
-    overflow:hidden;
-    transition:max-height .3s ease;
-    background:rgba(0,0,0,0.2);
-  }
-  
-  .has-submenu.open .submenu{
-    max-height:200px;
-  }
-  
-  .submenu li{
-    border-bottom:1px solid rgba(201,150,58,0.05);
-  }
-  
-  .submenu a{
-    padding:12px 20px 12px 40px;
-    font-size:.85rem;
+    font-weight:700;
+    margin-left:8px;
   }
   
   nav > div:last-child{
     display:none !important;
-  }
-  
-  nav.mobile-nav-open > div:last-child{
-    display:flex !important;
-    position:fixed;
-    top:calc(56px + 3 * 47px + 94px);
-    left:0;
-    right:0;
-    background:var(--maroon-deep);
-    padding:12px 20px;
-    flex-direction:column;
-    gap:8px;
-    border-top:1px solid rgba(201,150,58,0.3);
-    z-index:99;
-  }
-  
-  nav.mobile-nav-open > div:last-child .cart-btn{
-    width:100%;
-    justify-content:center;
   }
 }
 
@@ -209,12 +174,15 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(61,10,10,0.9
     <li><a href="buy.html" onclick="closeMobileMenu()">💍 Buy Jewellery</a></li>
     <li><a href="rental.html" onclick="closeMobileMenu()">📅 Rent Jewellery</a></li>
     <li><a href="mahalakshmi-client.html#contact" onclick="closeMobileMenu()">Contact</a></li>
+    <li class="mobile-only"><a href="javascript:void(0)" onclick="openLoginModal(); closeMobileMenu();">👤 Login</a></li>
+    <li class="mobile-only"><a href="javascript:void(0)" onclick="openMyOrders(); closeMobileMenu();">📋 My Orders</a></li>
+    <li class="mobile-only"><a href="javascript:void(0)" onclick="openCart(); closeMobileMenu();">🛒 Cart <span class="cart-badge-inline" id="cartBadgeMobile">0</span></a></li>
   </ul>
   <div style="display:flex;gap:12px;align-items:center;">
-    <button class="cart-btn" id="loginBtn" onclick="window.location.href='mahalakshmi-client.html'" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
+    <button class="cart-btn" id="loginBtn" onclick="openLoginModal()" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
       👤 Login
     </button>
-    <button class="cart-btn" onclick="window.location.href='mahalakshmi-client.html#orders'" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
+    <button class="cart-btn" onclick="openMyOrders()" style="background:transparent;border:1px solid rgba(201,150,58,0.4);">
       📋 My Orders
     </button>
     <button class="cart-btn" onclick="openCart()">

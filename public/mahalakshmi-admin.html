@@ -326,7 +326,12 @@ tr:last-child td{border-bottom:none;}
   flex-wrap:wrap;
 }
 
-/* INVENTORY TABS HAMBURGER (Mobile Only) */
+/* Desktop tabs - visible by default */
+.inv-tabs-container > .tab{
+  display:inline-flex;
+}
+
+/* INVENTORY TABS HAMBURGER (Hidden on Desktop) */
 .inv-tabs-hamburger{
   display:none;
   background:var(--panel2);
@@ -350,7 +355,7 @@ tr:last-child td{border-bottom:none;}
   font-size:1rem;
 }
 
-/* INVENTORY TABS DROPDOWN */
+/* INVENTORY TABS DROPDOWN (Hidden on Desktop) */
 .inv-tabs-dropdown{
   display:none;
   position:absolute;
@@ -441,14 +446,20 @@ tr:last-child td{border-bottom:none;}
     position:relative;
     width:100%;
   }
+  
+  /* Hide desktop tabs on mobile */
   .inv-tabs-container > .tab{
-    display:none;
+    display:none !important;
   }
+  
+  /* Show hamburger on mobile */
   .inv-tabs-hamburger{
     display:flex;
     width:100%;
     justify-content:space-between;
   }
+  
+  /* Show dropdown on mobile */
   .inv-tabs-dropdown{
     display:flex;
   }

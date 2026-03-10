@@ -3,15 +3,14 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="resource-hints" content="preconnect">
 <title>Mahalakshmi Rentals & Sellers – Bridal Jewellery</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/></noscript>
 <script src="/socket.io/socket.io.js"></script>
 <script src="js/resource-optimizer.js"></script>
+<script src="js/performance-monitor.js"></script>
+<script src="js/analytics-optimizer.js"></script>
 <style>
 :root{--gold:#C9963A;--gold-light:#F0C96B;--gold-dark:#8B6220;--maroon:#6B1A1A;--maroon-deep:#3D0A0A;--cream:#FAF4E8;--cream-dark:#F0E6CC;--text-dark:#1A0A00;--text-mid:#4A2C0A;--green:#1a5c1a;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -1097,6 +1096,18 @@ function addToCart(id, mode, rentalData=null){
     cart.push(item);
   }
   
+  // Track analytics
+  if (window.Analytics) {
+    window.Analytics.trackEcommerce('add_to_cart', {
+      productId: id,
+      productName: p.name,
+      category: p.category,
+      mode: mode,
+      price: mode==='buy' ? p.buy : (rentalData ? rentalData.total : p.rentPerDay),
+      quantity: 1
+    });
+  }
+  
   updateCartUI();
   loadProducts();
   if(mode==='buy'){
@@ -1480,6 +1491,16 @@ async function placeOrder(){
       paymentMethod: paymentMethod // Add payment method
     };
     
+    // Track analytics - order attempt
+    if (window.Analytics) {
+      window.Analytics.trackEcommerce('begin_checkout', {
+        total: total,
+        currency: 'INR',
+        itemCount: cart.length,
+        paymentMethod: paymentMethod
+      });
+    }
+    
     // Update current user info for next time (like Amazon saves your details)
     if(currentUser){
       currentUser.email = email || currentUser.email;
@@ -1497,6 +1518,12 @@ async function placeOrder(){
       localStorage.setItem('mlr_orders', JSON.stringify(orders));
       document.getElementById('successOrderId').textContent='Order ID: #'+orderId;
       showToast('⚠️ Order saved locally. Please contact admin to confirm.', 'error');
+      
+      // Track offline order
+      if (window.Analytics) {
+        window.Analytics.track('order_offline', { orderId, total });
+      }
+      
       currentStep=4; updateStepUI();
       cart = [];
       CartManager.clearCart();
@@ -1514,6 +1541,24 @@ async function placeOrder(){
         const result = await api.createOrder(orderData);
         document.getElementById('successOrderId').textContent='Order ID: #'+result.orderId;
         showToast('✅ Order placed successfully!');
+        
+        // Track successful order
+        if (window.Analytics) {
+          window.Analytics.trackEcommerce('purchase', {
+            orderId: result.orderId,
+            total: total,
+            currency: 'INR',
+            paymentMethod: paymentMethod,
+            items: cart.map(item => ({
+              productId: item.id,
+              productName: item.name,
+              category: item.category || 'Unknown',
+              quantity: item.quantity || 1,
+              price: item.unitPrice
+            }))
+          });
+        }
+        
         currentStep=4; updateStepUI();
         cart = [];
         CartManager.clearCart();
@@ -1524,6 +1569,15 @@ async function placeOrder(){
   } catch (error) {
     console.error('Error placing order:', error);
     showToast('Failed to place order. Please try again.', 'error');
+    
+    // Track order failure
+    if (window.Analytics) {
+      window.Analytics.track('order_failed', { 
+        error: error.message,
+        total: cart.reduce((s,i)=>s+parseFloat(i.price || 0),0)
+      });
+    }
+    
     btn.textContent='✦ Place Order'; btn.disabled=false;
   }
 }

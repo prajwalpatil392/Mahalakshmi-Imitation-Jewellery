@@ -71,7 +71,7 @@
     }
   }
   
-  // Remove unused preload hints
+  // Remove unused preload hints and prevent warnings
   function removeUnusedPreloads() {
     const preloadLinks = document.querySelectorAll('link[rel="preload"]');
     preloadLinks.forEach(link => {
@@ -103,15 +103,53 @@
               }
             });
           }
+        } else if (as === 'image') {
+          isUsed = document.querySelector(`img[src="${href}"]`) !== null;
         }
         
-        // Remove unused preload
+        // Remove unused preload to prevent browser warnings
         if (!isUsed && link.parentNode) {
           console.warn(`Removing unused preload: ${href}`);
           link.remove();
         }
-      }, 2000);
+      }, 1000); // Reduced timeout to catch issues faster
     });
+  }
+  
+  // Prevent preload warnings by ensuring resources are used
+  function preventPreloadWarnings() {
+    // Monitor for dynamically added preload links
+    const observer = new MutationObserver(mutations => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeType === 1 && node.tagName === 'LINK' && 
+              node.getAttribute('rel') === 'preload') {
+            
+            const href = node.getAttribute('href');
+            const as = node.getAttribute('as');
+            
+            // Set a timeout to check if the resource gets used
+            setTimeout(() => {
+              let isUsed = false;
+              
+              if (as === 'script') {
+                isUsed = document.querySelector(`script[src="${href}"]`) !== null;
+              } else if (as === 'style') {
+                isUsed = document.querySelector(`link[href="${href}"][rel="stylesheet"]`) !== null;
+              }
+              
+              // If not used, remove to prevent warning
+              if (!isUsed && node.parentNode) {
+                console.warn(`Preventing preload warning by removing: ${href}`);
+                node.remove();
+              }
+            }, 500);
+          }
+        });
+      });
+    });
+    
+    observer.observe(document.head, { childList: true, subtree: true });
   }
   
   // Initialize optimizations when DOM is ready
@@ -120,17 +158,20 @@
       optimizeFontLoading();
       optimizeSocketIO();
       removeUnusedPreloads();
+      preventPreloadWarnings();
     });
   } else {
     optimizeFontLoading();
     optimizeSocketIO();
     removeUnusedPreloads();
+    preventPreloadWarnings();
   }
   
   // Expose utility functions globally
   window.ResourceOptimizer = {
     lazyLoadScript,
     optimizeFontLoading,
-    removeUnusedPreloads
+    removeUnusedPreloads,
+    preventPreloadWarnings
   };
 })();

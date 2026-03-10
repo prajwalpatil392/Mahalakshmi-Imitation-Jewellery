@@ -261,3 +261,171 @@
   }
   
 })();
+
+// Optimized Third-Party Script Loader
+const ThirdPartyLoader = {
+  loaded: new Set(),
+  loading: new Set(),
+  
+  // Load script with proper resource hints to prevent preload warnings
+  async loadScript(src, options = {}) {
+    if (this.loaded.has(src)) return true;
+    if (this.loading.has(src)) {
+      // Wait for existing load to complete
+      return new Promise(resolve => {
+        const checkLoaded = () => {
+          if (this.loaded.has(src)) {
+            resolve(true);
+          } else {
+            setTimeout(checkLoaded, 50);
+          }
+        };
+        checkLoaded();
+      });
+    }
+    
+    this.loading.add(src);
+    
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      
+      // Add proper attributes to prevent preload warnings
+      script.setAttribute('data-loaded-by', 'analytics-optimizer');
+      
+      script.onload = () => {
+        this.loading.delete(src);
+        this.loaded.add(src);
+        console.log(`✅ Third-party script loaded: ${src}`);
+        resolve(true);
+      };
+      
+      script.onerror = () => {
+        this.loading.delete(src);
+        console.warn(`❌ Failed to load script: ${src}`);
+        reject(new Error(`Failed to load script: ${src}`));
+      };
+      
+      // Load after critical resources to prevent blocking
+      const loadScript = () => {
+        document.head.appendChild(script);
+      };
+      
+      if (document.readyState === 'complete') {
+        // Delay to prevent blocking
+        setTimeout(loadScript, options.delay || 100);
+      } else {
+        window.addEventListener('load', () => {
+          setTimeout(loadScript, options.delay || 100);
+        });
+      }
+    });
+  }
+};
+
+// Mixpanel Integration with Performance Optimization
+const MixpanelOptimizer = {
+  loaded: false,
+  queue: [],
+  loading: false,
+  
+  // Load Mixpanel asynchronously with proper resource management
+  async loadMixpanel() {
+    if (this.loaded || window.mixpanel || this.loading) return;
+    
+    this.loading = true;
+    
+    try {
+      await ThirdPartyLoader.loadScript('https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js', {
+        delay: 200 // Delay to prevent blocking critical resources
+      });
+      
+      if (window.mixpanel) {
+        // Initialize with your project token
+        mixpanel.init('YOUR_PROJECT_TOKEN', {
+          // Performance optimizations
+          batch_requests: true,
+          batch_size: 50,
+          batch_flush_interval_ms: 5000,
+          
+          // Reduce payload size
+          property_blacklist: ['$current_url', '$referrer'],
+          
+          // Use sendBeacon when available
+          api_transport: 'sendBeacon',
+          
+          // Disable automatic page view tracking (we'll handle it)
+          track_pageview: false,
+          
+          // Reduce cookie size
+          persistence: 'localStorage',
+          
+          // Optimize for performance
+          ignore_dnt: false,
+          secure_cookie: true
+        });
+        
+        this.loaded = true;
+        this.loading = false;
+        this.flushQueue();
+      }
+    } catch (error) {
+      this.loading = false;
+      console.warn('Mixpanel failed to load:', error);
+    }
+  },
+  
+  // Queue events until Mixpanel is loaded
+  track(event, properties = {}) {
+    if (this.loaded && window.mixpanel) {
+      mixpanel.track(event, {
+        ...properties,
+        timestamp: new Date().toISOString(),
+        page_url: window.location.href,
+        user_agent: navigator.userAgent.substring(0, 100)
+      });
+    } else {
+      this.queue.push({ event, properties });
+      // Auto-load if not already loading
+      if (!this.loading) {
+        this.loadMixpanel().catch(console.warn);
+      }
+    }
+  },
+  
+  // Flush queued events
+  flushQueue() {
+    while (this.queue.length > 0) {
+      const { event, properties } = this.queue.shift();
+      this.track(event, properties);
+    }
+  },
+  
+  // Identify user (lazy load Mixpanel first)
+  async identify(userId, properties = {}) {
+    if (!this.loaded) {
+      await this.loadMixpanel();
+    }
+    if (window.mixpanel) {
+      mixpanel.identify(userId);
+      mixpanel.people.set(properties);
+    }
+  }
+};
+
+// Integrate with existing analytics
+if (window.Analytics && window.Analytics.track) {
+  const originalTrackEvent = window.Analytics.track;
+  window.Analytics.track = function(eventName, properties = {}) {
+    // Call original tracking
+    originalTrackEvent.call(this, eventName, properties);
+    
+    // Also send to Mixpanel (optimized)
+    MixpanelOptimizer.track(eventName, properties);
+  };
+}
+
+// Expose optimizers
+window.MixpanelOptimizer = MixpanelOptimizer;
+window.ThirdPartyLoader = ThirdPartyLoader;

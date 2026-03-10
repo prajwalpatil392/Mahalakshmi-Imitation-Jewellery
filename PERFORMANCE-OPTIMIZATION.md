@@ -98,6 +98,13 @@ node test-orders-performance.js
 - Cache invalidation on data changes
 - Optimized JSON responses
 
+### Analytics Level:
+- **Batched Event Processing**: Groups analytics events to reduce network requests
+- **Performance Monitoring**: Tracks request times and warns about slow analytics calls
+- **Asynchronous Processing**: Analytics don't block user interactions
+- **Fallback Mechanisms**: Uses sendBeacon API when available, falls back to fetch
+- **Privacy-Conscious**: Truncates sensitive data and respects user privacy
+
 ## Monitoring Performance
 
 ### Key Metrics to Track:
@@ -105,6 +112,8 @@ node test-orders-performance.js
 2. **First Contentful Paint**: Should improve with font optimization
 3. **Largest Contentful Paint**: Should be faster with resource optimization
 4. **Console Warnings**: Should be zero preload warnings
+5. **Analytics Performance**: Batched requests should be <200ms
+6. **Third-party Requests**: External analytics should not block page load
 
 ### Tools for Monitoring:
 - Chrome DevTools Performance tab

@@ -48,6 +48,7 @@ app.use('/api/enquiries', require('./routes/enquiries'));
 app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/customers', require('./routes/customers'));
+app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/rentals', require('./routes/rentals'));
 app.use('/api/invoices', require('./routes/invoices'));

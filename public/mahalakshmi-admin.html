@@ -5,9 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Mahalakshmi – Admin Portal</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"></noscript>
 <script src="config.js"></script>
 <script src="/socket.io/socket.io.js"></script>
+<script src="js/resource-optimizer.js"></script>
 <style>
 :root{--gold:#C9963A;--gold-light:#F0C96B;--gold-dark:#8B6220;--maroon:#6B1A1A;--maroon-deep:#3D0A0A;--cream:#FAF4E8;--bg:#0F0800;--panel:#1A0D00;--panel2:#221200;--border:rgba(201,150,58,0.18);--text:#e8d5a3;--text-dim:rgba(232,213,163,0.5);--green:#1a6b1a;--green-bright:#4caf50;--red:#8B1A1A;--blue:#1a3a6b;--blue-bright:#5b9bd5;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -535,11 +539,11 @@ tr:last-child td{border-bottom:none;}
     <div class="login-logo">🪷 Mahalakshmi</div>
     <div class="login-sub">Admin Portal — Secure Login</div>
     <form id="loginForm" onsubmit="doLogin(); return false;">
-      <input type="text" id="loginUser" placeholder="Username" value="admin" autocomplete="username"/>
+      <input type="text" id="loginUser" placeholder="Username" value="" autocomplete="username"/>
       <input type="password" id="loginPass" placeholder="Password" value="" autocomplete="current-password"/>
       <button type="submit" class="login-btn">Sign In →</button>
     </form>
-    <p class="login-hint">Demo: username = admin &nbsp;|&nbsp; password = mlr2025</p>
+    <p class="login-hint">Enter your admin credentials to access the portal</p>
   </div>
 </div>
 
@@ -567,6 +571,7 @@ tr:last-child td{border-bottom:none;}
       <div class="nav-item" onclick="showPage('customers')" id="nav-customers"><span class="ni-icon">👥</span>Customers</div>
     </nav>
     <div class="sidebar-footer">
+      <button class="logout-btn" onclick="showChangePassword()" style="background: var(--blue); margin-bottom: 8px;">Change Password</button>
       <button class="logout-btn" onclick="doLogout()">Sign Out</button>
     </div>
   </div>
@@ -844,6 +849,35 @@ Silver Earrings,Pure Silver,✨,Earrings,buy,,1500,10</pre>
   </div>
 </div>
 
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="changePasswordModal">
+  <div class="modal" style="max-width:400px;">
+    <button class="modal-close" onclick="closeChangePasswordModal()">✕</button>
+    <h2>🔐 Change Password</h2>
+    <p class="modal-subtitle">Update your admin password</p>
+    
+    <div class="form-group">
+      <label>Current Password</label>
+      <input type="password" id="currentPassword" placeholder="Enter current password" autocomplete="current-password">
+    </div>
+    
+    <div class="form-group">
+      <label>New Password</label>
+      <input type="password" id="newPassword" placeholder="Enter new password" autocomplete="new-password">
+    </div>
+    
+    <div class="form-group">
+      <label>Confirm New Password</label>
+      <input type="password" id="confirmPassword" placeholder="Confirm new password" autocomplete="new-password">
+    </div>
+    
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeChangePasswordModal()">Cancel</button>
+      <button class="modal-btn modal-btn-add" onclick="saveNewPassword()">🔐 Update Password</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── HELPER FUNCTIONS ─────────────────────────────────────────────────────
 // Format price - remove .00 if whole number and remove leading zeros
@@ -968,25 +1002,56 @@ let currentDetailId=null;
 let currentDetailType='order';
 
 // ── LOGIN ────────────────────────────────────────────────────────────────
-function doLogin(){
-  const u=document.getElementById('loginUser').value;
-  const p=document.getElementById('loginPass').value;
-  if(u==='admin'&&p==='mlr2025'){
-    // Save session
-    localStorage.setItem('mlr_admin_session', 'true');
-    localStorage.setItem('mlr_admin_time', Date.now());
+async function doLogin(){
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  
+  if (!u || !p) {
+    showToast('Please enter both username and password', 'error');
+    return;
+  }
+  
+  // Show loading state
+  const loginBtn = document.querySelector('.login-btn');
+  const originalText = loginBtn.textContent;
+  loginBtn.textContent = 'Signing in...';
+  loginBtn.disabled = true;
+  
+  try {
+    // Use the API to authenticate
+    const response = await api.login(u, p);
     
-    document.getElementById('loginScreen').style.display='none';
-    document.getElementById('app').style.display='flex';
-    init();
-  } else {
-    showToast('Invalid credentials. Try admin / mlr2025','error');
+    if (response.token) {
+      // Save session with token
+      localStorage.setItem('mlr_admin_session', 'true');
+      localStorage.setItem('mlr_admin_token', response.token);
+      localStorage.setItem('mlr_admin_user', response.username);
+      localStorage.setItem('mlr_admin_time', Date.now());
+      
+      // Hide login screen and show app
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      
+      showToast('Welcome back!');
+      init();
+    } else {
+      showToast(response.error || 'Invalid credentials', 'error');
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    showToast('Login failed. Please check your connection and try again.', 'error');
+  } finally {
+    // Restore button state
+    loginBtn.textContent = originalText;
+    loginBtn.disabled = false;
   }
 }
 
 function doLogout(){
-  // Clear session
+  // Clear session and tokens
   localStorage.removeItem('mlr_admin_session');
+  localStorage.removeItem('mlr_admin_token');
+  localStorage.removeItem('mlr_admin_user');
   localStorage.removeItem('mlr_admin_time');
   
   document.getElementById('app').style.display='none';
@@ -1969,6 +2034,75 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+});
+
+// ── CHANGE PASSWORD FUNCTIONS ─────────────────────────────────────────────
+function showChangePassword() {
+  document.getElementById('changePasswordModal').classList.add('open');
+  // Clear form
+  document.getElementById('currentPassword').value = '';
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmPassword').value = '';
+}
+
+function closeChangePasswordModal() {
+  document.getElementById('changePasswordModal').classList.remove('open');
+}
+
+async function saveNewPassword() {
+  const currentPassword = document.getElementById('currentPassword').value;
+  const newPassword = document.getElementById('newPassword').value;
+  const confirmPassword = document.getElementById('confirmPassword').value;
+  
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    showToast('Please fill in all fields', 'error');
+    return;
+  }
+  
+  if (newPassword !== confirmPassword) {
+    showToast('New passwords do not match', 'error');
+    return;
+  }
+  
+  if (newPassword.length < 6) {
+    showToast('New password must be at least 6 characters', 'error');
+    return;
+  }
+  
+  try {
+    const username = localStorage.getItem('mlr_admin_user');
+    
+    // Update password using the dedicated endpoint
+    const updateResponse = await fetch(`${api.baseURL}/api/auth/update-password`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        username: username,
+        currentPassword: currentPassword,
+        newPassword: newPassword 
+      })
+    });
+    
+    const result = await updateResponse.json();
+    
+    if (updateResponse.ok) {
+      showToast('✅ Password updated successfully!');
+      closeChangePasswordModal();
+    } else {
+      showToast(result.error || 'Failed to update password', 'error');
+    }
+    
+  } catch (error) {
+    console.error('Password change error:', error);
+    showToast('Failed to update password. Please try again.', 'error');
+  }
+}
+
+// Close modal when clicking outside
+document.getElementById('changePasswordModal').addEventListener('click', function(e) {
+  if (e.target === this) closeChangePasswordModal();
 });
 
 // ── REAL-TIME UPDATES WITH SOCKET.IO ──────────────────────────────────────

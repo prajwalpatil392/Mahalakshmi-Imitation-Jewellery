@@ -4,7 +4,12 @@ const { Pool } = require('pg');
 const pool = process.env.DATABASE_URL 
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
+      ssl: { rejectUnauthorized: false },
+      // Optimize connection pool for better performance
+      max: 20, // Maximum number of clients in the pool
+      idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+      connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
+      maxUses: 7500, // Close (and replace) a connection after it has been used 7500 times
     })
   : new Pool({
       host: process.env.DB_HOST || 'localhost',
@@ -12,7 +17,12 @@ const pool = process.env.DATABASE_URL
       password: process.env.DB_PASSWORD || 'postgres',
       database: process.env.DB_NAME || 'mahalakshmi',
       port: process.env.DB_PORT || 5432,
-      ssl: false
+      ssl: false,
+      // Optimize connection pool for better performance
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 2000,
+      maxUses: 7500,
     });
 
 // Helper function to convert MySQL-style queries to PostgreSQL

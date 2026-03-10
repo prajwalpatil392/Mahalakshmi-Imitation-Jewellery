@@ -3,11 +3,45 @@ const router = express.Router();
 const db = require('../config/database');
 const { sendOrderConfirmation, sendAdminOrderNotification } = require('../services/emailService');
 const { sendOrderConfirmationSMS, sendAdminOrderNotificationSMS } = require('../services/smsService');
+const cacheService = require('../services/cacheService');
 
 // Get all orders
 router.get('/', async (req, res) => {
   try {
     const { status, limit } = req.query;
+    const cacheKey = cacheService.generateOrdersKey(status, limit);
+    
+    // Try to get from cache first
+    const cachedData = cacheService.get(cacheKey);
+    if (cachedData) {
+      const etag = cachedData.etag;
+      
+      // Check if client has current version
+      if (req.headers['if-none-match'] === etag) {
+        return res.status(304).end();
+      }
+      
+      // Set caching headers and return cached data
+      res.set({
+        'ETag': etag,
+        'Cache-Control': 'private, max-age=60'
+      });
+      
+      return res.json(cachedData.orders);
+    }
+    
+    // First, get the latest timestamp for ETag generation
+    const [latestOrder] = await db.queryCompat(
+      "SELECT MAX(timestamp) as latest_timestamp FROM orders WHERE type = 'order'"
+    );
+    
+    const etag = `"orders-${latestOrder[0].latest_timestamp || 0}-${status || 'all'}-${limit || 'all'}"`;
+    
+    // Check if client has current version
+    if (req.headers['if-none-match'] === etag) {
+      return res.status(304).end();
+    }
+    
     let query = "SELECT * FROM orders WHERE type = 'order'";
     const params = [];
     let paramIndex = 1;
@@ -35,11 +69,28 @@ router.get('/', async (req, res) => {
         [orderIds]
       );
       
-      // Group items by order_id
+      // Group items by order_id using Map for better performance
+      const itemsMap = new Map();
+      allItems.forEach(item => {
+        if (!itemsMap.has(item.order_id)) {
+          itemsMap.set(item.order_id, []);
+        }
+        itemsMap.get(item.order_id).push(item);
+      });
+      
       orders.forEach(order => {
-        order.items = allItems.filter(item => item.order_id === order.id);
+        order.items = itemsMap.get(order.id) || [];
       });
     }
+    
+    // Cache the result
+    cacheService.set(cacheKey, { orders, etag });
+    
+    // Set caching headers
+    res.set({
+      'ETag': etag,
+      'Cache-Control': 'private, max-age=60' // Cache for 1 minute
+    });
     
     res.json(orders);
   } catch (error) {
@@ -126,6 +177,9 @@ router.post('/', async (req, res) => {
     
     await client.query('COMMIT');
     
+    // Invalidate orders cache since new order was created
+    cacheService.invalidateOrdersCache();
+    
     // Emit real-time update
     const io = req.app.get('io');
     if (io) {
@@ -161,6 +215,9 @@ router.patch('/:id/status', async (req, res) => {
     const { status } = req.body;
     await db.queryCompat('UPDATE orders SET status = $1 WHERE id = $2', [status, req.params.id]);
     
+    // Invalidate orders cache since order was updated
+    cacheService.invalidateOrdersCache();
+    
     // Emit real-time update
     const io = req.app.get('io');
     if (io) {
@@ -178,6 +235,10 @@ router.patch('/:id/status', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   try {
     await db.queryCompat('DELETE FROM orders WHERE id = $1', [req.params.id]);
+    
+    // Invalidate orders cache since order was deleted
+    cacheService.invalidateOrdersCache();
+    
     res.json({ message: 'Order deleted' });
   } catch (error) {
     res.status(500).json({ error: error.message });

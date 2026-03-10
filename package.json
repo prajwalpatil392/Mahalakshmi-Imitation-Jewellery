@@ -9,6 +9,7 @@
     "migrate": "node scripts/migrate.js",
     "migrate:postgres": "node scripts/migrate-postgres.js",
     "seed": "node scripts/seedProducts.js",
+    "setup-admin": "node scripts/setup-admin.js",
     "test": "jest --detectOpenHandles --forceExit",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"

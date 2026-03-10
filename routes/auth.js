@@ -45,4 +45,27 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// Update password
+router.post('/update-password', async (req, res) => {
+  try {
+    const { username, currentPassword, newPassword } = req.body;
+    
+    // Verify current password
+    const [admins] = await db.queryCompat('SELECT * FROM admins WHERE username = $1', [username]);
+    if (admins.length === 0) return res.status(401).json({ error: 'User not found' });
+    
+    const admin = admins[0];
+    const isMatch = await bcrypt.compare(currentPassword, admin.password);
+    if (!isMatch) return res.status(401).json({ error: 'Current password is incorrect' });
+    
+    // Update with new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await db.queryCompat('UPDATE admins SET password = $1 WHERE username = $2', [hashedPassword, username]);
+    
+    res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

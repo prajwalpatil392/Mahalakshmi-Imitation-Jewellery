@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Mahalakshmi Rentals & Sellers – Bridal Jewellery</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/>
@@ -482,7 +483,7 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 .toast.error-toast{background:#8B1A1A;}
 
 /* RESPONSIVE */
-@media(max-width:768px){nav{padding:0 16px;}.nav-links{display:none;}section{padding:64px 20px;}.contact-wrap{grid-template-columns:1fr;gap:40px;}.footer-grid{grid-template-columns:1fr;gap:36px;}.form-row{grid-template-columns:1fr;}#trust{gap:28px;padding:24px 20px;}.products-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:768px){nav{padding:0 16px;}section{padding:64px 20px;}.contact-wrap{grid-template-columns:1fr;gap:40px;}.footer-grid{grid-template-columns:1fr;gap:36px;}.form-row{grid-template-columns:1fr;}#trust{gap:28px;padding:24px 20px;}.products-grid{grid-template-columns:1fr 1fr;}}
 @media(max-width:480px){.products-grid{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -493,7 +494,7 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
   <a href="mahalakshmi-client.html" class="nav-logo">🪷 Mahalakshmi</a>
   
   <!-- Hamburger Menu -->
-  <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()">
+  <button class="hamburger" id="hamburger">
     <span></span>
     <span></span>
     <span></span>
@@ -525,27 +526,14 @@ footer{background:#1A0A00;padding:60px 40px 32px;border-top:1px solid rgba(201,1
 <script>
 // Mobile menu toggle - defined immediately
 function toggleMobileMenu() {
-  console.log('Toggle mobile menu called');
   const nav = document.getElementById('mainNav');
   const navLinks = document.getElementById('navLinks');
   const hamburger = document.getElementById('hamburger');
   
-  console.log('Nav:', nav);
-  console.log('NavLinks:', navLinks);
-  console.log('Hamburger:', hamburger);
-  
   if (navLinks && hamburger && nav) {
-    const isActive = navLinks.classList.contains('active');
-    console.log('Is currently active:', isActive);
-    
     navLinks.classList.toggle('active');
     hamburger.classList.toggle('active');
     nav.classList.toggle('mobile-nav-open');
-    
-    console.log('NavLinks classes after toggle:', navLinks.className);
-    console.log('Max-height:', window.getComputedStyle(navLinks).maxHeight);
-  } else {
-    console.error('Elements not found!', {nav, navLinks, hamburger});
   }
 }
 
@@ -561,25 +549,15 @@ function closeMobileMenu() {
   }
 }
 
-// Attach event listener as backup
+// Attach event listener
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('DOM loaded - attaching hamburger listener');
   const hamburger = document.getElementById('hamburger');
-  const navLinks = document.getElementById('navLinks');
   
   if (hamburger) {
-    console.log('Hamburger found, adding click listener');
     hamburger.addEventListener('click', function(e) {
-      console.log('Hamburger clicked via addEventListener');
+      e.preventDefault();
       toggleMobileMenu();
     });
-  } else {
-    console.error('Hamburger button not found!');
-  }
-  
-  if (navLinks) {
-    console.log('NavLinks initial classes:', navLinks.className);
-    console.log('NavLinks computed max-height:', window.getComputedStyle(navLinks).maxHeight);
   }
 });
 </script>

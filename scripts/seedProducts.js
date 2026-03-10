@@ -32,22 +32,21 @@ const products = [
 
 async function seedProducts() {
   try {
-    const connection = await db.getConnection();
-    console.log('Connected to database');
+    console.log('Connected to PostgreSQL database');
     
-    await connection.query('DELETE FROM products');
+    await db.query('DELETE FROM products');
     console.log('Cleared existing products');
     
     for (const product of products) {
-      await connection.query(
+      await db.query(
         `INSERT INTO products (name, material, icon, rent_per_day, buy_price, type, category, base_stock) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
         [product.name, product.material, product.icon, product.rentPerDay, product.buy, product.type, product.category, product.baseStock]
       );
     }
     
     console.log('✅ Products seeded successfully');
-    connection.release();
+    await db.end();
     process.exit(0);
   } catch (error) {
     console.error('Error seeding products:', error);

@@ -7,7 +7,7 @@
   // Analytics configuration
   const ANALYTICS_CONFIG = {
     // Set to false to disable all analytics
-    enabled: true,
+    enabled: false, // Temporarily disabled to prevent errors
     
     // Batch events to reduce network requests
     batchSize: 5,

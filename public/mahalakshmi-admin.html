@@ -534,9 +534,11 @@ tr:last-child td{border-bottom:none;}
   <div class="login-box">
     <div class="login-logo">🪷 Mahalakshmi</div>
     <div class="login-sub">Admin Portal — Secure Login</div>
-    <input type="text" id="loginUser" placeholder="Username" value="admin"/>
-    <input type="password" id="loginPass" placeholder="Password" value=""/>
-    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <form id="loginForm" onsubmit="doLogin(); return false;">
+      <input type="text" id="loginUser" placeholder="Username" value="admin" autocomplete="username"/>
+      <input type="password" id="loginPass" placeholder="Password" value="" autocomplete="current-password"/>
+      <button type="submit" class="login-btn">Sign In →</button>
+    </form>
     <p class="login-hint">Demo: username = admin &nbsp;|&nbsp; password = mlr2025</p>
   </div>
 </div>
@@ -981,7 +983,6 @@ function doLogin(){
     showToast('Invalid credentials. Try admin / mlr2025','error');
   }
 }
-document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
 function doLogout(){
   // Clear session

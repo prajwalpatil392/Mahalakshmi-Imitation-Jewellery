@@ -1021,19 +1021,47 @@ function checkSession(){
 // ── INIT ─────────────────────────────────────────────────────────────────
 function init(){
   loadProductsFromAPI(); // Load products from backend
-  setInterval(refreshAll,5000); // Auto-refresh every 5 sec (live orders)
+  
+  // Auto-refresh every 30 seconds (reduced from 5 seconds)
+  // Only refresh when page is visible to reduce unnecessary requests
+  setInterval(() => {
+    if (!document.hidden) {
+      refreshAll();
+    }
+  }, 30000);
+  
   refreshAll();
   document.getElementById('topbarDate').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
 }
 
 async function refreshAll(){
+  // Only refresh critical data to reduce server load
   await loadOrdersFromAPI(); // Load orders from API first
   await renderDashboard();
-  await renderOrdersPage();
-  renderRentalsPage();
-  renderEnquiriesPage();
-  renderProductsPage();
-  renderCustomersPage();
+  
+  // Only refresh current page view to reduce unnecessary rendering
+  const currentPage = document.querySelector('.page:not([style*="display: none"])');
+  if (currentPage) {
+    const pageId = currentPage.id;
+    switch(pageId) {
+      case 'ordersPage':
+        await renderOrdersPage();
+        break;
+      case 'rentalsPage':
+        renderRentalsPage();
+        break;
+      case 'enquiriesPage':
+        renderEnquiriesPage();
+        break;
+      case 'productsPage':
+        renderProductsPage();
+        break;
+      case 'customersPage':
+        renderCustomersPage();
+        break;
+    }
+  }
+  
   updateNotifBadges();
 }
 
@@ -1956,6 +1984,18 @@ socket.on('connect', () => {
   console.log('✅ Real-time updates connected');
 });
 
+// Throttle function to prevent excessive API calls
+let lastRefreshTime = 0;
+const REFRESH_THROTTLE = 2000; // 2 seconds minimum between refreshes
+
+function throttledRefresh() {
+  const now = Date.now();
+  if (now - lastRefreshTime > REFRESH_THROTTLE) {
+    lastRefreshTime = now;
+    refreshAll();
+  }
+}
+
 socket.on('productAdded', async (product) => {
   console.log('New product added:', product);
   await loadProductsFromAPI();
@@ -1980,14 +2020,14 @@ socket.on('productDeleted', async (data) => {
 socket.on('orderCreated', async (order) => {
   console.log('New order:', order);
   await loadOrdersFromAPI();
-  refreshAll();
+  throttledRefresh(); // Use throttled refresh instead of immediate refreshAll
   showToast('🔔 New order received!');
 });
 
 socket.on('orderUpdated', async (data) => {
   console.log('Order updated:', data);
   await loadOrdersFromAPI();
-  refreshAll();
+  throttledRefresh(); // Use throttled refresh instead of immediate refreshAll
 });
 
 socket.on('disconnect', () => {

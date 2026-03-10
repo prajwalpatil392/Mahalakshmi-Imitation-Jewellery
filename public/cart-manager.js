@@ -4,6 +4,7 @@
 const CartManager = {
   STORAGE_KEY: 'mlr_cart',
   CUSTOMER_KEY: 'mlr_customer',
+  _syncTimeout: null, // For throttling sync calls
   
   // Get cart from localStorage
   getCart() {
@@ -20,7 +21,7 @@ const CartManager = {
   saveCart(cart) {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cart));
-      this.syncWithBackend(cart);
+      this.throttledSyncWithBackend(cart);
     } catch (error) {
       console.error('Error saving cart:', error);
     }
@@ -131,6 +132,19 @@ const CartManager = {
   getItemCount() {
     const cart = this.getCart();
     return cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+  },
+  
+  // Throttled sync to prevent excessive API calls
+  throttledSyncWithBackend(cart) {
+    // Clear existing timeout
+    if (this._syncTimeout) {
+      clearTimeout(this._syncTimeout);
+    }
+    
+    // Set new timeout to sync after 1 second of inactivity
+    this._syncTimeout = setTimeout(() => {
+      this.syncWithBackend(cart);
+    }, 1000);
   },
   
   // Sync cart with backend (if customer is logged in)

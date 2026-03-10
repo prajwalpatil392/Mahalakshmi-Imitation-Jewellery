@@ -21,7 +21,7 @@ async function forwardToMixpanel(events) {
         token: process.env.MIXPANEL_TOKEN,
         time: Math.floor(event.timestamp / 1000),
         distinct_id: event.sessionId || 'anonymous',
-        $insert_id: `${event.timestamp}-${Math.random().toString(36).substr(2, 9)}`
+        $insert_id: `${event.timestamp}-${Math.random().toString(36).substring(2, 9)}`
       }
     }));
     
@@ -67,70 +67,6 @@ async function forwardToMixpanel(events) {
     console.error('Error forwarding to Mixpanel:', error);
   }
 }
-
-// Forward events to Mixpanel server-side (reduces client-side requests)
-async function forwardToMixpanel(events) {
-  if (!process.env.MIXPANEL_TOKEN) {
-    console.warn('Mixpanel token not configured');
-    return;
-  }
-
-  try {
-    const mixpanelEvents = events.map(event => ({
-      event: event.name || event.type,
-      properties: {
-        ...event.properties,
-        ...event.data,
-        token: process.env.MIXPANEL_TOKEN,
-        time: Math.floor(event.timestamp / 1000),
-        distinct_id: event.sessionId || 'anonymous',
-        $insert_id: `${event.timestamp}-${Math.random().toString(36).substr(2, 9)}`
-      }
-    }));
-
-    const data = Buffer.from(JSON.stringify(mixpanelEvents)).toString('base64');
-    const postData = querystring.stringify({ data });
-
-    const options = {
-      hostname: 'api.mixpanel.com',
-      port: 443,
-      path: '/track',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Content-Length': Buffer.byteLength(postData)
-      },
-      timeout: 5000 // 5 second timeout
-    };
-
-    return new Promise((resolve, reject) => {
-      const req = https.request(options, (res) => {
-        let data = '';
-        res.on('data', chunk => data += chunk);
-        res.on('end', () => {
-          if (res.statusCode === 200) {
-            resolve(JSON.parse(data));
-          } else {
-            reject(new Error(`Mixpanel API error: ${res.statusCode}`));
-          }
-        });
-      });
-
-      req.on('error', reject);
-      req.on('timeout', () => {
-        req.destroy();
-        reject(new Error('Mixpanel request timeout'));
-      });
-
-      req.write(postData);
-      req.end();
-    });
-
-  } catch (error) {
-    console.error('Error forwarding to Mixpanel:', error);
-  }
-}
-const router = express.Router();
 
 // Analytics endpoint for batched events
 router.post('/', async (req, res) => {
@@ -215,10 +151,6 @@ async function processPageView(event) {
     timestamp: new Date(event.timestamp).toISOString(),
     ip: event.clientIP?.substring(0, 10) + '...' // Truncate for privacy
   });
-  
-  // You can add database storage here:
-  // await db.query('INSERT INTO page_views (page, title, timestamp, ip) VALUES (?, ?, ?, ?)', 
-  //   [event.page, event.title, event.timestamp, event.clientIP]);
 }
 
 // Process custom events
@@ -231,10 +163,8 @@ async function processCustomEvent(event) {
   
   // Special handling for important events
   if (event.name === 'order_placed') {
-    // Track conversion
     console.log('🎉 Conversion tracked:', event.properties);
   } else if (event.name === 'cart_abandoned') {
-    // Track cart abandonment
     console.log('⚠️ Cart abandoned:', event.properties);
   }
 }
@@ -266,7 +196,7 @@ async function processPerformanceEvent(event) {
     console.warn('⚠️ Slow server response:', metrics.responseTime + 'ms');
   }
   
-  // You can store performance metrics for monitoring
+  // Log performance metrics
   console.log('Performance Metrics:', {
     loadTime: metrics.loadTime,
     domReady: metrics.domReady,
@@ -278,7 +208,6 @@ async function processPerformanceEvent(event) {
 // Get analytics summary (optional endpoint for admin)
 router.get('/summary', async (req, res) => {
   try {
-    // This would typically query your analytics database
     const summary = {
       message: 'Analytics summary endpoint',
       note: 'Implement database queries here to return analytics data',

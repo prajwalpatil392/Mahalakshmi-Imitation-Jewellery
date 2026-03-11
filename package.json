@@ -37,7 +37,8 @@
     "pg": "^8.19.0",
     "razorpay": "^2.9.6",
     "socket.io": "^4.8.3",
-    "twilio": "^4.19.0"
+    "twilio": "^4.19.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",

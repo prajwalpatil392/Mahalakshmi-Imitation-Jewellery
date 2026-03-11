@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
 <noscript><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Alegreya+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/></noscript>
 <script src="config.js"></script>
+<script src="admin-auto-fix.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="js/resource-optimizer.js"></script>
 <script src="js/analytics-optimizer.js"></script>
@@ -1197,7 +1198,10 @@ function updateNotifBadges(){
   const eb=document.getElementById('newEnqBadge');
   eb.textContent=newEnqs; eb.style.display=newEnqs>0?'inline':'none';
 }
-
+npm install        # if not already done
+npm run test
+# or, for detailed output:
+npx jest --runInBand --detectOpenHandles --forceExit
 // ── STATUS HELPER ────────────────────────────────────────────────────────
 function getEffectiveStatus(item){
   const statuses=getStatuses();

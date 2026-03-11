@@ -76,6 +76,11 @@
                 window.renderOrdersPage();
               }
               break;
+            case 'rentals':
+              if (typeof window.renderRentalsPage === 'function') {
+                window.renderRentalsPage();
+              }
+              break;
           }
         }, 100);
       };

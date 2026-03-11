@@ -1198,10 +1198,7 @@ function updateNotifBadges(){
   const eb=document.getElementById('newEnqBadge');
   eb.textContent=newEnqs; eb.style.display=newEnqs>0?'inline':'none';
 }
-npm install        # if not already done
-npm run test
-# or, for detailed output:
-npx jest --runInBand --detectOpenHandles --forceExit
+
 // ── STATUS HELPER ────────────────────────────────────────────────────────
 function getEffectiveStatus(item){
   const statuses=getStatuses();

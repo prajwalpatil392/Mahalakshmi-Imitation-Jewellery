@@ -1103,6 +1103,14 @@ function checkSession(){
 function init(){
   loadProductsFromAPI(); // Load products from backend
   loadEnquiriesFromAPI(); // Load enquiries from backend
+
+  // Restore last visited page (persist across browser refresh)
+  const savedPage = localStorage.getItem('mlr_admin_current_page') || 'dashboard';
+  try {
+    showPage(savedPage);
+  } catch (e) {
+    showPage('dashboard');
+  }
   
   // Auto-refresh every 30 seconds (reduced from 5 seconds)
   // Only refresh when page is visible to reduce unnecessary requests
@@ -1117,33 +1125,41 @@ function init(){
 }
 
 async function refreshAll(){
-  // Only refresh critical data to reduce server load
-  await loadOrdersFromAPI(); // Load orders from API first
+  // Load critical data (in parallel) to reduce perceived buffering
+  await Promise.all([
+    loadOrdersFromAPI(),
+    loadEnquiriesFromAPI(),
+  ]);
+
+  // Always keep dashboard stats fresh (quick)
   await renderDashboard();
-  
-  // Only refresh current page view to reduce unnecessary rendering
-  const currentPage = document.querySelector('.page:not([style*="display: none"])');
+
+  // Refresh the current visible page reliably
+  const currentPage = document.querySelector('.page.active');
   if (currentPage) {
-    const pageId = currentPage.id;
-    switch(pageId) {
-      case 'ordersPage':
+    switch (currentPage.id) {
+      case 'page-orders':
         await renderOrdersPage();
         break;
-      case 'rentalsPage':
-        renderRentalsPage();
+      case 'page-rentals':
+        await renderRentalsPage();
         break;
-      case 'enquiriesPage':
+      case 'page-enquiries':
         renderEnquiriesPage();
         break;
-      case 'productsPage':
+      case 'page-products':
         renderProductsPage();
         break;
-      case 'customersPage':
+      case 'page-customers':
         renderCustomersPage();
+        break;
+      case 'page-dashboard':
+      default:
+        // already rendered above
         break;
     }
   }
-  
+
   updateNotifBadges();
 }
 
@@ -1157,6 +1173,9 @@ function showPage(id){
   if(nav) nav.classList.add('active');
   else document.querySelectorAll('.nav-item')[0].classList.add('active');
   document.getElementById('topbarTitle').textContent=pageTitles[id]||id;
+
+  // Persist selected page so browser refresh stays here
+  localStorage.setItem('mlr_admin_current_page', id);
   
   // Close sidebar on mobile after navigation
   if(window.innerWidth <= 768) closeSidebar();
@@ -1224,7 +1243,6 @@ function statusBadge(s){
 
 // ── DASHBOARD ────────────────────────────────────────────────────────────
 async function renderDashboard(){
-  await loadOrdersFromAPI(); // Ensure orders are loaded
   const orders=getOrders();
   const enqs=getEnquiries();
   const statuses=getStatuses();

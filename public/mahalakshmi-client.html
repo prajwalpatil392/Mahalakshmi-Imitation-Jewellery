@@ -1011,7 +1011,7 @@ function renderProducts(filter='all'){
     }
     return `
     <div class="product-card">
-      <div class="product-img" style="${p.image_url ? `background-image:url('${p.image_url.startsWith('http') ? p.image_url : api.baseURL + p.image_url}');background-size:cover;background-position:center;` : ''}">>>
+      <div class="product-img" style="${p.image_url ? `background-image:url('${p.image_url.startsWith('http') ? p.image_url : api.baseURL + p.image_url}');background-size:cover;background-position:center;` : ''}">
         ${!p.image_url ? p.icon : ''}
         <span class="product-badge ${badgeClass}">${badgeText}</span>
         <span class="avail-tag ${availClass}">${availText}</span>

@@ -1,4 +1,4 @@
-// ── PRODUCTS DATA (loaded from API) ───────────────────────────────────────
+// -- PRODUCTS DATA (loaded from API) ---------------------------------------
 let products = [];
 
 // Fallback products if API is not available
@@ -13,13 +13,13 @@ const fallbackProducts = [
   {id:8,name:"Antique Toe Ring Pair",material:"Sterling Silver Finish",icon:"🦶",rentPerDay:null,buy:450,type:"buy",category:"Anklets",availableQty:10,isAvailable:true}
 ];
 
-// ── CART STATE ────────────────────────────────────────────────────────────
+// -- CART STATE ------------------------------------------------------------
 let cart = CartManager.getCart(); // Load from localStorage
 let currentFilter = 'all';
 let currentCategory = null; // For category filter from category chips
 let rentalProductId = null;
 
-// ── HELPER FUNCTIONS ─────────────────────────────────────────────────────
+// -- HELPER FUNCTIONS -----------------------------------------------------
 // Format price - remove .00 if whole number
 function formatPrice(price) {
   const num = parseFloat(price);
@@ -60,7 +60,7 @@ async function loadProducts() {
     showToast('Using offline mode - some features may be limited', 'error');
   }
 }
-// ── RENDER PRODUCTS ───────────────────────────────────────────────────────
+// -- RENDER PRODUCTS -------------------------------------------------------
 function renderProducts(filter='all'){
   const grid = document.getElementById('productsGrid');
   let list = filter==='all' ? products : products.filter(p=>p.type===filter);
@@ -172,7 +172,7 @@ function filterByCategory(cat){
   },400);
 }
 
-// ── CART LOGIC ────────────────────────────────────────────────────────────
+// -- CART LOGIC ------------------------------------------------------------
 function addToCart(id, mode, rentalData=null){
   const p = products.find(x=>x.id===id);
   if(!p) return;
@@ -398,7 +398,7 @@ function updateQuantity(idx, change) {
   renderProducts(currentFilter);
 }
 
-// ── RENTAL MODAL ──────────────────────────────────────────────────────────
+// -- RENTAL MODAL ----------------------------------------------------------
 function openRentalModal(id){
   rentalProductId=id;
   const p=products.find(x=>x.id===id);
@@ -464,7 +464,7 @@ function confirmRental(){
   closeRentalModal();
 }
 
-// ── CHECKOUT ──────────────────────────────────────────────────────────────
+// -- CHECKOUT --------------------------------------------------------------
 function openCheckout(){
   if(cart.length===0){ showToast('Your cart is empty!','error'); return; }
   closeCart();
@@ -845,7 +845,7 @@ function showToast(msg, type='success'){
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// ── CUSTOMER LOGIN ───────────────────────────────────────────────────────
+// -- CUSTOMER LOGIN -------------------------------------------------------
 let currentUser = CartManager.getCustomer(); // Load from CartManager
 
 function checkUserSession(){
@@ -967,7 +967,7 @@ function doCustomerLogout(){
   showToast('Logged out successfully');
 }
 
-// ── MY ORDERS ─────────────────────────────────────────────────────────────
+// -- MY ORDERS -------------------------------------------------------------
 async function openMyOrders(){
   document.getElementById('myOrdersModal').classList.add('open');
   await loadMyOrders();
@@ -1183,7 +1183,7 @@ function confirmUPIPayment(orderId) {
   loadProducts();
 }
 
-// ── LOAD PAYMENT METHODS ──────────────────────────────────────────────────
+// -- LOAD PAYMENT METHODS --------------------------------------------------
 async function loadPaymentMethods() {
   try {
     if (typeof api === 'undefined' || !api.getPaymentMethods) return;
@@ -1206,7 +1206,7 @@ async function loadPaymentMethods() {
   }
 }
 
-// ── INIT ──────────────────────────────────────────────────────────────────
+// -- INIT ------------------------------------------------------------------
 checkUserSession();
 loadProducts();
 loadPaymentMethods(); // Load available payment methods
@@ -1229,7 +1229,7 @@ if(window.location.hash === '#checkout'){
   }
 }
 
-// ── REAL-TIME UPDATES WITH SOCKET.IO ──────────────────────────────────────
+// -- REAL-TIME UPDATES WITH SOCKET.IO --------------------------------------
 // Initialize Socket.IO only if available
 if (typeof io !== 'undefined') {
   const socket = io({

@@ -1,5 +1,5 @@
-﻿
-// â”€â”€ HELPER FUNCTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+// -- HELPER FUNCTIONS -----------------------------------------------------
 // Format price - remove .00 if whole number and remove leading zeros
 function formatPrice(price) {
   const num = parseFloat(price);
@@ -8,7 +8,7 @@ function formatPrice(price) {
   return num % 1 === 0 ? num.toLocaleString() : num.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 }
 
-// â”€â”€ DATA STORE (shared via localStorage with client) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- DATA STORE (shared via localStorage with client) --------------------
 const STORE_KEY='mlr_orders';
 const ENQUIRY_KEY='mlr_enquiries';
 const AVAIL_KEY='mlr_availability';
@@ -108,7 +108,7 @@ function getAvailableQty(productId){
   return Math.max(0, getBaseStock(productId) - getConsumedStock(productId));
 }
 
-// â”€â”€ PRODUCTS (load from API) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- PRODUCTS (load from API) --------------------------------------------
 let products = [];
 
 async function loadProductsFromAPI() {
@@ -119,14 +119,14 @@ async function loadProductsFromAPI() {
     } else {
       // Fallback to hardcoded products
       products = [
-        {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"ðŸ“¿",rentPerDay:150,buy:3200,type:"both",category:"Haram"},
-        {id:2,name:"Bridal Maang Tikka",material:"Kundan & Meenakari",icon:"ðŸ‘‘",rentPerDay:80,buy:1800,type:"both",category:"Maang Tikka"},
-        {id:3,name:"Temple Necklace",material:"Gold-Plated Copper",icon:"ðŸ’›",rentPerDay:120,buy:2400,type:"both",category:"Necklace"},
-        {id:4,name:"Jimikki Earrings",material:"South Indian Style",icon:"ðŸ‘‚",rentPerDay:50,buy:950,type:"both",category:"Earrings"},
-        {id:5,name:"Full Bridal Set",material:"Antique Gold 12-Piece",icon:"ðŸŒ¸",rentPerDay:600,buy:null,type:"rent",category:"Bridal"},
-        {id:6,name:"Kangan Bangles (Set 4)",material:"Gold-Plated Brass",icon:"â­•",rentPerDay:null,buy:1200,type:"buy",category:"Bangles"},
-        {id:7,name:"Navaratna Necklace",material:"Stone-Studded",icon:"ðŸ”®",rentPerDay:180,buy:2800,type:"both",category:"Necklace"},
-        {id:8,name:"Antique Toe Ring Pair",material:"Sterling Silver Finish",icon:"ðŸ¦¶",rentPerDay:null,buy:450,type:"buy",category:"Anklets"},
+        {id:1,name:"Lakshmi Haram Set",material:"Antique Gold Finish",icon:"💿",rentPerDay:150,buy:3200,type:"both",category:"Haram"},
+        {id:2,name:"Bridal Maang Tikka",material:"Kundan & Meenakari",icon:"👑",rentPerDay:80,buy:1800,type:"both",category:"Maang Tikka"},
+        {id:3,name:"Temple Necklace",material:"Gold-Plated Copper",icon:"💎",rentPerDay:120,buy:2400,type:"both",category:"Necklace"},
+        {id:4,name:"Jimikki Earrings",material:"South Indian Style",icon:"💍",rentPerDay:50,buy:950,type:"both",category:"Earrings"},
+        {id:5,name:"Full Bridal Set",material:"Antique Gold 12-Piece",icon:"👰",rentPerDay:600,buy:null,type:"rent",category:"Bridal"},
+        {id:6,name:"Kangan Bangles (Set 4)",material:"Gold-Plated Brass",icon:"⭕",rentPerDay:null,buy:1200,type:"buy",category:"Bangles"},
+        {id:7,name:"Navaratna Necklace",material:"Stone-Studded",icon:"💎",rentPerDay:180,buy:2800,type:"both",category:"Necklace"},
+        {id:8,name:"Antique Toe Ring Pair",material:"Sterling Silver Finish",icon:"💍",rentPerDay:null,buy:450,type:"buy",category:"Anklets"},
       ];
     }
   } catch (error) {
@@ -137,7 +137,7 @@ async function loadProductsFromAPI() {
 let currentDetailId=null;
 let currentDetailType='order';
 
-// â”€â”€ LOGIN â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- LOGIN ----------------------------------------------------------------
 async function doLogin(){
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value;
@@ -219,7 +219,7 @@ function checkSession(){
   return false;
 }
 
-// â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- INIT -----------------------------------------------------------------
 function init(){
   loadProductsFromAPI(); // Load products from backend
   loadEnquiriesFromAPI(); // Load enquiries from backend
@@ -283,7 +283,7 @@ async function refreshAll(){
   updateNotifBadges();
 }
 
-// â”€â”€ NAVIGATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- NAVIGATION -----------------------------------------------------------
 const pageTitles={dashboard:'Dashboard',orders:'All Orders',rentals:'Rental Bookings',enquiries:'Customer Enquiries',products:'Product Management',customers:'Customer Directory'};
 async function showPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -337,7 +337,7 @@ async function showPage(id){
   if(window.innerWidth <= 768) closeSidebar();
 }
 
-// â”€â”€ SIDEBAR TOGGLE (MOBILE) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- SIDEBAR TOGGLE (MOBILE) ----------------------------------------------
 function toggleSidebar(){
   const sidebar=document.getElementById('sidebar');
   const overlay=document.getElementById('sidebarOverlay');
@@ -352,7 +352,7 @@ function closeSidebar(){
   overlay.classList.remove('open');
 }
 
-// â”€â”€ BADGE HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- BADGE HELPERS ---------------------------------------------------------
 function updateNotifBadges(){
   const orders=getOrders();
   const statuses=getStatuses();
@@ -374,7 +374,7 @@ function updateNotifBadges(){
   eb.textContent=newEnqs; eb.style.display=newEnqs>0?'inline':'none';
 }
 
-// â”€â”€ STATUS HELPER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- STATUS HELPER --------------------------------------------------------
 function getEffectiveStatus(item){
   const statuses=getStatuses();
   return statuses[item.orderId || item.order_id]||item.status;
@@ -385,19 +385,28 @@ function getOrderId(item) {
   return item.orderId || item.order_id || 'N/A';
 }
 
-function setStatus(id,status){
+async function setStatus(id,status){
   const statuses=getStatuses();
   statuses[id]=status; saveStatuses(statuses);
+  if(typeof api !== 'undefined'){
+    const order=getOrders().find(o=>(o.orderId||o.order_id)===id&&o.type==='order');
+    const enquiry=order?null:getEnquiries().find(e=>(e.orderId||e.order_id)===id);
+    const apiStatus=enquiry&&status==='Confirmed'?'Contacted':enquiry&&status==='Cancelled'?'Closed':status;
+    try{
+      if(order&&order.id!=null) await api.updateOrderStatus(order.id,status);
+      else if(enquiry&&enquiry.id!=null) await api.updateEnquiryStatus(enquiry.id,apiStatus);
+    }catch(e){ console.error('Failed to persist status:',e); showToast('Status saved locally; sync failed','error'); }
+  }
   refreshAll();
   showToast('Status updated to: '+status);
 }
 
 function statusBadge(s){
-  const map={New:'badge-new',Confirmed:'badge-confirmed',Cancelled:'badge-cancelled',Returned:'badge-returned'};
+  const map={New:'badge-new',Confirmed:'badge-confirmed',Delivered:'badge-confirmed',Completed:'badge-confirmed',Cancelled:'badge-cancelled',Returned:'badge-returned',Contacted:'badge-confirmed',Closed:'badge-cancelled'};
   return `<span class="badge ${map[s]||'badge-new'}">${s}</span>`;
 }
 
-// â”€â”€ DASHBOARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- DASHBOARD ------------------------------------------------------------
 async function renderDashboard(){
   const orders=getOrders();
   const enqs=getEnquiries();
@@ -409,9 +418,16 @@ async function renderDashboard(){
   });
   const confirmed=allOrders.filter(o=>{
     const orderId = getOrderId(o);
-    return (statuses[orderId]||o.status)==='Confirmed';
+    const s = statuses[orderId]||o.status;
+    return s==='Confirmed'||s==='Delivered'||s==='Completed';
   });
-  const revenue=confirmed.reduce((s,o)=>s+parseFloat(o.total||0),0);
+  let revenue=confirmed.reduce((s,o)=>s+parseFloat(o.total||0),0);
+  if(typeof api !== 'undefined' && api.getOrderStats){
+    try{
+      const stats=await api.getOrderStats();
+      if(stats&&stats.totalRevenue!=null) revenue=parseFloat(stats.totalRevenue)||revenue;
+    }catch(e){ /* use client calc as fallback */ }
+  }
   const allRentals=allOrders.flatMap(o=>(o.items||[]).filter(i=>i.mode==='rent').map(i=>({...i,order:o})));
   const activeRentals=allRentals.filter(o=>{
     const orderId = getOrderId(o.order);
@@ -428,13 +444,13 @@ async function renderDashboard(){
   document.getElementById('activeRentals').textContent=activeRentals.length;
   document.getElementById('totalEnquiries').textContent=enqs.length;
   document.getElementById('newEnquiriesCount').textContent=newEnqs.length+' pending';
-  document.getElementById('totalRevenue').textContent='â‚¹'+formatPrice(revenue);
+  document.getElementById('totalRevenue').textContent='₹'+formatPrice(revenue);
 
   // Recent orders table
   const tb=document.getElementById('recentOrdersTable');
   const recent=[...allOrders,...enqs].sort((a,b)=>b.timestamp-a.timestamp).slice(0,8);
   if(recent.length===0){
-    tb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="ei">ðŸ“­</div><p>No orders yet. When customers place orders on the client site, they appear here live.</p><p style="margin-top:8px;font-size:.8rem;color:rgba(201,150,58,0.3);">Tip: Open the client HTML file in another tab and place a test order!</p></div></td></tr>`;
+    tb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="ei">📫</div><p>No orders yet. When customers place orders on the client site, they appear here live.</p><p style="margin-top:8px;font-size:.8rem;color:rgba(201,150,58,0.3);">Tip: Open the client HTML file in another tab and place a test order!</p></div></td></tr>`;
     return;
   }
   tb.innerHTML=recent.map(item=>{
@@ -451,7 +467,7 @@ async function renderDashboard(){
         const productNames = items.map(i => {
           const qty = i.quantity || 1;
           const name = i.product_name || i.name || i.productName || 'Unknown Item';
-          return qty > 1 ? `${name} (Ã—${qty})` : name;
+          return qty > 1 ? `${name} (×${qty})` : name;
         }).join(', ');
         itemDisplay = productNames || `${items.length} item(s)`;
       }
@@ -459,14 +475,14 @@ async function renderDashboard(){
     
     const typeLabel=isOrder?'<span class="badge badge-buy">Order</span>':'<span class="badge badge-enquiry">Enquiry</span>';
     const orderId = getOrderId(item);
-    const placedAt = item.placedAt || item.placed_at || 'â€”';
-    const customerName = item.customer?.name || item.customer_name || 'â€”';
+    const placedAt = item.placedAt || item.placed_at || '—';
+    const customerName = item.customer?.name || item.customer_name || '—';
     return `<tr>
       <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">${orderId}</td>
       <td style="color:var(--text);">${customerName}</td>
       <td>${typeLabel}</td>
       <td style="color:var(--text-dim);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${itemDisplay}">${itemDisplay}</td>
-      <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">${isOrder?'â‚¹'+formatPrice(item.total||0):'â€”'}</td>
+      <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">${isOrder?'₹'+formatPrice(item.total||0):'—'}</td>
       <td>${statusBadge(status)}</td>
       <td style="color:var(--text-dim);font-size:.78rem;">${placedAt}</td>
       <td><div class="action-btns">
@@ -480,16 +496,16 @@ async function renderDashboard(){
   // Enquiries table
   const etb=document.getElementById('recentEnqTable');
   if(enqs.length===0){
-    etb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="ei">ðŸ’¬</div><p>No enquiries yet.</p></div></td></tr>`;
+    etb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="ei">💬</div><p>No enquiries yet.</p></div></td></tr>`;
     return;
   }
   etb.innerHTML=enqs.slice(0,5).map(e=>{
     const status=getEffectiveStatus(e);
     const orderId = getOrderId(e);
-    const placedAt = e.placedAt || e.placed_at || 'â€”';
-    const customerName = e.customer?.name || e.customer_name || 'â€”';
-    const customerPhone = e.customer?.phone || e.customer_phone || 'â€”';
-    const customerEvent = e.customer?.event || e.customer_event || 'â€”';
+    const placedAt = e.placedAt || e.placed_at || '—';
+    const customerName = e.customer?.name || e.customer_name || '—';
+    const customerPhone = e.customer?.phone || e.customer_phone || '—';
+    const customerEvent = e.customer?.event || e.customer_event || '—';
     return `<tr>
       <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">${orderId}</td>
       <td>${customerName}</td>
@@ -506,7 +522,7 @@ async function renderDashboard(){
   }).join('');
 }
 
-// â”€â”€ ORDERS PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- ORDERS PAGE ----------------------------------------------------------
 async function renderOrdersPage(search='',statusFilter=''){
   const orders = await loadOrdersFromAPI();
   const allOrders = orders.filter(o=>o.type==='order');
@@ -514,14 +530,14 @@ async function renderOrdersPage(search='',statusFilter=''){
   let filtered=allOrders;
   if(search) filtered=filtered.filter(o=>o.customer?.name?.toLowerCase().includes(search.toLowerCase())||o.orderId?.includes(search)||o.order_id?.includes(search));
   if(statusFilter) filtered=filtered.filter(o=>getEffectiveStatus(o)===statusFilter);
-  if(filtered.length===0){tb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="ei">ðŸ“­</div><p>No orders found.</p></div></td></tr>`;return;}
+  if(filtered.length===0){tb.innerHTML=`<tr><td colspan="8"><div class="empty-state"><div class="ei">📫</div><p>No orders found.</p></div></td></tr>`;return;}
   tb.innerHTML=filtered.map(o=>{
     const status=getEffectiveStatus(o);
     const items=(o.items||[]);
     const hasRentals=items.some(i=>i.mode==='rent');
     const orderId = o.orderId || o.order_id;
-    const customerName = o.customer?.name || o.customer_name || 'â€”';
-    const customerPhone = o.customer?.phone || o.customer_phone || 'â€”';
+    const customerName = o.customer?.name || o.customer_name || '—';
+    const customerPhone = o.customer?.phone || o.customer_phone || '—';
     const customerEvent = o.customer?.event || o.customer_event;
     const placedAt = o.placedAt || o.placed_at;
     const total = o.total || 0;
@@ -530,7 +546,7 @@ async function renderOrdersPage(search='',statusFilter=''){
     const productNames = items.map(item => {
       const qty = item.quantity || 1;
       const name = item.product_name || item.name || item.productName || 'Unknown Item';
-      return qty > 1 ? `${name} (Ã—${qty})` : name;
+      return qty > 1 ? `${name} (×${qty})` : name;
     }).join(', ');
     
     const itemsDisplay = productNames || `${items.length} item(s)`;
@@ -539,8 +555,8 @@ async function renderOrdersPage(search='',statusFilter=''){
       <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">${orderId}</td>
       <td><strong style="color:var(--text);">${customerName}</strong>${customerEvent?`<br><small style="color:var(--text-dim);">${customerEvent}</small>`:''}</td>
       <td style="color:var(--text-dim);">${customerPhone}</td>
-      <td style="color:var(--text-dim);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${productNames}">${itemsDisplay}${hasRentals?' ðŸ“…':''}</td>
-      <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">â‚¹${formatPrice(total)}</td>
+      <td style="color:var(--text-dim);max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${productNames}">${itemsDisplay}${hasRentals?' 📅':''}</td>
+      <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">₹${formatPrice(total)}</td>
       <td>${statusBadge(status)}</td>
       <td style="color:var(--text-dim);font-size:.78rem;">${placedAt}</td>
       <td><div class="action-btns">
@@ -553,7 +569,7 @@ async function renderOrdersPage(search='',statusFilter=''){
   }).join('');
 }
 
-// â”€â”€ RENTALS PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- RENTALS PAGE ---------------------------------------------------------
 async function renderRentalsPage(){
   try {
     // Load rentals directly from the rentals API
@@ -563,7 +579,7 @@ async function renderRentalsPage(){
     const tb = document.getElementById('rentalsTable');
     
     if (!Array.isArray(rentals) || rentals.length === 0) {
-      tb.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="ei">ðŸ“…</div><p>No rental bookings yet.</p></div></td></tr>`;
+      tb.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="ei">📅</div><p>No rental bookings yet.</p></div></td></tr>`;
       return;
     }
     
@@ -575,20 +591,20 @@ async function renderRentalsPage(){
     });
     
     if (rentalRows.length === 0) {
-      tb.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="ei">ðŸ“…</div><p>No rental items found.</p></div></td></tr>`;
+      tb.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="ei">📅</div><p>No rental items found.</p></div></td></tr>`;
       return;
     }
     
     tb.innerHTML = rentalRows.map(({order, item}) => {
       const status = order.rental_status || getEffectiveStatus(order);
       const orderId = getOrderId(order);
-      const customerName = order.customer?.name || order.customer_name || 'â€”';
+      const customerName = order.customer?.name || order.customer_name || '—';
       const customerPhone = order.customer?.phone || order.customer_phone || '';
       
       // Calculate rental period
-      const fromDate = order.rental_start_date || order.placed_at || 'â€”';
-      const toDate = order.expected_return_date || 'â€”';
-      const days = order.rental_days || 'â€”';
+      const fromDate = order.rental_start_date || order.placed_at || '—';
+      const toDate = order.expected_return_date || '—';
+      const days = order.rental_days || '—';
       
       return `<tr>
         <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">${orderId}</td>
@@ -597,7 +613,7 @@ async function renderRentalsPage(){
         <td style="color:var(--text-dim);">${fromDate}</td>
         <td style="color:var(--text-dim);">${toDate}</td>
         <td style="text-align:center;">${days}</td>
-        <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">â‚¹${formatPrice(item.price || 0)}</td>
+        <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">₹${formatPrice(item.price || 0)}</td>
         <td>${statusBadge(status)}</td>
         <td><div class="action-btns">
           ${status === 'New' ? `<button class="ab ab-confirm" onclick="setStatus('${orderId}','Confirmed')">Confirm</button>` : ''}
@@ -614,20 +630,20 @@ async function renderRentalsPage(){
   }
 }
 
-// â”€â”€ ENQUIRIES PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- ENQUIRIES PAGE -------------------------------------------------------
 function renderEnquiriesPage(){
   const enqs=getEnquiries();
   const tb=document.getElementById('allEnqTable');
-  if(enqs.length===0){tb.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="ei">ðŸ’¬</div><p>No enquiries yet.</p></div></td></tr>`;return;}
+  if(enqs.length===0){tb.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="ei">💬</div><p>No enquiries yet.</p></div></td></tr>`;return;}
   tb.innerHTML=enqs.map(e=>{
     const status=getEffectiveStatus(e);
     const orderId = getOrderId(e);
-    const placedAt = e.placedAt || e.placed_at || 'â€”';
-    const customerName = e.customer?.name || e.customer_name || 'â€”';
-    const customerPhone = e.customer?.phone || e.customer_phone || 'â€”';
-    const customerEmail = e.customer?.email || e.customer_email || 'â€”';
-    const customerEvent = e.customer?.event || e.customer_event || 'â€”';
-    const customerNotes = e.customer?.notes || e.customer_notes || 'â€”';
+    const placedAt = e.placedAt || e.placed_at || '—';
+    const customerName = e.customer?.name || e.customer_name || '—';
+    const customerPhone = e.customer?.phone || e.customer_phone || '—';
+    const customerEmail = e.customer?.email || e.customer_email || '—';
+    const customerEvent = e.customer?.event || e.customer_event || '—';
+    const customerNotes = e.customer?.notes || e.customer_notes || '—';
     return `<tr>
       <td style="font-family:'Cormorant Garamond',serif;color:var(--gold-light);">${orderId}</td>
       <td><strong style="color:var(--text);">${customerName}</strong></td>
@@ -646,7 +662,7 @@ function renderEnquiriesPage(){
   }).join('');
 }
 
-// â”€â”€ PRODUCTS PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- PRODUCTS PAGE --------------------------------------------------------
 let currentProductFilter = 'all';
 
 function filterProductsByType(type, btn) {
@@ -664,7 +680,7 @@ function toggleInvTabs() {
   
   // Change icon
   const icon = hamburger.querySelector('.hamburger-icon');
-  icon.textContent = dropdown.classList.contains('open') ? 'âœ•' : 'â˜°';
+  icon.textContent = dropdown.classList.contains('open') ? '✕' : '☰';
 }
 
 // Select inventory tab and update label (mobile)
@@ -679,7 +695,7 @@ function selectInvTab(label) {
   // Reset icon
   const hamburger = document.getElementById('invTabsHamburger');
   const icon = hamburger.querySelector('.hamburger-icon');
-  icon.textContent = 'â˜°';
+  icon.textContent = '☰';
 }
 
 function renderProductsPage(){
@@ -710,9 +726,9 @@ function renderProductsPage(){
     // Status label
     let statusLabel, statusClass;
     if(available===0){statusLabel='OUT OF STOCK';statusClass='unavail';}
-    else if(available<=2){statusLabel=`âš  LOW â€” ${available} left`;statusClass='warn-btn';}
+    else if(available<=2){statusLabel=`⚠ LOW — ${available} left`;statusClass='warn-btn';}
     else{
-      statusLabel=`âœ“ In Stock â€” ${available} available`;
+      statusLabel=`✓ In Stock — ${available} available`;
       statusClass='avail';
     }
 
@@ -720,9 +736,9 @@ function renderProductsPage(){
     
     // Product type badge
     let typeBadge = '';
-    if (p.type === 'rent') typeBadge = '<span class="badge" style="background:rgba(100,150,255,0.2);color:#6b9fff;border:1px solid rgba(100,150,255,0.3);font-size:.7rem;margin-left:4px;">ðŸ“… Rent</span>';
-    else if (p.type === 'buy') typeBadge = '<span class="badge" style="background:rgba(255,180,100,0.2);color:#ffb464;border:1px solid rgba(255,180,100,0.3);font-size:.7rem;margin-left:4px;">ðŸ’° Buy</span>';
-    else if (p.type === 'both') typeBadge = '<span class="badge" style="background:rgba(201,150,58,0.2);color:var(--gold-light);border:1px solid rgba(201,150,58,0.3);font-size:.7rem;margin-left:4px;">ðŸ”„ Both</span>';
+    if (p.type === 'rent') typeBadge = '<span class="badge" style="background:rgba(100,150,255,0.2);color:#6b9fff;border:1px solid rgba(100,150,255,0.3);font-size:.7rem;margin-left:4px;">📅 Rent</span>';
+    else if (p.type === 'buy') typeBadge = '<span class="badge" style="background:rgba(255,180,100,0.2);color:#ffb464;border:1px solid rgba(255,180,100,0.3);font-size:.7rem;margin-left:4px;">💎 Buy</span>';
+    else if (p.type === 'both') typeBadge = '<span class="badge" style="background:rgba(201,150,58,0.2);color:var(--gold-light);border:1px solid rgba(201,150,58,0.3);font-size:.7rem;margin-left:4px;">💎 Both</span>';
 
     return `<div class="prod-admin-card">
       ${outOverlay}
@@ -734,7 +750,7 @@ function renderProductsPage(){
         </span>
       </div>
       <div class="pac-name">${p.name}${typeBadge}</div>
-      <div class="pac-material" style="margin-bottom:10px;">${p.material} Â· ${p.category}</div>
+      <div class="pac-material" style="margin-bottom:10px;">${p.material} · ${p.category}</div>
 
       <div class="inv-stats">
         <div class="inv-stat neutral"><div class="inv-stat-num">${base}</div><div class="inv-stat-lbl">Total</div></div>
@@ -747,15 +763,15 @@ function renderProductsPage(){
       <div class="inv-row">
         <span class="inv-label">Total Stock</span>
         <div class="inv-controls">
-          <button class="inv-btn" onclick="adjustStock(${p.id},-1)">âˆ’</button>
+          <button class="inv-btn" onclick="adjustStock(${p.id},-1)">-</button>
           <input class="inv-qty" type="number" value="${base}" min="0" onchange="setStockDirect(${p.id},this.value)" id="inv-input-${p.id}"/>
           <button class="inv-btn" onclick="adjustStock(${p.id},1)">+</button>
         </div>
       </div>
 
       <div class="pac-pricing" style="margin-bottom:10px;">
-        ${p.rentPerDay?`<div class="pac-price"><div class="pac-price-label">Rent/Day</div><div class="pac-price-val">â‚¹${p.rentPerDay}</div></div>`:''}
-        ${p.buy?`<div class="pac-price"><div class="pac-price-label">Buy</div><div class="pac-price-val">â‚¹${p.buy}</div></div>`:''}
+        ${p.rentPerDay?`<div class="pac-price"><div class="pac-price-label">Rent/Day</div><div class="pac-price-val">₹${p.rentPerDay}</div></div>`:''}
+        ${p.buy?`<div class="pac-price"><div class="pac-price-label">Buy</div><div class="pac-price-val">₹${p.buy}</div></div>`:''}
       </div>
 
       <div class="toggle-avail ${available===0?'unavail':available<=2?'unavail':''} ${available>2?'avail':''}"
@@ -764,7 +780,7 @@ function renderProductsPage(){
       </div>
 
       <button class="pac-delete-btn" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
-        ðŸ—‘ï¸ Delete Product
+        🗑️ Delete Product
       </button>
     </div>`;
   }).join('');
@@ -795,7 +811,7 @@ function setStockDirect(id,val){
 // Delete product
 async function deleteProduct(id, name) {
   // Confirm deletion
-  const confirmed = confirm(`âš ï¸ Are you sure you want to delete "${name}"?\n\nThis action cannot be undone!`);
+  const confirmed = confirm(`⚠️ Are you sure you want to delete "${name}"?\n\nThis action cannot be undone!`);
   
   if (!confirmed) return;
   
@@ -825,7 +841,7 @@ async function deleteProduct(id, name) {
     // Re-render products page
     renderProductsPage();
     
-    showToast(`âœ… "${name}" deleted successfully`);
+    showToast(`✅ "${name}" deleted successfully`);
     
     // Reload products from API to ensure sync
     await loadProductsFromAPI();
@@ -845,7 +861,7 @@ function syncAvailabilityFromStock(id,baseQty){
   saveAvailability(avail);
 }
 
-// â”€â”€ CUSTOMERS PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- CUSTOMERS PAGE -------------------------------------------------------
 function renderCustomersPage(search=''){
   loadOrdersFromAPI().then(() => {
     const orders=getOrders().filter(o=>o.type==='order');
@@ -894,7 +910,7 @@ function renderCustomersPage(search=''){
   let filtered=custs;
   if(search) filtered=custs.filter(c=>c.name?.toLowerCase().includes(search.toLowerCase())||c.phone?.includes(search));
   if(filtered.length===0){
-    container.innerHTML=`<div class="empty-state"><div class="ei">ðŸ‘¥</div><p>No customers yet. Customers who place orders or enquiries appear here.</p></div>`;
+    container.innerHTML=`<div class="empty-state"><div class="ei">💎</div><p>No customers yet. Customers who place orders or enquiries appear here.</p></div>`;
     return;
   }
   container.innerHTML=filtered.map(c=>{
@@ -902,11 +918,11 @@ function renderCustomersPage(search=''){
     return `<div class="customer-card">
       <div class="cust-info">
         <h4>${c.name || 'Unknown Customer'}</h4>
-        <p>ðŸ“ž ${c.phone}${c.email?` &nbsp;|&nbsp; âœ‰ï¸ ${c.email}`:''}</p>
-        <p style="margin-top:4px;">${c.orders.length} order(s) &nbsp;Â·&nbsp; ${c.enquiries.length} enquiry(ies)</p>
+        <p>📞 ${c.phone}${c.email?` &nbsp;|&nbsp; ✉️ ${c.email}`:''}</p>
+        <p style="margin-top:4px;">${c.orders.length} order(s) &nbsp;·&nbsp; ${c.enquiries.length} enquiry(ies)</p>
       </div>
       <div class="cust-stats">
-        <div class="cs-num">â‚¹${formatPrice(totalSpend)}</div>
+        <div class="cs-num">₹${formatPrice(totalSpend)}</div>
         <div class="cs-label">Total Value</div>
       </div>
     </div>`;
@@ -914,21 +930,21 @@ function renderCustomersPage(search=''){
   }); // Close the promise
 }
 
-// â”€â”€ ORDER DETAIL MODAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- ORDER DETAIL MODAL ---------------------------------------------------
 function openDetail(id, type){
   const all=[...getOrders(),...getEnquiries()];
   const item=all.find(o=>(o.orderId === id || o.order_id === id));
   if(!item) return;
   const status=getEffectiveStatus(item);
-  const placedAt = item.placedAt || item.placed_at || 'â€”';
-  document.getElementById('detailTitle').textContent=(type==='enquiry'?'ðŸ’¬ Enquiry: ':'ðŸ“‹ Order: ')+id;
+  const placedAt = item.placedAt || item.placed_at || '—';
+  document.getElementById('detailTitle').textContent=(type==='enquiry'?'💬 Enquiry: ':'💎₹ Order: ')+id;
   
   // Handle both nested customer object and flat fields
-  const customerName = item.customer?.name || item.customer_name || 'â€”';
-  const customerPhone = item.customer?.phone || item.customer_phone || 'â€”';
-  const customerEmail = item.customer?.email || item.customer_email || 'â€”';
-  const customerEvent = item.customer?.event || item.customer_event || 'â€”';
-  const customerAddress = item.customer?.address || item.customer_address || 'â€”';
+  const customerName = item.customer?.name || item.customer_name || '—';
+  const customerPhone = item.customer?.phone || item.customer_phone || '—';
+  const customerEmail = item.customer?.email || item.customer_email || '—';
+  const customerEvent = item.customer?.event || item.customer_event || '—';
+  const customerAddress = item.customer?.address || item.customer_address || '—';
   
   let html=`<div class="detail-grid">
     <div class="detail-field"><label>Customer Name</label><span>${customerName}</span></div>
@@ -943,11 +959,11 @@ function openDetail(id, type){
     item.items.forEach(i=>{
       const typeLabel=i.mode==='rent'?'Rental':'Purchase';
       const tc=i.mode==='rent'?'badge-rent':'badge-buy';
-      const dates=i.rentalData?`<br><small style="color:var(--text-dim);">ðŸ“… ${i.rentalData.from} â†’ ${i.rentalData.to} (${i.rentalData.days} days)</small>`:'';
+      const dates=i.rentalData?`<br><small style="color:var(--text-dim);">📅 ${i.rentalData.from} â†’ ${i.rentalData.to} (${i.rentalData.days} days)</small>`:'';
       const itemName = i.product_name || i.name || i.productName || 'Unknown Item';
-      html+=`<div class="di-row"><div class="di-name">${i.icon||''} ${itemName} <span class="badge ${tc}">${typeLabel}</span>${dates}</div><div class="di-price">â‚¹${formatPrice(i.price||0)}</div></div>`;
+      html+=`<div class="di-row"><div class="di-name">${i.icon||''} ${itemName} <span class="badge ${tc}">${typeLabel}</span>${dates}</div><div class="di-price">₹${formatPrice(i.price||0)}</div></div>`;
     });
-    html+=`<div class="di-row" style="border-top:1px solid rgba(201,150,58,0.2);padding-top:10px;"><div style="color:var(--text-dim);text-transform:uppercase;font-size:.75rem;letter-spacing:.1em;">Total</div><div class="di-price" style="font-size:1.3rem;">â‚¹${formatPrice(item.total||0)}</div></div></div>`;
+    html+=`<div class="di-row" style="border-top:1px solid rgba(201,150,58,0.2);padding-top:10px;"><div style="color:var(--text-dim);text-transform:uppercase;font-size:.75rem;letter-spacing:.1em;">Total</div><div class="di-price" style="font-size:1.3rem;">₹${formatPrice(item.total||0)}</div></div></div>`;
   }
   
   // Handle customer notes from both formats
@@ -972,7 +988,7 @@ function openDetail(id, type){
 function closeDetail(){ document.getElementById('detailModal').classList.remove('open'); }
 document.getElementById('detailModal').addEventListener('click',function(e){ if(e.target===this) closeDetail(); });
 
-// â”€â”€ TOAST â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- TOAST ----------------------------------------------------------------
 function showToast(msg,type='success'){
   const t=document.getElementById('toast');
   t.textContent=msg; t.className='toast'+(type==='error'?' error-toast':'');
@@ -980,10 +996,10 @@ function showToast(msg,type='success'){
   setTimeout(()=>t.classList.remove('show'),3000);
 }
 
-// â”€â”€ CHECK SESSION ON PAGE LOAD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- CHECK SESSION ON PAGE LOAD -------------------------------------------
 checkSession();
 
-// â”€â”€ BULK IMPORT FUNCTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- BULK IMPORT FUNCTIONS -------------------------------------------------
 function openBulkImportModal() {
   document.getElementById('bulkImportModal').classList.add('open');
   document.getElementById('bulkImportFile').value = '';
@@ -1091,7 +1107,7 @@ async function processBulkImport() {
         }
         
         // Set defaults
-        product.icon = product.icon || 'ðŸ’Ž';
+        product.icon = product.icon || '💎';
         product.baseStock = product.baseStock || 5;
         product.imageUrl = product.imageUrl || null;
         
@@ -1099,11 +1115,11 @@ async function processBulkImport() {
         await api.createProduct(product);
         successCount++;
         
-        resultsDiv.innerHTML += `<div style="color:#4CAF50;font-size:0.85rem;padding:4px;">âœ“ ${product.name}</div>`;
+        resultsDiv.innerHTML += `<div style="color:#4CAF50;font-size:0.85rem;padding:4px;">✓ ${product.name}</div>`;
       } catch (error) {
         failCount++;
         errors.push({ product: product.name || `Row ${i + 1}`, error: error.message });
-        resultsDiv.innerHTML += `<div style="color:#ff6b6b;font-size:0.85rem;padding:4px;">âœ— ${product.name || `Row ${i + 1}`}: ${error.message}</div>`;
+        resultsDiv.innerHTML += `<div style="color:#ff6b6b;font-size:0.85rem;padding:4px;">✗ ${product.name || `Row ${i + 1}`}: ${error.message}</div>`;
       }
       
       // Update progress
@@ -1118,13 +1134,13 @@ async function processBulkImport() {
     progressText.textContent = `Complete: ${successCount} succeeded, ${failCount} failed`;
     
     if (successCount > 0) {
-      showToast(`âœ… Successfully imported ${successCount} products!`);
+      showToast(`✅ Successfully imported ${successCount} products!`);
       await loadProductsFromAPI();
       renderProductsPage();
     }
     
     if (failCount > 0) {
-      showToast(`âš ï¸ ${failCount} products failed to import`, 'error');
+      showToast(`⚠️ ${failCount} products failed to import`, 'error');
     }
     
   } catch (error) {
@@ -1134,13 +1150,13 @@ async function processBulkImport() {
   }
 }
 
-// â”€â”€ ADD PRODUCT FUNCTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- ADD PRODUCT FUNCTIONS -------------------------------------------------
 function openAddProductModal() {
   document.getElementById('addProductModal').classList.add('open');
   // Reset form
   document.getElementById('newProductName').value = '';
   document.getElementById('newProductMaterial').value = '';
-  document.getElementById('newProductIcon').value = 'ðŸ’Ž';
+  document.getElementById('newProductIcon').value = '💎';
   document.getElementById('newProductCategory').value = '';
   document.getElementById('newProductType').value = 'both';
   document.getElementById('newProductRent').value = '';
@@ -1175,7 +1191,7 @@ function togglePriceFields() {
 async function saveNewProduct() {
   const name = document.getElementById('newProductName').value.trim();
   const material = document.getElementById('newProductMaterial').value.trim();
-  const icon = document.getElementById('newProductIcon').value.trim() || 'ðŸ’Ž';
+  const icon = document.getElementById('newProductIcon').value.trim() || '💎';
   const category = document.getElementById('newProductCategory').value.trim();
   const type = document.getElementById('newProductType').value;
   const rentPerDay = parseFloat(document.getElementById('newProductRent').value) || null;
@@ -1220,7 +1236,7 @@ async function saveNewProduct() {
     
     if (typeof api !== 'undefined') {
       const result = await api.createProduct(productData);
-      showToast('âœ… Product added successfully!');
+      showToast('✅ Product added successfully!');
       closeAddProductModal();
       // Reload products
       await loadProductsFromAPI();
@@ -1252,7 +1268,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// â”€â”€ CHANGE PASSWORD FUNCTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- CHANGE PASSWORD FUNCTIONS ---------------------------------------------
 function showChangePassword() {
   document.getElementById('changePasswordModal').classList.add('open');
   // Clear form
@@ -1304,7 +1320,7 @@ async function saveNewPassword() {
     const result = await updateResponse.json();
     
     if (updateResponse.ok) {
-      showToast('âœ… Password updated successfully!');
+      showToast('✅ Password updated successfully!');
       closeChangePasswordModal();
     } else {
       showToast(result.error || 'Failed to update password', 'error');
@@ -1321,7 +1337,7 @@ document.getElementById('changePasswordModal').addEventListener('click', functio
   if (e.target === this) closeChangePasswordModal();
 });
 
-// â”€â”€ REAL-TIME UPDATES WITH SOCKET.IO â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// -- REAL-TIME UPDATES WITH SOCKET.IO --------------------------------------
 const socket = io({
   reconnection: true,
   reconnectionDelay: 1000,
@@ -1331,7 +1347,7 @@ const socket = io({
 });
 
 socket.on('connect', () => {
-  console.log('âœ… Real-time updates connected');
+  console.log('✅ Real-time updates connected');
 });
 
 // Throttle function to prevent excessive API calls
@@ -1350,14 +1366,14 @@ socket.on('productAdded', async (product) => {
   console.log('New product added:', product);
   await loadProductsFromAPI();
   renderProductsPage();
-  showToast('âœ¨ New product added!');
+  showToast('✨ New product added!');
 });
 
 socket.on('productUpdated', async (product) => {
   console.log('Product updated:', product);
   await loadProductsFromAPI();
   renderProductsPage();
-  showToast('âœ¨ Product updated!');
+  showToast('✨ Product updated!');
 });
 
 socket.on('productDeleted', async (data) => {
@@ -1371,7 +1387,7 @@ socket.on('orderCreated', async (order) => {
   console.log('New order:', order);
   await loadOrdersFromAPI();
   throttledRefresh(); // Use throttled refresh instead of immediate refreshAll
-  showToast('ðŸ”” New order received!');
+  showToast('💎” New order received!');
 });
 
 socket.on('orderUpdated', async (data) => {
@@ -1381,5 +1397,5 @@ socket.on('orderUpdated', async (data) => {
 });
 
 socket.on('disconnect', () => {
-  console.log('âš ï¸ Real-time updates disconnected');
+  console.log('⚠️ Real-time updates disconnected');
 });

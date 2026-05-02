@@ -1,0 +1,31 @@
+# Gradle build caches and wrapper downloads
+.gradle/
+.gradle-user-home/
+build/
+**/build/
+gradle-8.9/
+gradle-8.9-bin.zip
+
+# Local configuration files
+local.properties
+.idea/
+.vscode/
+*.iml
+
+# Android Studio / IntelliJ
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Output files
+out/
+*.apk
+*.ap_
+*.aab
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

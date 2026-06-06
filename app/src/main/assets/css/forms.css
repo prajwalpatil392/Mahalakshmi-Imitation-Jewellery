@@ -1,0 +1,24 @@
+/* ══ FORMS ══ */
+.form-title{font-family:'Cinzel',serif;font-size:1.15rem;font-weight:700;color:var(--crimson);text-align:center;margin-bottom:20px;letter-spacing:2px}
+.form-title span{display:block;font-size:1.6rem;margin-bottom:6px}
+.fg{margin-bottom:18px}
+.fl{display:block;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;color:var(--crimson);margin-bottom:7px;font-weight:600}
+.fi{width:100%;background:var(--gold-pale);border:1.5px solid var(--gold-border);border-radius:var(--radius-sm);padding:14px;font-family:'Lora',serif;font-size:0.95rem;color:var(--text);outline:none;transition:border 0.15s,background 0.15s;-webkit-appearance:none;appearance:none}
+.fi:focus{border-color:var(--crimson);background:#FFFDF8}
+.fi::placeholder{color:#C8A860;font-style:italic;font-size:0.85rem}
+.readonly-field{background:#eee}
+.hidden-input{position:absolute;width:1px;height:1px;opacity:0;left:0;top:0;z-index:-1}
+.cloudinary-btn{background:linear-gradient(135deg,#FF6B35,#F7931E);margin-bottom:10px;color:white;border-color:#F7931E}
+.secondary-save-btn{background:linear-gradient(135deg,var(--gold),var(--gold-bright));margin-top:10px;color:#000;border-color:var(--gold)}
+
+/* ══ JEWEL PICKER ══ */
+.jewel-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:8px}
+.jo{background:var(--gold-pale);border:1.5px solid var(--gold-border);border-radius:10px;padding:12px 4px;text-align:center;cursor:pointer;transition:all 0.15s}
+.jo .ji{font-size:1.4rem}
+.jo .jn{font-size:0.58rem;font-family:'Cinzel',serif;color:var(--muted);margin-top:2px;letter-spacing:0.5px;text-transform:uppercase}
+.jo.sel{background:linear-gradient(135deg,#FFF3CC,#FFE060);border-color:var(--crimson)}
+.jo.sel .jn{color:var(--crimson)}
+
+/* ══ SAVE BUTTON ══ */
+.save-btn{width:100%;background:linear-gradient(135deg,var(--green),#2A8A4A);color:white;border:2px solid #A0D8A8;border-radius:var(--radius);padding:18px;font-family:'Cinzel',serif;font-size:0.95rem;font-weight:600;letter-spacing:1.5px;cursor:pointer;box-shadow:0 5px 18px rgba(26,92,46,0.3);display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;text-transform:uppercase}
+.save-btn:active{transform:scale(0.97)}

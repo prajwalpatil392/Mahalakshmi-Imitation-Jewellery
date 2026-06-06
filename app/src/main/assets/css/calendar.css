@@ -1,0 +1,21 @@
+/* ══ CALENDAR WIDGET ══ */
+.home-calendar-widget{background:var(--cream);border:1.5px solid var(--gold-border);border-radius:var(--radius);padding:16px;margin-bottom:18px;box-shadow:var(--shadow)}
+.cw-header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.cw-title{font-family:'Cinzel',serif;font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--crimson)}
+.cw-controls{display:flex;gap:8px}
+.cw-nav{width:34px;height:34px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--gold-light),var(--gold));color:var(--text);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,0.12);transition:transform 0.15s}
+.cw-nav:active{transform:scale(0.96)}
+.cw-month{font-family:'Cinzel',serif;font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:10px}
+.cw-weekdays,.cw-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cw-weekdays span{text-align:center;font-size:0.68rem;text-transform:uppercase;color:var(--muted)}
+.cw-day{min-height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;color:var(--text);background:#FFF9EE;border:1px solid rgba(212,165,32,0.2);cursor:pointer;transition:transform 0.15s,background 0.15s}
+.cw-day:hover{transform:translateY(-1px);background:#FFF5D4}
+.cw-day.other-month{opacity:0.35;background:transparent;border-color:transparent;cursor:default;transform:none}
+.cw-day.today{border-color:var(--crimson);background:linear-gradient(135deg,rgba(122,0,0,0.12),rgba(201,146,10,0.12));font-weight:700;color:var(--crimson)}
+.cw-day.event{position:relative}
+.cw-day.event::after{content:'';position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(26,92,46,0.12)}
+.cw-day.selected{border-color:var(--green);background:linear-gradient(135deg,rgba(26,92,46,0.12),rgba(201,146,10,0.08))}
+.cw-legend{display:flex;gap:16px;margin-top:14px;font-size:0.72rem;color:var(--muted);flex-wrap:wrap}
+.cw-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.cw-dot.today{background:var(--crimson)}
+.cw-dot.event{background:var(--green)}

@@ -1,13 +1,112 @@
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzWpt6cde0bTdIttlBhITtWDFVioh3q6sh6ADLNKHo0IVo4EK_j4hUyx9qPoFZLs91Q2Q/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxoPMkE5B_0QgwElsTwD2Y2tvaahoFUPk80S-m-WEGP8-l4fCHzlPg6poskCvOZIEs9wg/exec";
 const SECRET_KEY = "ML_RENTALS_2024";
 const CLOUD_NAME = "dcgfc7bse";
 const CLOUD_PRESET = "mahalakshmi_jewellery";
+const MAIN_SHEET_ID = "1H728QUmyN87qv7C6T5dQtOPrCO77ZXCFcLzXaPrinx8";
+
+// ✅ NEW: User authentication system
+let currentUser = null;
+let users = {}; // { name: password_hash }
+const USERS_KEY = "mlRentals_users";
+const CURRENT_USER_KEY = "mlRentals_currentUser";
+
+// ✅ Simple password validation (not cryptographic, for demo)
+function hashPassword(pwd) {
+  let hash = 0;
+  for (let i = 0; i < pwd.length; i++) {
+    hash = ((hash << 5) - hash) + pwd.charCodeAt(i);
+    hash |= 0;
+  }
+  return String(hash);
+}
+
+// ✅ Load users from localStorage
+function loadUsers() {
+  try {
+    const stored = localStorage.getItem(USERS_KEY);
+    users = stored ? JSON.parse(stored) : {};
+  } catch (e) {
+    users = {};
+  }
+}
+
+// ✅ Save users to localStorage
+function saveUsers() {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+// ✅ Load current user session
+function loadUserSession() {
+  const stored = localStorage.getItem(CURRENT_USER_KEY);
+  if (stored) {
+    currentUser = stored;
+  }
+}
+
+// ✅ Save user session
+function saveUserSession(userName) {
+  currentUser = userName;
+  localStorage.setItem(CURRENT_USER_KEY, userName);
+}
+
+// ✅ Logout user
+function logoutUser() {
+  currentUser = null;
+  localStorage.removeItem(CURRENT_USER_KEY);
+  go('auth');
+  setTimeout(() => location.reload(), 300);
+}
+
+// ✅ Register new user
+function registerUser(name, password) {
+  if (!name || !password) {
+    toast('❌ Name and password required');
+    return false;
+  }
+  if (name.length < 2) {
+    toast('❌ Name must be at least 2 characters');
+    return false;
+  }
+  if (password.length < 4) {
+    toast('❌ Password must be at least 4 characters');
+    return false;
+  }
+  if (users[name]) {
+    toast('❌ User already exists');
+    return false;
+  }
+  users[name] = hashPassword(password);
+  saveUsers();
+  toast('✅ Registration successful! Please login.');
+  return true;
+}
+
+// ✅ Login user
+function loginUser(name, password) {
+  if (!name || !password) {
+    toast('❌ Name and password required');
+    return false;
+  }
+  const storedHash = users[name];
+  if (!storedHash) {
+    toast('❌ User not found');
+    return false;
+  }
+  if (storedHash !== hashPassword(password)) {
+    toast('❌ Wrong password');
+    return false;
+  }
+  saveUserSession(name);
+  toast('✅ Login successful!');
+  return true;
+}
 
 let records = [];
 let curFilter = 'all';
 let calendarDate = new Date();
-let selectedDate = new Date().toISOString().slice(0, 10); // ✅ FIXED: Initialize with today's date
+// ✅ FIXED: Use local date string instead of UTC ISO string
+let selectedDate = getLocalDateString(new Date());
 let isUploading = false;
 let uploadedUrl = '';
 let uploadedPhotos = [];  // Legacy placeholder
@@ -16,9 +115,42 @@ let curDetailRecord = null;  // Store current detail record for WhatsApp
 let currentEditId = null; // Track edit mode record id
 let searchTimeout = null;  // For search debouncing
 let queuedPhotos = []; // Pending compressed photos to upload after save
+const MAX_CAMERA_PHOTOS = 3;
+const AUTO_CAMERA_BURST_COUNT = 3;
+let recycleBinRecords = [];
+let pendDelRecord = null; // Store full record for delete confirmation display
+const FILTER_STATUS_SET = new Set(['active', 'overdue', 'returned']);
+const RECORDS_CACHE_KEY = "cachedRecords_v1";
+const CACHE_SNAPSHOT_KEY = "cachedHomeHTML_v1";
+let editingExistingPhotos = [];
+let swipeStartX = 0;
+let swipeStartY = 0;
+let swipeStartTime = 0;
+
+// ===== DATE FORMATTING UTILITY (dd-mmm-yyyy format) =====
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return '';
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  try {
+    const date = new Date(dateStr + 'T00:00:00');
+    if (isNaN(date.getTime())) return dateStr;
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  } catch (e) {
+    return dateStr;
+  }
+}
+
+// ===== GLOBAL VARIABLES =====
+
+// DEBUG FLAG
+const DEBUG = true;
 
 // INIT
-const today = new Date().toISOString().split('T')[0];
+// ✅ FIXED: Use local date string instead of UTC ISO string
+const today = getLocalDateString(new Date());
 document.getElementById('fFrom').value = today;
 // ✅ FIXED: Ensure selectedDate is initialized before any render
 selectedDate = today;
@@ -30,22 +162,148 @@ let lastSyncTime = 0;
 
 // Initial load with feedback
 console.log('App starting... Loading data from backend');
-loadData().then(() => {
-  console.log('Initial load complete');
-  // ✅ FIXED: Set filter to 'all' and render (no double filtering)
-  curFilter = 'all';
-  renderHome();
-}).catch((err) => {
-  console.error('Initial load failed:', err);
-  toast('⚠️ Failed to load initial data');
-});
+
+// ✅ PERFORMANCE: Load cache first, render immediately, then sync with backend
+async function initializeApp() {
+  try {
+    // ✅ NEW: Check if user is logged in
+    loadUsers();
+    loadUserSession();
+    
+    if (!currentUser) {
+      // Show auth screen
+      document.getElementById('s-auth').classList.add('active');
+      document.getElementById('s-home').classList.remove('active');
+      setupAuthHandlers();
+      return;
+    }
+    
+    // User is logged in, proceed with app
+    document.getElementById('s-auth').classList.remove('active');
+    document.getElementById('s-home').classList.add('active');
+    
+    // 1) INSTANT: Load and render from cache (within 50ms)
+    loadRecordsCache();
+    restoreHomeSnapshot();
+    loadRecycleBinCache();  // ✅ PRELOAD RECYCLE BIN FROM CACHE
+    
+    // Set default filter and render
+    curFilter = 'today';
+    const todayChip = document.querySelector('.fchip[data-f="today"]');
+    if (todayChip) {
+      document.querySelectorAll('.fchip').forEach(x => x.classList.remove('on'));
+      todayChip.classList.add('on');
+    }
+    
+    // Show cached records immediately (user sees data right away)
+    renderHome();
+    console.log('✅ Cached data rendered immediately');
+    
+    // 2) ASYNC: Wait for BOTH backend sync and recycle bin to complete
+    const [dataResult, recycleBinResult] = await Promise.allSettled([
+      loadData(),
+      refreshRecycleBinFromSheet()
+    ]);
+    
+    // Handle data sync result
+    if (dataResult.status === 'fulfilled') {
+      console.log('✅ Backend data synced');
+      renderHome();
+      updateCounts();
+    } else {
+      console.warn('⚠️ Backend sync failed:', dataResult.reason);
+      toast('⚠️ Using offline data');
+    }
+    
+    // Handle recycle bin result
+    if (recycleBinResult.status === 'fulfilled') {
+      console.log('✅ Recycle bin preloaded');
+    } else {
+      console.warn('⚠️ Recycle bin preload failed:', recycleBinResult.reason);
+    }
+    
+    // 3) HIDE SPLASH SCREEN ONLY AFTER ALL DATA IS READY
+    setTimeout(() => {
+      const splash = document.getElementById('splashScreen');
+      if (splash) {
+        splash.classList.add('hide');
+        console.log('✅ Splash screen hidden - App ready!');
+      }
+    }, 300); // Small delay for visual polish
+    
+  } catch (error) {
+    console.error('Init error:', error);
+    toast('❌ Failed to initialize app');
+    // Hide splash even on error
+    const splash = document.getElementById('splashScreen');
+    if (splash) splash.classList.add('hide');
+  }
+}
+
+// ✅ NEW: Setup auth handlers
+function setupAuthHandlers() {
+  const loginBtn = document.getElementById('loginBtn');
+  const registerBtn = document.getElementById('registerBtn');
+  const toggleRegisterBtn = document.getElementById('toggleRegisterBtn');
+  const toggleLoginBtn = document.getElementById('toggleLoginBtn');
+  const loginForm = document.getElementById('loginForm');
+  const registerForm = document.getElementById('registerForm');
+  
+  if (toggleRegisterBtn) {
+    toggleRegisterBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      loginForm.style.display = 'none';
+      registerForm.style.display = 'block';
+    });
+  }
+  
+  if (toggleLoginBtn) {
+    toggleLoginBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      registerForm.style.display = 'none';
+      loginForm.style.display = 'block';
+    });
+  }
+  
+  if (loginBtn) {
+    loginBtn.addEventListener('click', () => {
+      const name = document.getElementById('loginName').value.trim();
+      const pass = document.getElementById('loginPass').value;
+      if (loginUser(name, pass)) {
+        setTimeout(() => location.reload(), 500);
+      }
+    });
+  }
+  
+  if (registerBtn) {
+    registerBtn.addEventListener('click', () => {
+      const name = document.getElementById('regName').value.trim();
+      const pass = document.getElementById('regPass').value;
+      const pass2 = document.getElementById('regPass2').value;
+      if (pass !== pass2) {
+        toast('❌ Passwords do not match');
+        return;
+      }
+      if (registerUser(name, pass)) {
+        setTimeout(() => {
+          registerForm.style.display = 'none';
+          loginForm.style.display = 'block';
+          document.getElementById('loginName').value = name;
+          document.getElementById('loginPass').value = '';
+        }, 300);
+      }
+    });
+  }
+}
+
+initializeApp();
 
 let isSyncing = false;
 
 // ✅ PERFORMANCE: Removed auto-sync loop (was causing lag)
 // Sync happens on: app load, manual sync button, after save/delete
 
-async function apiGet(action, payload) {
+async function apiGet(action, payload, sheetId = MAIN_SHEET_ID) {
   const url = SCRIPT_URL;
   try { 
     const controller = new AbortController();
@@ -61,6 +319,7 @@ async function apiGet(action, payload) {
       body.append('key', SECRET_KEY);
       body.append('action', action);
       body.append('data', JSON.stringify(payload));
+      if (sheetId) body.append('sheetId', sheetId);
       body.append('_ts', String(Date.now()));
       options.method = 'POST';
       options.body = body;
@@ -71,7 +330,7 @@ async function apiGet(action, payload) {
 
     const requestUrl = payload
       ? url
-      : `${SCRIPT_URL}?key=${SECRET_KEY}&action=${action}&_ts=${Date.now()}`;
+      : `${SCRIPT_URL}?key=${SECRET_KEY}&action=${encodeURIComponent(action)}${sheetId ? `&sheetId=${encodeURIComponent(sheetId)}` : ''}&_ts=${Date.now()}`;
 
     const r = await fetch(requestUrl, options); 
     clearTimeout(timeout);
@@ -92,6 +351,10 @@ async function apiGet(action, payload) {
 
 async function loadData() {
   try {
+    // 1) Instant render from cache
+    loadRecordsCache();
+    restoreHomeSnapshot();
+
     console.log('loadData: Starting fetch from:', SCRIPT_URL);
     const res = await apiGet('get');
     console.log('loadData: Response received:', res);
@@ -105,8 +368,20 @@ async function loadData() {
       }
       lastRecordCount = res.data.length;
       
-      // ✅ PERFORMANCE: Pre-compute search text for each record
-      records = res.data.map(r => {
+      // ✅ PERFORMANCE: Pre-compute search text for each record + DEDUPLICATE by ID
+      const seenIds = new Set();
+      records = res.data.filter(r => {
+        const id = String(r.id || '').trim();
+        if (seenIds.has(id)) {
+          console.warn('⚠️ Duplicate record filtered out: ID=' + id + ', Name=' + r.name);
+          return false; // Skip duplicate
+        }
+        seenIds.add(id);
+        return true;
+      }).map(r => {
+        // Ensure the record consistently uses only photoUrls (pipe-separated string)
+        normalizePhotoUrlsField(r);
+
         r._search = (
           (r.name || '') + 
           (r.phone || '') + 
@@ -115,15 +390,18 @@ async function loadData() {
         ).toLowerCase();
         return r;
       });
+      saveRecordsCache();
       
       lastSyncTime = Date.now();
       
       // ✅ FIXED: Ensure selectedDate is set before rendering
-      selectedDate = selectedDate || new Date().toISOString().slice(0, 10);
+      // ✅ FIXED: Use local date string instead of UTC ISO string
+      selectedDate = selectedDate || getLocalDateString(new Date());
       
       console.log('loadData: About to render. Records array:', records);
       renderHome(); 
       updateCounts();
+      saveHomeSnapshot();
       console.log(`✅ Loaded ${records.length} records successfully`);
     } else {
       console.error('loadData: Failed with error:', res.error);
@@ -142,25 +420,30 @@ async function loadData() {
 function updateCounts() {
   const activeCount = records.filter(r => r.status === 'active').length;
   const ovCount = records.filter(r => r.status === 'overdue').length;
-  const todayStr = new Date().toISOString().slice(0, 10);
+  // ✅ FIXED: Use local date string instead of UTC ISO string
+  const todayStr = getLocalDateString(new Date());
   const todayCount = records.filter(r => r.from === todayStr).length;
+  // ✅ NEW: Calculate total bookings count
+  const totalCount = records.length;
 
   document.getElementById('cntActive').textContent = activeCount;
   document.getElementById('cntOv').textContent = ovCount;
   document.getElementById('cntToday').textContent = todayCount;
+  document.getElementById('cntTotal').textContent = totalCount;
 }
 
 // ✅ FIXED: Date normalization function to handle various date formats
 function normalizeDate(d) {
   if (!d) return '';
-  try {
-    // Handle both YYYY-MM-DD and other formats
-    const normalized = new Date(d + 'T00:00:00').toISOString().slice(0, 10);
-    return normalized;
-  } catch (e) {
-    console.error('Date normalization error for:', d, e);
-    return '';
-  }
+  return String(d).slice(0, 10);
+}
+
+// ✅ NEW: Convert local Date object to local YYYY-MM-DD string (no UTC conversion)
+function getLocalDateString(dateObj) {
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function renderHome() {
@@ -168,7 +451,8 @@ function renderHome() {
   
   // ✅ FIXED: Ensure selectedDate is always set
   if (!selectedDate) {
-    selectedDate = new Date().toISOString().slice(0, 10);
+    // ✅ FIXED: Use local date string instead of UTC ISO string
+    selectedDate = getLocalDateString(new Date());
     console.warn('selectedDate was undefined, reset to today:', selectedDate);
   }
   
@@ -178,37 +462,38 @@ function renderHome() {
     console.log('Sample Record:', records[0]);
   }
   
-  // Update header with selected date (Daybook style)
-  const dateObj = new Date(selectedDate + 'T00:00:00');
-  document.getElementById('headerDate').textContent = dateObj.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+  // ✅ FIXED: Header always shows TODAY's date (never changes) in dd-mmm-yyyy format
+  // ✅ FIXED: Use local date string instead of UTC ISO string
+  const todayForDisplay = getLocalDateString(new Date());
+  document.getElementById('headerDate').textContent = formatDateDisplay(todayForDisplay);
   
   // Apply search and filter
-  const q = document.getElementById('srchQ').value.toLowerCase();
+  const srch = document.getElementById('srchQ');
+  const q = srch ? srch.value.toLowerCase() : '';
   let filtered = records;
   
-  // ✅ FIXED: Only filter by status (removed 'today' filter to avoid conflict with Daybook)
-  if (curFilter !== 'all') {
+  // ✅ FIXED: Use local date string instead of UTC ISO string
+  const todayStr = getLocalDateString(new Date());
+  if (FILTER_STATUS_SET.has(curFilter)) {
     filtered = filtered.filter(r => r.status === curFilter);
+  } else if (curFilter === 'today') {
+    filtered = filtered.filter(r => normalizeDate(r.from) === todayStr);
+  } else if (curFilter === 'advance') {
+    filtered = filtered.filter(r => {
+      const from = normalizeDate(r.from);
+      return from && from > todayStr;
+    });
+  } else if (curFilter === 'date') {
+    // ✅ FIXED: Filter by START DATE ONLY (not date range)
+    filtered = filtered.filter(r => {
+      if (!r || !r.from) return false;
+      const from = normalizeDate(r.from);
+      return from === selectedDate;
+    });
   }
 
-  // ✅ FIXED: DAYBOOK FILTER with safe date handling
-  filtered = filtered.filter(r => {
-    if (!r.from) {
-      console.warn('Record missing from date:', r);
-      return false;
-    }
-    
-    const from = normalizeDate(r.from);
-    const to = r.to ? normalizeDate(r.to) : selectedDate;
-    
-    if (!from) {
-      console.warn('Could not normalize from date:', r.from);
-      return false;
-    }
-    
-    const isActive = from <= selectedDate && to >= selectedDate;
-    return isActive;
-  });
+  // DEBUG
+  console.log('Filtered Records:', filtered);
   
   // ✅ PERFORMANCE: Use pre-computed search text
   if (q) {
@@ -227,7 +512,7 @@ function renderHome() {
     let msg = "No records found.";
     let sub = "Try changing the filter or search.";
 
-    if (selectedDate !== new Date().toISOString().slice(0, 10)) {
+    if (selectedDate !== getLocalDateString(new Date())) {
       msg = `📅 No Active Rentals on ${selectedDate}`;
       sub = "Select another date or add a new rental.";
     } else if (curFilter === 'overdue') {
@@ -257,9 +542,84 @@ function renderHome() {
       homeList.dataset.lastHtml = html;
     }
     renderCalendarWidget();
+    saveHomeSnapshot();
     console.log('renderHome: Showing', filtered.length, 'records for date:', selectedDate);
   } else {
     console.error('renderHome: homeList element not found!');
+  }
+}
+
+function saveRecordsCache() {
+  try {
+    const cacheable = records.map(r => {
+      const row = { ...r };
+      delete row._search;
+      // blob urls are temporary; avoid stale cache issues
+      if (row.photoUrls) {
+        row.photoUrls = String(row.photoUrls)
+          .split("|")
+          .map(x => x.trim())
+          .filter(x => x.startsWith("http://") || x.startsWith("https://"))
+          .join("|");
+      }
+      return row;
+    });
+    localStorage.setItem(RECORDS_CACHE_KEY, JSON.stringify(cacheable));
+  } catch (e) {
+    console.warn("saveRecordsCache failed:", e);
+  }
+}
+
+function loadRecordsCache() {
+  try {
+    const raw = localStorage.getItem(RECORDS_CACHE_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || !parsed.length) return false;
+
+    records = parsed.map(r => {
+      const row = { ...r };
+      normalizePhotoUrlsField(row);
+      row._search = (
+        (row.name || "") +
+        (row.phone || "") +
+        (row.address || "") +
+        (row.receiptNo || "")
+      ).toLowerCase();
+      return row;
+    });
+
+    renderHome();
+    updateCounts();
+    return true;
+  } catch (e) {
+    console.warn("loadRecordsCache failed:", e);
+    return false;
+  }
+}
+
+function saveHomeSnapshot() {
+  try {
+    const homeList = document.getElementById("homeList");
+    if (!homeList) return;
+    localStorage.setItem(CACHE_SNAPSHOT_KEY, homeList.innerHTML || "");
+  } catch (e) {
+    console.warn("saveHomeSnapshot failed:", e);
+  }
+}
+
+function restoreHomeSnapshot() {
+  try {
+    const html = localStorage.getItem(CACHE_SNAPSHOT_KEY);
+    const homeList = document.getElementById("homeList");
+    if (!homeList || !html) return false;
+    if (!homeList.innerHTML || homeList.innerHTML.trim() === "") {
+      homeList.innerHTML = html;
+    }
+    return true;
+  } catch (e) {
+    console.warn("restoreHomeSnapshot failed:", e);
+    return false;
   }
 }
 
@@ -281,7 +641,9 @@ function cardHTML(r) {
     </div>`;
   }
 
-  return `<div class="rcard ${cls}" onclick="openDetail('${r.id}')">
+  const safeId = String(r.id).replace(/"/g, '&quot;');
+  const safeName = String(r.name || '').replace(/"/g, '&quot;');
+  return `<div class="rcard ${cls}" data-action="open-detail" data-id="${safeId}">
     <div class="rcard-top">
       <div class="rcard-icon ${st==='returned'?'ret-i':(st==='overdue'?'ov-i':'active-i')}">💍</div>
       <div class="rcard-info">
@@ -296,13 +658,13 @@ function cardHTML(r) {
       <div class="rcd"><div class="rv">₹${r.advance}</div><div class="rl">Advance</div></div>
       <div class="rcd"><div class="rv">₹${r.balance}</div><div class="rl">Balance</div></div>
     </div>
-    <div class="rcard-meta">📅 ${r.from} to ${r.to}</div>
+    <div class="rcard-meta">📅 ${formatDateDisplay(r.from)} to ${formatDateDisplay(r.to)}</div>
     <div class="rcard-user">User: ${r.user}</div>
     ${photoHTML}
-    <div class="rcard-actions" onclick="event.stopPropagation()">
-      ${st!=='returned' ? `<button class="ract ret" onclick="openRet('${r.id}','${r.name}')">Return</button>` : ''}
-      <button class="ract edit" onclick="openEdit('${r.id}')">Edit</button>
-      <button class="ract del" onclick="openDel('${r.id}')">Delete</button>
+    <div class="rcard-actions">
+      ${st!=='returned' ? `<button class="ract ret" data-action="return-record" data-id="${safeId}" data-name="${safeName}">Return</button>` : ''}
+      <button class="ract edit" data-action="edit-record" data-id="${safeId}">Edit</button>
+      <button class="ract del" data-action="delete-record" data-id="${safeId}">Delete</button>
     </div>
   </div>`;
 }
@@ -311,33 +673,16 @@ async function saveEntry(skipPhotos = false) {
   const name = document.getElementById('fName').value.trim();
   const user = document.getElementById('fUser').value.trim() || 'Worker';
   if (!name) return toast("⚠️ Enter Name!");
-  
-  const existingRecord = currentEditId ? records.find(x => x.id === currentEditId) : null;
-  const clientRecordId = currentEditId || "R-" + Date.now();
-  const hasQueuedPhotos = queuedPhotos.length > 0;
 
-  const existingPreviewUrls = existingRecord ? (existingRecord.photoPreviewUrls || '') : '';
-  const newPhotoLinks = hasQueuedPhotos && !skipPhotos ? queuedPhotos.map(p => p.previewUrl).join('|') : '';
-  const combinedPreviewUrls = [...new Set((existingPreviewUrls + '|' + newPhotoLinks).split('|').map(x => x.trim()).filter(Boolean))].join('|');
+  const existingRecord = currentEditId ? records.find(x => String(x.id) === String(currentEditId)) : null;
+  const clientRecordId = currentEditId || ("R-" + Date.now());
+  const hasQueuedPhotos = queuedPhotos.length > 0 && !skipPhotos;
+  const action = existingRecord ? 'edit' : 'add';
 
-  // ✅ CRITICAL FIX: Filter out blob URLs before saving to backend
-  const cleanPreviewUrls = combinedPreviewUrls
-    .split('|')
-    .filter(url => {
-      const isBlob = url.startsWith('blob:');
-      if (isBlob) {
-        console.warn('⚠️ Blob URL detected - NOT saving to backend:', url);
-      }
-      return !isBlob;
-    })
-    .join('|');
-
-  // ✅ Safety check
-  if (combinedPreviewUrls.includes('blob:')) {
-    console.warn('🚫 Blob URLs detected in preview URLs - they will NOT be saved to backend');
-    console.warn('   Blob URLs are temporary and only valid during this session');
-    console.warn('   Photos will be uploaded to Cloudinary in background');
-  }
+  const existingPhotoUrls = existingRecord ? [...editingExistingPhotos] : [];
+  const persistedExistingPhotoUrls = existingPhotoUrls.filter(url => url.startsWith('http://') || url.startsWith('https://'));
+  const newPreviewUrls = hasQueuedPhotos ? queuedPhotos.map(p => p.previewUrl).filter(Boolean) : [];
+  const instantPhotoUrls = [...persistedExistingPhotoUrls, ...newPreviewUrls].join('|');
 
   const data = {
     id: clientRecordId,
@@ -353,162 +698,205 @@ async function saveEntry(skipPhotos = false) {
     deposit: document.getElementById('fDeposit').value,
     from: document.getElementById('fFrom').value,
     to: document.getElementById('fTo').value,
-    photoPreviewUrls: cleanPreviewUrls,  // ✅ FIXED: Only save non-blob URLs
-    photoUrl: existingRecord ? existingRecord.photoUrl || '' : '',
-    photoUrls: existingRecord ? existingRecord.photoUrls || '' : '',
+    photoUrls: instantPhotoUrls,
     status: existingRecord ? existingRecord.status : 'active'
   };
 
-  console.log('💾 saveEntry: Data to save:', {
-    id: data.id,
-    hasQueuedPhotos,
-    queuedPhotosCount: queuedPhotos.length,
-    photoPreviewUrls: data.photoPreviewUrls,
-    photoUrl: data.photoUrl,
-    photoUrls: data.photoUrls
-  });
+  normalizePhotoUrlsField(data);
 
-  const action = existingRecord ? 'edit' : 'add';
-  const photosToUpload = (hasQueuedPhotos && !skipPhotos) ? [...queuedPhotos] : [];
+  const photosToUpload = hasQueuedPhotos ? [...queuedPhotos] : [];
+  queuedPhotos.forEach(photo => { photo._handedOff = true; });
 
+  // Instant UI update (no waiting for backend/upload)
   if (existingRecord) {
     Object.assign(existingRecord, data);
-    renderHome();
-    updateCounts();
-    go('home');
-    resetForm();
-    toast("✅ Record updated");
   } else {
     records.unshift(data);
-    renderHome();
-    updateCounts();
-    go('home');
-    if (!hasQueuedPhotos || skipPhotos) {
-      shareWhatsApp(data);
-    } else {
-      toast("✅ Saving and uploading photos before WhatsApp...");
-    }
-    resetForm();
+  }
+  renderHome();
+  updateCounts();
+  saveRecordsCache();
+  go('home');
+  resetForm();
+  toast(`✅ ${existingRecord ? 'Updated' : 'Saved'} locally`);
+
+  if (!existingRecord) {
+    setTimeout(() => shareWhatsApp(data), 120);
   }
 
-  console.log('📸 saveEntry: Photo upload check:');
-  console.log('   hasQueuedPhotos:', hasQueuedPhotos);
-  console.log('   skipPhotos:', skipPhotos);
-  console.log('   queuedPhotos.length:', queuedPhotos.length);
-  console.log('   photosToUpload.length:', photosToUpload.length);
-  console.log('   photosToUpload:', photosToUpload);
+  const backendData = { ...data, photoUrls: persistedExistingPhotoUrls.join('|') };
 
-  (async () => {
-    try {
-      showBgSync(true);
-      const res = await apiGet(action, data);
-      showBgSync(false);
-      
-      console.log('💾 saveEntry: Backend save result:', res);
-      
-      if (photosToUpload.length > 0) {
-        console.log('Photos ready for upload:', photosToUpload.length);
-        console.log('🚀 Forcing photo upload (independent of backend)');
-        uploadPhotosInBackground(data.id, photosToUpload, true);
-      } else {
-        console.log('⚠️ saveEntry: No queued photos to upload');
-      }
-      if (res.ok && (!photosToUpload.length || skipPhotos) && existingRecord) {
-        // no extra action needed for edit without new photos
-      }
-      if (!res.ok) {
-        toast(`❌ ${existingRecord ? 'Update' : 'Save'} failed: ${res.error}`);
-      }
-    } catch (err) {
-      showBgSync(false);
-      console.error("Background sync error:", err);
+  // Background main-sheet save
+  apiGet(action, backendData, MAIN_SHEET_ID).then(res => {
+    if (!res.ok) {
+      toast(`⚠️ ${existingRecord ? 'Update' : 'Save'} synced failed: ${res.error}`);
+      return;
     }
-  })();
+
+    const savedRecordId = res.id || (res.data && res.data.id) || backendData.id;
+    const localIndex = records.findIndex(r => String(r.id) === String(clientRecordId));
+    if (localIndex !== -1) {
+      records[localIndex].id = savedRecordId;
+    }
+
+    if (photosToUpload.length) {
+      uploadPhotosInBackground(savedRecordId, photosToUpload, false).catch(err => {
+        console.error('Background photo upload failed:', err);
+      });
+    }
+  }).catch(err => {
+    console.error('Background save failed:', err);
+    toast('⚠️ Saved locally. Backend sync pending.');
+  });
 }
 
 async function compressImage(file) {
   console.log('compressImage started for:', file.name, 'Size:', file.size);
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onerror = (error) => {
-      console.error('FileReader error:', error);
-      reject(error);
-    };
-    reader.onload = (e) => {
-      console.log('FileReader loaded, creating image...');
-      const img = new Image();
-      img.src = e.target.result;
-      img.onerror = (error) => {
-        console.error('Image load error:', error);
-        reject(error);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onerror = (error) => {
+        console.error('FileReader error:', error);
+        resolve(file); // Return original file on error
       };
-      img.onload = () => {
-        console.log('Image loaded. Original size:', img.width, 'x', img.height);
-        const canvas = document.createElement('canvas');
-        let w = img.width, h = img.height;
-        
-        // Ultra-fast compression - max 600px for speed
-        const max = 600;
-        if (w > h && w > max) { 
-          h = Math.round(h * (max / w)); 
-          w = max; 
-        } else if (h > max) { 
-          w = Math.round(w * (max / h)); 
-          h = max; 
-        }
-        
-        console.log('Resizing to:', w, 'x', h);
-        canvas.width = w; 
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        
-        // Fastest rendering
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(img, 0, 0, w, h);
-        
-        // Low quality for maximum speed - 0.5
-        canvas.toBlob((blob) => {
-          if (blob) {
+      reader.onload = (e) => {
+        console.log('FileReader loaded, creating image...');
+        const img = new Image();
+        img.src = e.target.result;
+        img.onerror = (error) => {
+          console.error('Image load error:', error);
+          resolve(file); // Return original file on error
+        };
+        img.onload = () => {
+          console.log('Image loaded. Original size:', img.width, 'x', img.height);
+          const canvas = document.createElement('canvas');
+          let w = img.width, h = img.height;
+          
+          // Higher quality compression - max 1200px
+          const max = 1200;
+          if (w > h && w > max) { 
+            h = Math.round(h * (max / w)); 
+            w = max; 
+          } else if (h > max) { 
+            w = Math.round(w * (max / h)); 
+            h = max; 
+          }
+          
+          console.log('Resizing to:', w, 'x', h);
+          canvas.width = w; 
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          
+          // Enable high quality smoothing
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, 0, 0, w, h);
+          
+          // Higher quality: 0.85
+          canvas.toBlob((blob) => {
+            if (!blob || blob.size === 0) {
+              console.warn('Compression failed, returning original file');
+              resolve(file);
+              return;
+            }
             console.log('Compression complete. Final size:', blob.size);
             resolve(blob);
-          } else {
-            console.error('Failed to create blob');
-            reject(new Error('Failed to create blob'));
-          }
-        }, 'image/jpeg', 0.5);
+          }, 'image/jpeg', 0.85);
+        };
       };
-    };
+    } catch (error) {
+      console.error('compressImage exception:', error);
+      resolve(file); // Return original file on exception
+    }
   });
 }
 
 // Open camera directly - no file picker
 function openCamera() {
-  const input = document.getElementById('cameraInput');
-  if (!input) {
-    console.error('openCamera: camera input element not found');
+  if (queuedPhotos.length >= MAX_CAMERA_PHOTOS) {
+    toast(`⚠️ Maximum ${MAX_CAMERA_PHOTOS} photos reached`);
     return;
   }
 
-  input.value = '';
-  input.setAttribute('capture', 'environment');
-  input.setAttribute('accept', 'image/*');
+  if (window.AndroidCamera && typeof window.AndroidCamera.launchCameraBurst === 'function') {
+    const remaining = MAX_CAMERA_PHOTOS - queuedPhotos.length;
+    const burstCount = Math.min(AUTO_CAMERA_BURST_COUNT, remaining);
+    window.AndroidCamera.launchCameraBurst(burstCount);
+    setUpMsg(`📸 Capture ${burstCount} photo(s). Camera reopens automatically.`, 'orange');
+    return;
+  }
 
-  console.log('openCamera: launching camera input');
-  input.click();
+  const cameraInput = document.getElementById('cameraInput');
+
+  if (!cameraInput) {
+    console.error('cameraInput not found');
+    return;
+  }
+
+  // Ensure correct attributes
+  cameraInput.setAttribute('accept', 'image/*');
+  cameraInput.setAttribute('capture', 'environment');
+  cameraInput.removeAttribute('multiple');
+
+  // IMPORTANT:
+  // Do NOT clear value before click
+  // Some Android WebViews block chooser if value changes before click
+
+  try {
+    cameraInput.click();
+    console.log('📸 Camera input clicked');
+  } catch (e) {
+    console.error('Camera open failed:', e);
+  }
+}
+
+window.handleCameraResult = function(dataUrl) {
+  if (!dataUrl || !dataUrl.startsWith('data:image/')) {
+    toast('❌ Camera capture failed');
+    return;
+  }
+  if (queuedPhotos.length >= MAX_CAMERA_PHOTOS) {
+    toast(`⚠️ Maximum ${MAX_CAMERA_PHOTOS} photos reached`);
+    return;
+  }
+  try {
+    const blob = dataURLToBlob(dataUrl);
+    const previewUrl = URL.createObjectURL(blob);
+    queuedPhotos.push({
+      name: `photo_${Date.now()}.jpg`,
+      blob,
+      previewUrl
+    });
+    renderQueuedPhotos();
+    const remaining = Math.max(0, MAX_CAMERA_PHOTOS - queuedPhotos.length);
+    setUpMsg(`✅ ${queuedPhotos.length}/${MAX_CAMERA_PHOTOS} photo(s) ready`, "green");
+    toast(remaining === 0 ? `✅ ${MAX_CAMERA_PHOTOS} photos captured` : `✅ Photo ${queuedPhotos.length} captured`);
+  } catch (e) {
+    console.error('handleCameraResult failed', e);
+    toast('❌ Failed to process camera photo');
+  }
+};
+
+function dataURLToBlob(dataURL) {
+  const arr = dataURL.split(',');
+  const mimeMatch = arr[0].match(/:(.*?);/);
+  if (!mimeMatch || arr.length < 2) {
+    throw new Error('Invalid data URL');
+  }
+  const mime = mimeMatch[1];
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new Blob([u8arr], { type: mime });
 }
 
 // Trigger gallery for multiple selection
 function triggerGallery() {
-  const input = document.getElementById('galleryInput');
-  if (!input) {
-    console.error('triggerGallery: gallery input element not found');
-    return;
-  }
-
-  input.value = '';
-  console.log('triggerGallery: launching gallery picker');
-  input.click();
+  document.getElementById('galleryInput').click();
 }
 
 // Handle single camera photo - optimized for quick successive captures
@@ -527,9 +915,9 @@ async function handleCameraPhoto(input) {
     return;
   }
   
-  // Check limit
-  if (queuedPhotos.length >= 10) {
-    toast("⚠️ Maximum 10 photos reached");
+  // Camera-only flow limit: 3 photos total
+  if (queuedPhotos.length >= MAX_CAMERA_PHOTOS) {
+    toast(`⚠️ Maximum ${MAX_CAMERA_PHOTOS} photos reached`);
     return;
   }
   
@@ -552,8 +940,13 @@ async function handleCameraPhoto(input) {
     
     console.log('Photo added to queue. Total photos:', queuedPhotos.length);
     renderQueuedPhotos();
-    setUpMsg(`✅ ${queuedPhotos.length} photo(s) ready`, "green");
-    toast(`✅ Photo ${queuedPhotos.length} added!`);
+    const remaining = Math.max(0, MAX_CAMERA_PHOTOS - queuedPhotos.length);
+    setUpMsg(`✅ ${queuedPhotos.length}/${MAX_CAMERA_PHOTOS} photo(s) ready`, "green");
+    if (remaining > 0) {
+      toast(`✅ Photo ${queuedPhotos.length} added! Tap Camera again (${remaining} left)`);
+    } else {
+      toast(`✅ ${MAX_CAMERA_PHOTOS} photos added`);
+    }
   } catch (e) {
     console.error("Photo processing failed", e);
     toast("❌ Failed to process photo");
@@ -620,7 +1013,7 @@ async function queueSelectedPhotos(fileList) {
 
 async function uploadPhotosInBackground(recordId, photos, triggerWhatsApp = true) {
   if (!photos || photos.length === 0) {
-    console.warn('No photos to upload');
+    console.log('uploadPhotosInBackground: No photos to upload');
     return;
   }
   
@@ -641,29 +1034,37 @@ async function uploadPhotosInBackground(recordId, photos, triggerWhatsApp = true
     console.log('───────────────────────────────────────────────');
 
     if (urls.length > 0) {
-      const urlString = urls.join('|');
-      console.log('💾 Saving Cloudinary URLs to backend...');
-      console.log('   URLs:', urlString);
-      
-      const updateRes = await apiGet('updatePhoto', { id: recordId, url: urlString });
+      // Merge existing persisted URLs with newly uploaded ones
+      const recordIndex = records.findIndex(r => String(r.id) === String(recordId));
+      const existing = recordIndex !== -1 ? normalizePhotoUrlsValue(records[recordIndex].photoUrls) : '';
+      const existingPersisted = existing
+        .split('|')
+        .map(x => x.trim())
+        .filter(x => x.startsWith('http://') || x.startsWith('https://'));
+      const mergedList = [...new Set([...existingPersisted, ...urls])];
+      const mergedString = mergedList.join('|');
+
+      console.log('💾 Saving merged Cloudinary URLs to backend...');
+      console.log('   URLs:', mergedString);
+
+      const updateRes = await apiGet('updatePhoto', { id: recordId, url: mergedString });
 
       if (updateRes.ok) {
         console.log('✅ Photos saved to backend successfully!');
         toast(`✅ ${urls.length} photo(s) uploaded!`);
-        
+
         // ✅ PERFORMANCE: Clean up blob URLs to free memory
         photos.forEach(photo => {
           if (photo.previewUrl && photo.previewUrl.startsWith('blob:')) {
             URL.revokeObjectURL(photo.previewUrl);
           }
         });
-        
-        const recordIndex = records.findIndex(r => r.id === recordId);
+
         if (recordIndex !== -1) {
-          records[recordIndex].photoUrl = urlString;
-          records[recordIndex].photoUrls = urlString;
-          records[recordIndex].photoPreviewUrls = '';
-          console.log('✅ Record updated with Cloudinary URLs');
+          records[recordIndex].photoUrls = mergedString;
+          normalizePhotoUrlsField(records[recordIndex]);
+          console.log('✅ Record updated with merged photoUrls');
+          saveRecordsCache();
           renderHome();
 
           // Only trigger if requested (prevents double-sending if already sent at start)
@@ -671,6 +1072,8 @@ async function uploadPhotosInBackground(recordId, photos, triggerWhatsApp = true
             console.log('📱 Opening WhatsApp...');
             setTimeout(() => shareWhatsApp(records[recordIndex]), 300);
           }
+        } else {
+          console.warn('Record not found in local array while uploading photos; UI merge skipped');
         }
       } else {
         console.error('❌ Failed to save photo URLs to backend:', updateRes.error);
@@ -827,6 +1230,12 @@ async function uploadSinglePhoto(photo) {
 
 // ✅ NEW: Retry logic for failed uploads
 async function uploadWithRetry(photo, retries = 2) {
+  // SAFE PHOTO VALIDATION
+  if (!photo || !photo.blob || photo.blob.size === 0) {
+    console.error("Invalid photo:", photo);
+    return '';
+  }
+
   for (let i = 0; i <= retries; i++) {
     console.log(`🔁 Upload attempt ${i + 1}/${retries + 1} for ${photo.name}`);
     const url = await uploadSinglePhoto(photo);
@@ -852,10 +1261,17 @@ function renderQueuedPhotos() {
     console.error('Gallery element not found!');
     return;
   }
+
+  // Preserve existing photo preview section in edit mode
+  const existingWrap = document.getElementById('existingEditPhotosWrap');
+  const children = Array.from(gallery.children);
+  children.forEach(child => {
+    if (!existingWrap || child.id !== 'existingEditPhotosWrap') {
+      gallery.removeChild(child);
+    }
+  });
   
-  gallery.innerHTML = '';
-  
-  // Show all photos in gallery (not just from index 1)
+  // Show all queued photos
   queuedPhotos.forEach((photo, index) => {
     console.log(`Rendering photo ${index + 1}:`, photo.name, 'URL:', photo.previewUrl);
     const thumb = document.createElement('div');
@@ -878,12 +1294,6 @@ function renderQueuedPhotos() {
     } else {
       skipBtn.style.display = 'none';
     }
-  }
-}
-
-function viewPhotoPreview(index) {
-  if (queuedPhotos[index]) {
-    openImageViewer(queuedPhotos[index].previewUrl);
   }
 }
 
@@ -1001,16 +1411,22 @@ function calcBal(){
 }
 
 function filterRecords(f) {
-  selectedDate = new Date().toISOString().slice(0, 10); // Reset to today
+  selectedDate = getLocalDateString(new Date()); // Reset to today
   curFilter = f;
   renderHome();
 }
 
 function setF(el,f){
-  selectedDate = new Date().toISOString().slice(0, 10); // Reset to today
+  if (f === 'today') {
+    // ✅ FIXED: Use local date string instead of UTC ISO string
+    selectedDate = getLocalDateString(new Date());
+    document.getElementById('srchQ').value = '';
+  }
   curFilter=f;
   document.querySelectorAll('.fchip').forEach(x=>x.classList.remove('on'));
   el.classList.add('on'); renderHome();
+  const panel = document.getElementById('filterMenuPanel');
+  if (panel) panel.classList.remove('open');
 }
 
 function renderCalendarWidget() {
@@ -1021,14 +1437,17 @@ function renderCalendarWidget() {
   const weekdayOffset = start.getDay();
   const daysInMonth = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate();
   const totalCells = Math.ceil((weekdayOffset + daysInMonth) / 7) * 7;
-  const todayStr = new Date().toISOString().slice(0, 10);
-  const eventDates = new Set(records.flatMap(r => [r.from, r.to]).filter(Boolean));
+  // ✅ FIXED: Use local date string instead of UTC ISO string
+  const todayStr = getLocalDateString(new Date());
+  // ✅ FIXED: Show ONLY start date (from) - when rental was ordered, not end date
+  const eventDates = new Set(records.map(r => r.from).filter(Boolean));
 
   const cells = [];
   for (let i = 0; i < totalCells; i++) {
     const dayNumber = i - weekdayOffset + 1;
     const cellDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), dayNumber);
-    const cellKey = cellDate.toISOString().slice(0, 10);
+    // ✅ FIXED: Use local date string instead of UTC ISO string
+    const cellKey = getLocalDateString(cellDate);
     const isCurrentMonth = dayNumber >= 1 && dayNumber <= daysInMonth;
     const classes = ['cw-day'];
 
@@ -1059,7 +1478,7 @@ function changeCalendarMonth(offset) {
 function selectCalendarDate(dateStr) {
   selectedDate = dateStr; // Set the selected date (Daybook style)
   document.getElementById('srchQ').value = ''; // Clear search
-  curFilter = 'all'; // Reset filter to show all statuses
+  curFilter = 'date';
   renderHome(); // Re-render with new date filter
 }
 
@@ -1113,6 +1532,7 @@ function setUpMsg(m, color){
 function clearPhoto(){
   // ✅ PERFORMANCE: Clean up all blob URLs to free memory
   queuedPhotos.forEach(photo => {
+    if (photo && photo._handedOff) return;
     if (photo.previewUrl && photo.previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(photo.previewUrl);
     }
@@ -1120,6 +1540,118 @@ function clearPhoto(){
   queuedPhotos=[];
   document.getElementById('addedPhotos').innerHTML = '';
   document.getElementById('upMsg').textContent = '';
+}
+
+function saveRecycleBinCache() {
+  try {
+    localStorage.setItem('recycleBinRecords', JSON.stringify(recycleBinRecords));
+  } catch (e) {
+    console.warn('Failed to save recycle bin cache', e);
+  }
+}
+
+function loadRecycleBinCache() {
+  try {
+    const cached = localStorage.getItem('recycleBinRecords');
+    recycleBinRecords = cached ? JSON.parse(cached) : [];
+  } catch (e) {
+    recycleBinRecords = [];
+    console.warn('Failed to load recycle bin cache', e);
+  }
+}
+
+async function refreshRecycleBinFromSheet() {
+  // ✅ Fetch from backend Archive sheet (source of truth)
+  try {
+    console.log('🗂️ Fetching recycle bin from backend...');
+    // Use apiGet (GET) for getDeleted which doesn't need an ID
+    const res = await apiGet('getDeleted');
+    console.log('📡 getDeleted response:', res);
+    console.log('📡 Response type:', typeof res);
+    console.log('📡 Response.ok:', res?.ok);
+    console.log('📡 Response.data type:', typeof res?.data);
+    console.log('📡 Response.data isArray:', Array.isArray(res?.data));
+    
+    // More forgiving error checking
+    if (!res) {
+      console.error('❌ No response received');
+      toast('⚠️ No response from server');
+      return;
+    }
+    
+    if (res.error) {
+      console.error('❌ Backend error:', res.error);
+      toast('⚠️ Server error: ' + res.error);
+      return;
+    }
+
+    // If no data, default to empty array
+    const data = Array.isArray(res.data) ? res.data : [];
+    console.log('✅ Using data array with', data.length, 'records');
+
+    // ✅ DEDUPLICATE recycle bin records by ID
+    const seenDeletedIds = new Set();
+    const deduplicatedData = data.filter(item => {
+      const id = String(item.id || '').trim();
+      if (seenDeletedIds.has(id)) {
+        console.warn('⚠️ Duplicate in recycle bin filtered out: ID=' + id + ', Name=' + item.name);
+        return false; // Skip duplicate
+      }
+      seenDeletedIds.add(id);
+      return true;
+    });
+
+    // ✅ Update local cache from backend (backend is source of truth)
+    recycleBinRecords = deduplicatedData.map(item => ({
+      ...item,
+      deletedAt: item.deletedAt || new Date().toISOString()
+    }));
+    
+    console.log('✅ Recycle bin updated with', recycleBinRecords.length, 'unique records');
+    
+    // ✅ Save to localStorage for app restart
+    saveRecycleBinCache();
+    
+    if (recycleBinRecords.length === 0) {
+      console.log('ℹ️ Recycle bin is empty');
+    }
+  } catch (e) {
+    console.error('❌ Exception in refreshRecycleBinFromSheet:', e);
+    console.error('Exception message:', e.message);
+    console.error('Exception stack:', e.stack);
+    toast('⚠️ Failed to refresh recycle bin: ' + e.message);
+  }
+}
+
+function removeRecordFromRecycleBin(recordId) {
+  recycleBinRecords = recycleBinRecords.filter(item => String(item.id) !== String(recordId));
+  saveRecycleBinCache();
+}
+
+function renderExistingEditPhotos() {
+  const gallery = document.getElementById("addedPhotos");
+  if (!gallery) return;
+  const oldWrap = document.getElementById("existingEditPhotosWrap");
+  if (oldWrap) oldWrap.remove();
+  if (!editingExistingPhotos.length) return;
+
+  const wrap = document.createElement("div");
+  wrap.id = "existingEditPhotosWrap";
+  wrap.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-bottom:10px;padding:8px;border:1px dashed #d4a520;border-radius:8px;background:#fff8ec";
+  wrap.innerHTML = editingExistingPhotos.map((url, index) => `
+    <div style="position:relative;aspect-ratio:1;border:1px solid #d9c17a;border-radius:8px;overflow:hidden;">
+      <img src="${url}" style="width:100%;height:100%;object-fit:cover" onclick="openImageViewer('${url.replace(/'/g, "\\'")}', ['${url.replace(/'/g, "\\'")}'])">
+      <button type="button" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border:none;border-radius:50%;background:#7a0000;color:#fff;cursor:pointer;" onclick="removeExistingPhotoInEdit(${index})">✕</button>
+    </div>
+  `).join("");
+  gallery.insertBefore(wrap, gallery.firstChild);
+}
+
+function removeExistingPhotoInEdit(index) {
+  if (index < 0 || index >= editingExistingPhotos.length) return;
+  editingExistingPhotos.splice(index, 1);
+  renderExistingEditPhotos();
+  toast("✅ Existing photo removed");
 }
 
 function openRet(id,n){
@@ -1131,8 +1663,8 @@ function openRet(id,n){
 function openDel(id){ pendDel=id; document.getElementById('mDelete').classList.add('open'); }
 function closeM(id){ document.getElementById(id).classList.remove('open'); }
 
-async function apiCall(action, id) {
-  let url = SCRIPT_URL + '?key=' + SECRET_KEY + '&action=' + action + '&id=' + encodeURIComponent(id) + '&_ts=' + Date.now();
+async function apiCall(action, id, sheetId = MAIN_SHEET_ID) {
+  let url = SCRIPT_URL + '?key=' + SECRET_KEY + '&action=' + action + '&id=' + encodeURIComponent(id) + (sheetId ? '&sheetId=' + encodeURIComponent(sheetId) : '') + '&_ts=' + Date.now();
   try { 
     const r = await fetch(url, { cache: 'no-store' }); 
     return await r.json(); 
@@ -1146,7 +1678,7 @@ async function doReturn(){
   
   // Optimistic UI: Update status immediately
   const returnedId = pendRet;
-  const returnedIndex = records.findIndex(r => r.id === returnedId);
+  const returnedIndex = records.findIndex(r => String(r.id) === String(returnedId));
   let originalRecord = null;
   
   if (returnedIndex !== -1) {
@@ -1174,55 +1706,91 @@ async function doReturn(){
   }
 }
 async function doDelete(){
-closeM('mDelete');
+  closeM('mDelete');
 
-const deletedId = pendDel;
+  const deletedId = pendDel;
+  console.log('🗑️ DELETE ACTION: Starting delete for ID:', deletedId);
 
-// 🔥 STEP 1: Remove from UI immediately
-const index = records.findIndex(r => r.id === deletedId);
-let backup = null;
+  // ✅ STEP 1: Optimistic UI - Remove from home immediately
+  const index = records.findIndex(r => String(r.id) === String(deletedId));
+  let backup = null;
 
-if (index !== -1) {
-backup = {...records[index]};
-records.splice(index, 1);
-renderHome();
-updateCounts();
-}
+  if (index !== -1) {
+    // Back up for potential rollback
+    backup = { ...records[index] };
+    console.log('📋 Backing up record:', backup.name);
+    
+    // Remove from home view
+    records.splice(index, 1);
+    renderHome();
+    updateCounts();
+    saveRecordsCache();
+    console.log('✅ UI Updated - Record removed from home');
+  } else {
+    console.warn('⚠️ Record not found in local array for ID:', deletedId);
+  }
 
-toast("🗑️ Deleted");
+  toast("🗑️ Deleting...");
 
-// 🔥 STEP 2: Call backend in background
-const res = await apiCall('delete', deletedId);
+  // ✅ STEP 2: Sync to backend (backend is source of truth)
+  console.log('📡 Calling backend delete action...');
+  const res = await apiCall('delete', deletedId, MAIN_SHEET_ID);
+  console.log('📡 Backend response:', res);
+  
+  if (!res.ok) {
+    console.error('❌ DELETE FAILED:', res.error);
+    // Rollback: restore record to home view
+    if (backup) {
+      console.log('🔄 Rolling back - restoring record:', backup.name);
+      records.unshift(backup);
+      renderHome();
+      updateCounts();
+      saveRecordsCache();
+    }
+    toast("❌ Delete failed: " + res.error);
+    return;
+  }
 
-if (!res.ok) {
-// ❌ rollback if failed
-if (backup) {
-records.unshift(backup);
-renderHome();
-updateCounts();
-}
-toast("❌ Delete failed: " + res.error);
-}
+  console.log('✅ Backend delete successful');
+  
+  // ✅ STEP 3: Update recycle bin cache (non-blocking background refresh)
+  // Only refresh if recycle bin modal is open
+  const modal = document.getElementById('recycleBinModal');
+  if (modal && modal.classList.contains('open')) {
+    console.log('🔄 Recycle bin is open - refreshing...');
+    refreshRecycleBinFromSheet().catch(e => console.warn('Background refresh error:', e));
+  } else {
+    console.log('ℹ️ Recycle bin not open - skipping refresh for now');
+  }
+  
+  toast("✅ Record deleted");
 }
 
 function resetForm(){
   ['fName','fPhone','fAddress','fReceipt','fTotal','fAdvance','fBalance','fDeposit','fUser','fJewel'].forEach(id=>{
     const e=document.getElementById(id);
-    if(e && id !== 'fJewel') e.value='';
+    if(e && id !== 'fJewel' && id !== 'fUser') e.value='';
   });
+  // ✅ Set user to current logged-in user (read-only)
+  const fUser = document.getElementById('fUser');
+  if (fUser) {
+    fUser.value = currentUser || 'Worker';
+    fUser.readOnly = true; // User cannot change their name
+  }
   document.getElementById('fJewel').value = 'Necklace';
   document.querySelectorAll('.jo').forEach(x=>x.classList.remove('sel'));
   document.querySelector('.jo[data-v="Necklace"]').classList.add('sel');
   clearPhoto();
   uploadedPhotos = [];
   currentEditId = null;
+  editingExistingPhotos = [];
   const saveBtn = document.getElementById('saveBtn');
   if (saveBtn) saveBtn.textContent = '✦ Save Record (सुरक्षित करें) ✦';
 }
 
 // Detail Modal Functions
 function openDetail(id) {
-  const r = records.find(x => x.id === id);
+  const r = records.find(x => String(x.id) === String(id));
   if (!r) return;
   
   curDetailRecord = r;  // Store for WhatsApp sharing
@@ -1261,8 +1829,8 @@ function openDetail(id) {
   <hr style="border:0; border-top:1px solid #E8D8A0; margin:10px 0;"/>
 
   <div style="margin:8px 0;">
-    📅 Pickup: ${r.from || '-'}<br>
-    🔄 Return: ${r.to || 'Not returned'}
+    📅 Pickup: ${formatDateDisplay(r.from)}<br>
+    🔄 Return: ${formatDateDisplay(r.to) || 'Not returned'}
   </div>
 
   <hr style="border:0; border-top:1px solid #E8D8A0; margin:10px 0;"/>
@@ -1288,12 +1856,236 @@ function openDetail(id) {
 }
 
 function openEdit(id) {
-  const record = records.find(x => x.id === id);
+  const record = records.find(x => String(x.id) === String(id));
   if (!record) return;
   curDetailRecord = record;
   populateFormForEdit(record);
   closeDetail();
   go('add');
+}
+
+async function openRecycleBin() {
+  // ✅ CACHE-FIRST: Load from cache immediately for instant display
+  loadRecycleBinCache();
+  renderRecycleBinModal();
+
+  // ✅ Refresh modal to show "Loading" state
+  const modal = document.getElementById('recycleBinModal');
+  if (modal) {
+    modal.classList.add('open');
+    document.body.classList.add('modal-open');
+  }
+
+  // ✅ Fetch fresh recycle bin data from backend in background
+  // This ensures UI is never blocked waiting for API
+  try {
+    await refreshRecycleBinFromSheet();
+    // ✅ Re-render with updated data
+    renderRecycleBinModal();
+  } catch (e) {
+    console.error('Background recycle bin refresh error:', e);
+    // Don't show error - cache was already displayed
+  }
+}
+
+function closeRecycleBin() {
+  const modal = document.getElementById('recycleBinModal');
+  if (modal) {
+    modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+  }
+}
+
+function renderRecycleBinModal(filteredRecords = null) {
+  const list = document.getElementById('recycleBinList');
+  if (!list) return;
+
+  const recordsToDisplay = filteredRecords || recycleBinRecords;
+  
+  if (!recordsToDisplay.length) {
+    list.innerHTML = '<div style="text-align:center;padding:24px;color:#7A5C2E;">' + 
+      (filteredRecords ? '🔍 No records match your search' : '🗑 Recycle bin is empty') + 
+      '</div>';
+    return;
+  }
+
+  // ✅ NEW: Add "Empty Recycle Bin" button at the top if not filtered
+  let emptyBtnHTML = '';
+  if (!filteredRecords && recycleBinRecords.length > 0) {
+    emptyBtnHTML = '<div style="padding:12px;border-bottom:1px solid #E8D8A0;text-align:center;">' +
+      '<button onclick="emptyRecycleBin()" class="mb ok-del" style="width:100%;background-color:#7A0000;color:white;">🗑 Empty All Recycle Bin</button>' +
+      '</div>';
+  }
+
+  const itemsHTML = recordsToDisplay.map(record => `
+    <div class="recycle-item" style="border:1px solid #E8D8A0;border-radius:10px;padding:12px;margin-bottom:10px;">
+      <div style="font-weight:700;color:#7A0000;">${record.name || 'Unnamed Record'}</div>
+      <div style="font-size:12px;color:#6d4f28;margin:6px 0;">
+        🧾 ${record.receiptNo || 'No receipt'}<br>
+        🕒 Deleted ${formatDateDisplay(new Date(record.deletedAt || Date.now()).toISOString().slice(0, 10))}
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="mb ok-ret" onclick="restoreDeletedRecord('${record.id}')">Restore</button>
+        <button class="mb ok-del" onclick="permanentlyDeleteFromRecycleBin('${record.id}')">Delete Permanently</button>
+      </div>
+    </div>
+  `).join('');
+  
+  list.innerHTML = emptyBtnHTML + itemsHTML;
+}
+
+// ✅ NEW: Filter recycle bin records by search query
+function filterRecycleBinRecords(query) {
+  if (!query || query.trim() === '') {
+    renderRecycleBinModal();
+    return;
+  }
+  
+  const lowerQuery = query.toLowerCase();
+  const filtered = recycleBinRecords.filter(record => {
+    const searchText = (
+      (record.name || '') + ' ' +
+      (record.phone || '') + ' ' +
+      (record.receiptNo || '') + ' ' +
+      (record.address || '')
+    ).toLowerCase();
+    return searchText.includes(lowerQuery);
+  });
+  
+  renderRecycleBinModal(filtered);
+}
+
+async function restoreDeletedRecord(recordId) {
+  // ✅ Find record in local cache
+  const record = recycleBinRecords.find(item => String(item.id) === String(recordId));
+  if (!record) {
+    toast('⚠️ Record not found in recycle bin');
+    return;
+  }
+
+  // ✅ DEDUPLICATE: Remove any existing records with same ID first
+  records = records.filter(r => String(r.id) !== String(recordId));
+
+  // ✅ STEP 1: Optimistic UI - add to home immediately
+  records.unshift({
+    ...record,
+    status: 'active'
+  });
+  removeRecordFromRecycleBin(recordId);
+  renderHome();
+  updateCounts();
+  saveRecordsCache();
+  renderRecycleBinModal();
+  toast('♻️ Restoring record...');
+
+  // ✅ STEP 2: Sync to backend
+  // Backend will:
+  // 1. Remove from Archive sheet
+  // 2. Add back to Main sheet
+  try {
+    // ✅ Call restore action (backend handles moving from Archive to Main)
+    const res = await apiGet('restore', { id: recordId }, MAIN_SHEET_ID);
+    if (!res.ok) {
+      toast('❌ Restore sync failed: ' + res.error);
+      // Refresh both sheets to sync state
+      await loadData(true);
+      renderHome();
+      renderRecycleBinModal();
+      return;
+    }
+
+    // ✅ Refresh backend state - this will deduplicate
+    await refreshRecycleBinFromSheet();
+
+    saveRecordsCache();
+    renderHome();
+    renderRecycleBinModal();
+    updateCounts();
+    toast('✅ Record restored');
+  } catch (e) {
+    console.error('Restore record error:', e);
+    toast('❌ Restore sync failed');
+    // Refresh to sync state
+    await loadData(true);
+    renderHome();
+    renderRecycleBinModal();
+  }
+}
+
+async function permanentlyDeleteFromRecycleBin(recordId) {
+  if (!recordId) {
+    toast('❌ Invalid record ID');
+    return;
+  }
+  
+  if (!confirm('Delete this record forever from recycle bin? This cannot be undone!')) return;
+
+  console.log('🗑️ Permanently deleting record ID:', recordId);
+  
+  // ✅ OPTIMISTIC UI: Remove from display immediately
+  removeRecordFromRecycleBin(recordId);
+  renderRecycleBinModal();
+  toast('🗑️ Deleting...');
+  
+  // ✅ BACKGROUND: Send delete to backend (no need to wait)
+  apiGet('permanentlyDelete', { id: recordId }, MAIN_SHEET_ID)
+    .then(res => {
+      if (!res.ok) {
+        console.error('❌ Backend delete failed:', res.error);
+        toast('❌ Sync failed - record removed from cache');
+      } else {
+        console.log('✅ Backend permanent delete successful');
+        toast('🗑️ Deleted permanently');
+      }
+      // Refresh to stay in sync
+      refreshRecycleBinFromSheet().catch(err => console.warn('Recycle bin refresh failed:', err));
+    })
+    .catch(err => {
+      console.error('❌ Delete error:', err);
+      toast('❌ Delete error - trying again');
+    });
+}
+
+// ✅ NEW: Empty entire recycle bin
+async function emptyRecycleBin() {
+  if (recycleBinRecords.length === 0) {
+    toast('🗑️ Recycle bin is already empty');
+    return;
+  }
+  
+  if (!confirm('Delete ALL records in recycle bin? This cannot be undone!')) return;
+  
+  console.log('🗑️ Emptying recycle bin with', recycleBinRecords.length, 'records');
+  toast('🗑️ Emptying recycle bin...');
+  
+  // ✅ Get all IDs before clearing
+  const recordsToDelete = [...recycleBinRecords];
+  
+  // ✅ OPTIMISTIC UI: Clear recycle bin immediately
+  recycleBinRecords = [];
+  saveRecycleBinCache();
+  renderRecycleBinModal();
+  
+  // ✅ BACKGROUND: Delete all records from backend in parallel
+  const deletePromises = recordsToDelete.map(record =>
+    apiGet('permanentlyDelete', { id: record.id }, MAIN_SHEET_ID)
+      .then(res => {
+        if (!res.ok) {
+          console.warn('⚠️ Failed to delete ID:', record.id, res.error);
+        } else {
+          console.log('✅ Deleted ID:', record.id);
+        }
+        return res;
+      })
+      .catch(err => {
+        console.warn('⚠️ Delete error for ID:', record.id, err);
+      })
+  );
+  
+  // Wait for all deletes to complete
+  await Promise.all(deletePromises);
+  toast('✅ Recycle bin emptied');
+  closeRecycleBin();
 }
 
 function populateFormForEdit(record) {
@@ -1319,6 +2111,8 @@ function populateFormForEdit(record) {
   document.getElementById('fTo').value = record.to || '';
   clearPhoto();
   queuedPhotos = [];
+  editingExistingPhotos = getPhotosFromRecord(record).filter(url => url.startsWith("http://") || url.startsWith("https://"));
+  renderExistingEditPhotos();
   const saveBtn = document.getElementById('saveBtn');
   if (saveBtn) saveBtn.textContent = '✦ Update Record (अपडेट करें) ✦';
 }
@@ -1328,7 +2122,7 @@ function closeDetail() {
   document.body.classList.remove('modal-open');
 }
 
-async function deletePhotoFromRecord(recordId, photoUrl) {
+async function deletePhotoFromRecord(recordId, urlToDelete) {
   if (!confirm('Delete this photo? This cannot be undone.')) return;
   
   const record = records.find(r => r.id === recordId);
@@ -1344,10 +2138,12 @@ async function deletePhotoFromRecord(recordId, photoUrl) {
     const allPhotos = getPhotosFromRecord(record);
     
     // Remove the specific photo URL
-    const updatedPhotos = allPhotos.filter(url => url !== photoUrl);
+    const updatedPhotos = allPhotos.filter(url => url !== urlToDelete);
     
-    // Update the record with new photo URLs
-    const newPhotoString = updatedPhotos.join('|');
+    // Update the record with new photo URLs (persisted-only; never sync blob URLs)
+    const newPhotoString = updatedPhotos
+      .filter(url => url.startsWith('http://') || url.startsWith('https://'))
+      .join('|');
     const updateRes = await apiGet('updatePhoto', { id: recordId, url: newPhotoString });
     
     if (updateRes.ok) {
@@ -1374,45 +2170,72 @@ async function deletePhotoFromRecord(recordId, photoUrl) {
 
 function getPhotosFromRecord(r) {
   if (!r) return [];
-  
-  const photos = [];
-  if (r.photoPreviewUrls) {
-    const urls = String(r.photoPreviewUrls).split('|').map(x => x.trim()).filter(Boolean);
-    photos.push(...urls);
-  }
-  if (r.photoUrls) {
-    const urls = String(r.photoUrls).split('|').map(x => x.trim()).filter(Boolean);
-    photos.push(...urls);
-  }
-  if (r.photoUrl) {
-    const urls = String(r.photoUrl).split('|').map(x => x.trim()).filter(Boolean);
-    photos.push(...urls);
-  }
+
+  normalizePhotoUrlsField(r);
+
+  const raw = normalizePhotoUrlsValue(r.photoUrls);
+  const photos = raw
+    .split('|')
+    .map(x => x.trim())
+    .filter(Boolean);
 
   // Debug: Log what URLs we found
   if (photos.length > 0) {
     console.log('getPhotosFromRecord - Found URLs:', photos);
   }
 
-  // Remove duplicates and filter for real Cloudinary links
+  // Remove duplicates and filter for valid links (http/https/blob)
   return [...new Set(photos)].filter(isValidPhotoUrl);
 }
 
 function isValidPhotoUrl(url) {
   if (!url) return false;
   const s = String(url).trim();
-  
-  // Don't allow blob URLs in saved records (they're temporary)
+
+  // Allow blob URLs for instant photo preview right after save
+  // (these are later replaced by Cloudinary URLs after background upload)
   if (s.startsWith('blob:')) {
-    console.warn('Blob URL found in saved record (should be Cloudinary URL):', s);
-    return false;
+    return true;
   }
-  
+
   // Filter out placeholder markers
   if (s.toUpperCase() === 'PENDING' || s === 'undefined' || s === 'null') return false;
-  
+
   // Must be a real URL (http/https)
   return (s.startsWith('http://') || s.startsWith('https://')) && !s.includes(' ');
+}
+
+function normalizePhotoUrlsValue(value) {
+  if (Array.isArray(value)) {
+    return value.map(x => String(x || '').trim()).filter(Boolean).join('|');
+  }
+  if (value === null || value === undefined) return '';
+  return String(value);
+}
+
+function normalizePhotoUrlsField(record) {
+  if (!record || typeof record !== 'object') return record;
+
+  // Normalize to pipe-separated string
+  const raw = normalizePhotoUrlsValue(record.photoUrls);
+  const parts = raw
+    .split('|')
+    .map(x => x.trim())
+    .filter(Boolean)
+    .filter(x => x.toUpperCase() !== 'PENDING' && x !== 'undefined' && x !== 'null');
+
+  // Keep only valid URLs (http/https/blob)
+  const deduped = [];
+  const seen = new Set();
+  for (const p of parts) {
+    if (!isValidPhotoUrl(p)) continue;
+    if (seen.has(p)) continue;
+    seen.add(p);
+    deduped.push(p);
+  }
+
+  record.photoUrls = deduped.join('|');
+  return record;
 }
 
 function getPrimaryPhoto(r) {
@@ -1524,7 +2347,91 @@ function closeImageViewer() {
   }, 300);
 }
 
-function printRecord() {
+function ensurePrintContainer() {
+  let container = document.getElementById("printRecordContainer");
+  if (container) return container;
+
+  container = document.createElement("div");
+  container.id = "printRecordContainer";
+  container.style.cssText = "display:none;position:fixed;inset:0;background:white;z-index:99999;overflow:auto;padding:18px;";
+  document.body.appendChild(container);
+  return container;
+}
+
+function buildPrintRecordHtml(record) {
+  const photos = getPhotosFromRecord(record);
+  const photoHtml = photos.length
+    ? `<div style="margin-top:10px;">
+         <div style="font-weight:700;margin-bottom:6px;">Photos</div>
+         <div style="display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:8px;">
+           ${photos.map(url => `<img src="${url}" style="width:100%;height:120px;object-fit:cover;border:1px solid #ccc;border-radius:6px;">`).join("")}
+         </div>
+       </div>`
+    : "";
+
+  return `
+    <div style="max-width:700px;margin:0 auto;color:#111;font-family:Arial,sans-serif;line-height:1.35;border:1px solid #ccc;padding:14px;border-radius:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <h2 style="margin-bottom:2px;">Mahalakshmi Rentals</h2>
+          <div style="font-size:12px;color:#555;">Customer Rental Record</div>
+        </div>
+        <div style="font-size:12px;color:#555;text-align:right;">
+          <div><b>Receipt:</b> ${record.receiptNo || "-"}</div>
+          <div><b>Status:</b> ${record.status || "-"}</div>
+        </div>
+      </div>
+      <hr style="margin:10px 0;">
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <tr><td style="padding:6px 0;width:180px;"><b>Name</b></td><td>${record.name || "-"}</td></tr>
+        <tr><td style="padding:6px 0;"><b>Phone</b></td><td>${record.phone || "-"}</td></tr>
+        <tr><td style="padding:6px 0;"><b>Address</b></td><td>${record.address || "-"}</td></tr>
+        <tr><td style="padding:6px 0;"><b>Item</b></td><td>${record.jewel || "-"}</td></tr>
+        <tr><td style="padding:6px 0;"><b>Total</b></td><td>Rs. ${record.total || 0}</td></tr>
+        <tr><td style="padding:6px 0;"><b>Advance</b></td><td>Rs. ${record.advance || 0}</td></tr>
+        <tr><td style="padding:6px 0;"><b>Balance</b></td><td>Rs. ${record.balance || 0}</td></tr>
+        <tr><td style="padding:6px 0;"><b>Deposit</b></td><td>Rs. ${record.deposit || 0}</td></tr>
+        <tr><td style="padding:6px 0;"><b>From</b></td><td>${record.from || "-"}</td></tr>
+        <tr><td style="padding:6px 0;"><b>To</b></td><td>${record.to || "-"}</td></tr>
+        <tr><td style="padding:6px 0;"><b>User</b></td><td>${record.user || "-"}</td></tr>
+      </table>
+      ${photoHtml}
+      <div style="margin-top:12px;font-size:12px;color:#444;">Signature: ____________________</div>
+      <hr style="margin:10px 0;">
+      <div style="text-align:center;font-size:10px;color:#666;margin-top:10px;">
+        🔧 Developed by <strong>Prajwal Patil</strong> | <a href="tel:9113581092" style="color:#666;text-decoration:none;font-weight:bold;">9113581092</a>
+      </div>
+    </div>
+  `;
+}
+
+function printRecord(record = curDetailRecord) {
+  if (!record) {
+    toast("⚠️ Select a record to print");
+    return;
+  }
+
+  const printContainer = ensurePrintContainer();
+  printContainer.innerHTML = buildPrintRecordHtml(record);
+  printContainer.style.display = "block";
+  document.body.classList.add("print-record-only");
+
+  const cleanup = () => {
+    document.body.classList.remove("print-record-only");
+    printContainer.style.display = "none";
+  };
+
+  window.onafterprint = cleanup;
+
+  if (window.AndroidCamera && typeof window.AndroidCamera.printPage === "function") {
+    try {
+      window.AndroidCamera.printPage();
+      setTimeout(cleanup, 1200);
+      return;
+    } catch (e) {
+      console.warn("Native print failed, fallback to window.print()", e);
+    }
+  }
   window.print();
 }
 function formatWhatsAppPhone(phone) {
@@ -1563,7 +2470,7 @@ function buildWhatsAppMessage(record) {
     });
   }
 
-  lines.push('', 'Thank you for choosing Mahalakshmi Rentals.');
+  lines.push('', 'Thank you for choosing Mahalakshmi Rentals.', '', '🔧 Developed by Prajwal Patil | 9113581092');
   return lines.join('\n');
 }
 
@@ -1571,14 +2478,22 @@ function shareWhatsApp(record) {
   if (!record) return;
 
   const msg = buildWhatsAppMessage(record);
-  const encodedMsg = encodeURIComponent(msg);
   const phone = formatWhatsAppPhone(record.phone);
 
+  // Prefer native Android bridge when available
+  if (window.AndroidCamera && typeof window.AndroidCamera.shareWhatsApp === 'function') {
+    try {
+      window.AndroidCamera.shareWhatsApp(msg, phone || '');
+      return;
+    } catch (e) {
+      console.warn('Native WhatsApp share failed, fallback to wa.me', e);
+    }
+  }
+
+  const encodedMsg = encodeURIComponent(msg);
   const url = phone
     ? `https://wa.me/${phone}?text=${encodedMsg}`
     : `https://wa.me/?text=${encodedMsg}`;
-
-  // Use location.href for reliable "auto-share" in WebViews
   window.location.href = url;
 }
 
@@ -1593,7 +2508,7 @@ function pickJ(el){
 
 function debounceSearch(){
   const q = document.getElementById('srchQ').value.trim();
-  if (q.length) selectedDate = new Date().toISOString().slice(0, 10); // Reset to today when searching
+  if (q.length) selectedDate = getLocalDateString(new Date()); // Reset to today when searching
   clearTimeout(searchTimeout);
   // ✅ PERFORMANCE: Debounce render to avoid lag during typing
   searchTimeout = setTimeout(renderHome, 300);
@@ -1636,6 +2551,11 @@ window.handleBackButton = function() {
     closeDetail();
     return true;
   }
+
+  if (document.getElementById('recycleBinModal').classList.contains('open')) {
+    closeRecycleBin();
+    return true;
+  }
   
   // Check if any other modal is open
   if (document.getElementById('mReturn').classList.contains('open')) {
@@ -1661,6 +2581,20 @@ window.handleBackButton = function() {
 // Photo Slider Functions
 
 function initApp() {
+  // ✅ VERSION 1.0: Premium 3D splash screen animation
+  const splashScreen = document.getElementById('splashScreen');
+  if (splashScreen) {
+    setTimeout(() => {
+      splashScreen.classList.add('hide');
+      setTimeout(() => {
+        splashScreen.style.display = 'none';
+      }, 600);
+    }, 2000);
+  }
+
+  loadRecycleBinCache();
+  refreshRecycleBinFromSheet();
+
   const syncBtn = document.getElementById('syncBtn');
   if (syncBtn) syncBtn.addEventListener('click', syncData);
 
@@ -1670,20 +2604,47 @@ function initApp() {
   const addBtn = document.getElementById('n-add');
   if (addBtn) addBtn.addEventListener('click', prepAdd);
 
+  // ✅ NEW: Add logout button handler
+  const logoutBtn = document.getElementById('n-logout');
+  if (logoutBtn) logoutBtn.addEventListener('click', logoutUser);
+
   const addBigBtn = document.getElementById('addBigBtn');
   if (addBigBtn) addBigBtn.addEventListener('click', prepAdd);
 
   const searchInput = document.getElementById('srchQ');
   if (searchInput) searchInput.addEventListener('input', debounceSearch);
+  const recycleBinBtn = document.getElementById('recycleBinBtn');
+  if (recycleBinBtn) recycleBinBtn.addEventListener('click', openRecycleBin);
+  
+  // ✅ NEW: Add search functionality for recycle bin
+  const recycleBinSearch = document.getElementById('recycleBinSearch');
+  if (recycleBinSearch) {
+    recycleBinSearch.addEventListener('input', (e) => {
+      filterRecycleBinRecords(e.target.value);
+    });
+  }
 
   renderCalendarWidget();
 
-  const filterWrapper = document.querySelector('.filter-chips');
+  const filterWrapper = document.querySelector('.filter-menu-panel');
   if (filterWrapper) {
     filterWrapper.addEventListener('click', (e) => {
       const chip = e.target.closest('.fchip');
       if (!chip) return;
       setF(chip, chip.dataset.f);
+    });
+  }
+
+  const filterMenuBtn = document.getElementById('filterMenuBtn');
+  const filterMenuPanel = document.getElementById('filterMenuPanel');
+  if (filterMenuBtn && filterMenuPanel) {
+    filterMenuBtn.addEventListener('click', () => {
+      filterMenuPanel.classList.toggle('open');
+    });
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.filter-menu-wrap')) {
+        filterMenuPanel.classList.remove('open');
+      }
     });
   }
 
@@ -1749,6 +2710,8 @@ function initApp() {
 
   const imageViewerClose = document.getElementById('imageViewerClose');
   if (imageViewerClose) imageViewerClose.addEventListener('click', closeImageViewer);
+  const recycleBinCloseBtn = document.getElementById('recycleBinCloseBtn');
+  if (recycleBinCloseBtn) recycleBinCloseBtn.addEventListener('click', closeRecycleBin);
 
   const detailCloseBtn = document.getElementById('detailCloseBtn');
   if (detailCloseBtn) detailCloseBtn.addEventListener('click', closeDetail);
@@ -1766,27 +2729,73 @@ function initApp() {
 
   const detailPrintBtn = document.getElementById('detailPrintBtn');
   if (detailPrintBtn) detailPrintBtn.addEventListener('click', printRecord);
+
+  const homeList = document.getElementById('homeList');
+  if (homeList) {
+    homeList.addEventListener('click', (e) => {
+      const actionBtn = e.target.closest('[data-action]');
+      if (!actionBtn) return;
+
+      const action = actionBtn.dataset.action;
+      const id = actionBtn.dataset.id;
+      if (action === 'edit-record') {
+        e.stopPropagation();
+        openEdit(id);
+        return;
+      }
+      if (action === 'delete-record') {
+        e.stopPropagation();
+        openDel(id);
+        return;
+      }
+      if (action === 'return-record') {
+        e.stopPropagation();
+        openRet(id, actionBtn.dataset.name || '');
+        return;
+      }
+      if (action === 'open-detail') {
+        openDetail(id);
+        return;
+      }
+      if (action === 'remove-existing-photo') {
+        e.stopPropagation();
+        const idx = parseInt(actionBtn.dataset.index || "-1", 10);
+        if (idx >= 0 && idx < editingExistingPhotos.length) {
+          editingExistingPhotos.splice(idx, 1);
+          renderExistingEditPhotos();
+          toast("✅ Existing photo removed");
+        }
+        return;
+      }
+      if (action === 'open-image-viewer') {
+        const url = actionBtn.dataset.url || "";
+        if (url) openImageViewer(url, [url]);
+      }
+    });
+  }
 }
 
 // Add touch support and swipe navigation
 document.addEventListener('DOMContentLoaded', function() {
   initApp();
 
-  // Swipe Navigation
-  let touchStartX = 0;
-  document.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
-  }, {passive:true});
+  // Smooth left/right swipe navigation between Home and New
+  document.addEventListener('touchstart', (e) => {
+    if (e.target.closest('.img-slider, .image-slider-container, input, textarea, .filter-menu-panel, .detail-modal')) return;
+    swipeStartX = e.changedTouches[0].screenX;
+    swipeStartY = e.changedTouches[0].screenY;
+    swipeStartTime = Date.now();
+  }, { passive: true });
 
-  document.addEventListener('touchend', e => {
-    // Don't swipe if we are inside an image slider
-    if (e.target.closest('.img-slider') || e.target.closest('.image-slider-container')) return;
-
-    const diff = touchStartX - e.changedTouches[0].screenX;
-    if (Math.abs(diff) > 120) { // Threshold for swipe
-      if (diff > 0) go('add'); // Swipe left -> New
-      else go('home'); // Swipe right -> Home
-    }
-  }, {passive:true});
+  document.addEventListener('touchend', (e) => {
+    const endX = e.changedTouches[0].screenX;
+    const endY = e.changedTouches[0].screenY;
+    const dx = endX - swipeStartX;
+    const dy = Math.abs(endY - swipeStartY);
+    const dt = Date.now() - swipeStartTime;
+    const isHorizontalSwipe = Math.abs(dx) > 80 && dy < 60 && dt < 500;
+    if (!isHorizontalSwipe) return;
+    if (dx < 0) go('add');
+    else go('home');
+  }, { passive: true });
 });
-

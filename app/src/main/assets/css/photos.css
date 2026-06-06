@@ -1,0 +1,99 @@
+/* ══ PHOTOS: Form upload section, card photo display, image viewer ══ */
+
+/* ── Form photo section ── */
+.photo-section{border:1.5px solid var(--gold-border);border-radius:var(--radius-sm);overflow:hidden;background:var(--gold-pale)}
+.photo-gallery-preview{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px;min-height:40px}
+.photo-gallery-preview:empty::after{content:'No photos yet - tap camera to start';grid-column:1/-1;text-align:center;color:var(--muted);font-size:0.75rem;padding:20px;font-style:italic}
+.photo-quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1.5px solid var(--gold-border)}
+.photo-action-btn{background:linear-gradient(135deg,#FFF8E0,var(--gold-pale));border:none;padding:16px 12px;cursor:pointer;transition:all 0.2s;border-right:1.5px solid var(--gold-border);text-align:center}
+.photo-action-btn:last-child{border-right:none}
+.photo-action-btn:active{background:linear-gradient(135deg,#FFE880,#FFD040);transform:scale(0.98)}
+.photo-action-btn .btn-icon{font-size:2rem;margin-bottom:4px}
+.photo-action-btn .btn-text{font-family:'Cinzel',serif;font-size:0.75rem;font-weight:700;color:var(--crimson);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.photo-action-btn .btn-hint{font-size:0.6rem;color:var(--muted);font-style:italic}
+.camera-btn{background:linear-gradient(135deg,#E8F5FF,#D0E8FF)}
+.camera-btn:active{background:linear-gradient(135deg,#B0D8FF,#90C0FF)}
+.up-msg{font-size:0.75rem;text-align:center;margin-top:8px;font-weight:600;padding:8px;border-radius:8px;background:var(--gold-pale)}
+
+/* ── Card photo display ── */
+.rcard-photo-swipe{margin-top:10px;padding-left:8px;position:relative}
+.rcard-photo-single{margin-top:10px;padding-left:8px;position:relative;border-radius:10px;overflow:hidden;border:1.5px solid var(--gold-border);background:#fdfaf0;cursor:pointer}
+.rcard-photo-single img{width:100%;height:160px;object-fit:cover;display:block}
+.photo-count-badge{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.75);color:white;padding:4px 10px;border-radius:12px;font-size:0.7rem;font-family:'Cinzel',serif;z-index:10;backdrop-filter:blur(4px)}
+.photo-upload-badge{position:absolute;bottom:8px;left:8px;background:rgba(255,140,0,0.9);color:white;padding:4px 10px;border-radius:12px;font-size:0.7rem;font-family:'Cinzel',serif;z-index:10;backdrop-filter:blur(4px);animation:pulse 1.5s ease-in-out infinite}
+
+/* ── Legacy img-slider ── */
+/* ✅ VERSION 1.0: Enhanced with smooth animations */
+.img-slider{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;border-radius:10px;border:1.5px solid var(--gold-border);background:#fdfaf0;box-shadow:0 4px 12px rgba(122,0,0,0.1);transition:all 0.3s ease}
+.img-slider img{width:100%;height:200px;flex-shrink:0;object-fit:cover;scroll-snap-align:center;transition:transform 0.3s ease;cursor:pointer}
+.img-slider img:hover{transform:scale(1.02)}
+.img-slider img:active{transform:scale(0.98)}
+.img-slider::-webkit-scrollbar{display:none}
+.slider-dots{display:flex;justify-content:center;gap:6px;margin-top:8px;padding:4px;background:rgba(212,165,32,0.05);border-radius:12px}
+.s-dot{width:6px;height:6px;border-radius:50%;background:#D4A520;opacity:0.3;transition:all 0.3s;cursor:pointer}
+.s-dot:hover{opacity:0.6}
+.s-dot.active{opacity:1;width:15px;border-radius:3px;box-shadow:0 2px 6px rgba(212,165,32,0.4)}
+
+/* ── Card slider ── */
+/* ✅ VERSION 1.0: Premium 3D card slider */
+.card-slider-container{position:relative;border-radius:10px;overflow:hidden;border:1.5px solid var(--gold-border);background:#000;box-shadow:0 8px 24px rgba(122,0,0,0.2);transition:all 0.3s ease}
+.card-slider-track{display:flex;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);touch-action:pan-y;will-change:transform}
+.card-slide{min-width:100%;height:155px;display:flex;align-items:center;justify-content:center;opacity:1;transition:opacity 0.3s ease}
+.card-slide img{width:100%;height:100%;object-fit:cover;user-select:none;transition:transform 0.3s ease}
+.card-slide img:hover{transform:scale(1.05)}
+.card-slider-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:2;background:rgba(0,0,0,0.4);padding:6px 12px;border-radius:20px;backdrop-filter:blur(4px)}
+.card-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.5);transition:all 0.3s ease;cursor:pointer}
+.card-dot:hover{background:rgba(255,255,255,0.8)}
+.card-dot.active{background:white;width:18px;border-radius:3px;box-shadow:0 0 8px rgba(255,255,255,0.5)}
+.card-slider-counter{position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.8);color:white;padding:6px 10px;border-radius:12px;font-size:0.65rem;z-index:2;font-weight:600;backdrop-filter:blur(4px)}
+.card-slider-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(122,0,0,0.85);color:var(--gold-light);border:none;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1.1rem;font-weight:bold;display:flex;align-items:center;justify-content:center;z-index:5;transition:all 0.2s;box-shadow:0 4px 10px rgba(0,0,0,0.4);backdrop-filter:blur(4px)}
+.card-slider-nav.prev{left:8px}
+.card-slider-nav.next{right:8px}
+.card-slider-nav:hover{background:rgba(122,0,0,1);transform:translateY(-50%) scale(1.15);box-shadow:0 6px 14px rgba(0,0,0,0.5)}
+.card-slider-nav:active{transform:translateY(-50%) scale(0.92);box-shadow:0 2px 6px rgba(0,0,0,0.3)}
+
+/* ── Photo slider in card ── */
+/* ✅ VERSION 1.0: Smooth photo carousel */
+.rcard-photo-slider{position:relative;margin-top:10px;padding-left:8px}
+.slider-container{position:relative;border-radius:10px;overflow:hidden;border:1.5px solid var(--gold-border);box-shadow:0 4px 12px rgba(122,0,0,0.1);transition:all 0.3s ease}
+.slider-track{display:flex;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);will-change:transform}
+.slider-slide{min-width:100%;position:relative;transition:opacity 0.3s ease}
+.slider-slide img{width:100%;height:155px;object-fit:cover;display:block;transition:transform 0.3s ease}
+.slider-slide img:hover{transform:scale(1.02)}
+.slider-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(122,0,0,0.8);color:var(--gold-light);border:none;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.3rem;font-weight:bold;display:flex;align-items:center;justify-content:center;z-index:10;transition:all 0.2s;box-shadow:0 4px 12px rgba(0,0,0,0.3);backdrop-filter:blur(4px)}
+.slider-nav:hover{background:rgba(122,0,0,1);transform:translateY(-50%) scale(1.1);box-shadow:0 6px 16px rgba(0,0,0,0.4)}
+.slider-nav:active{transform:translateY(-50%) scale(0.95);box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.slider-nav.prev{left:8px}
+.slider-nav.next{right:8px}
+.slider-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.5);border:1px solid rgba(255,255,255,0.8);cursor:pointer;transition:all 0.2s;box-shadow:0 0 4px rgba(255,255,255,0.3)}
+.slider-dot:hover{background:rgba(255,255,255,0.8)}
+.slider-dot.active{background:var(--gold-light);border-color:var(--gold-light);width:24px;border-radius:4px;box-shadow:0 0 8px rgba(245,217,120,0.6)}
+.slider-counter{position:absolute;top:8px;right:8px;background:rgba(0,0,0,0.8);color:white;padding:6px 12px;border-radius:12px;font-size:0.7rem;font-family:'Cinzel',serif;z-index:10;font-weight:600;backdrop-filter:blur(4px)}
+
+/* ── Full-screen image viewer modal ── */
+.image-viewer-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:400;flex-direction:column}
+.image-viewer-modal.open{display:flex}
+.image-viewer-close{position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.9);color:#000;border:none;width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:1.5rem;font-weight:bold;display:flex;align-items:center;justify-content:center;z-index:401;box-shadow:0 4px 12px rgba(0,0,0,0.3)}
+.image-viewer-close:active{transform:scale(0.95)}
+.image-slider-container{flex:1;width:100%;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.image-slider{display:flex;width:100%;height:100%;transition:transform 0.2s ease-out;touch-action:pan-y pinch-zoom;will-change:transform}
+.image-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:20px}
+.image-slide img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;user-select:none}
+.image-counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:white;padding:8px 16px;border-radius:20px;font-family:'Cinzel',serif;font-size:0.75rem;z-index:401}
+.image-dots{position:absolute;bottom:60px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:401}
+.image-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.5);transition:all 0.2s}
+.image-dot.active{background:white;width:24px;border-radius:4px}
+
+/* ── Detail modal photo gallery ── */
+.photo-gallery{margin-bottom:20px}
+.gallery-title{font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--crimson);margin-bottom:12px}
+.gallery-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.gallery-img{border-radius:12px;overflow:hidden;border:2px solid var(--gold-border);cursor:pointer;position:relative;aspect-ratio:1}
+.gallery-img img{width:100%;height:100%;object-fit:cover}
+.gallery-img:hover{opacity:0.8}
+.photo-delete-btn{position:absolute;top:8px;right:8px;width:32px;height:32px;background:rgba(122,0,0,0.95);color:white;border:2px solid white;border-radius:50%;cursor:pointer;font-size:1.2rem;font-weight:bold;display:flex;align-items:center;justify-content:center;z-index:10;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.4)}
+.photo-delete-btn:hover{background:rgba(176,0,0,1);transform:scale(1.1)}
+.photo-delete-btn:active{transform:scale(0.95)}
+.gallery-add{border:2px dashed var(--gold-border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;background:var(--gold-pale);color:var(--crimson);font-weight:600;font-family:'Cinzel',serif;transition:all 0.2s}
+.gallery-add:hover{background:var(--gold-light);border-color:var(--crimson)}
+.gallery-add input[type=file]{display:none}

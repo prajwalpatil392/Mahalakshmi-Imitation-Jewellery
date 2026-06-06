@@ -1,31 +1,84 @@
-# Gradle build caches and wrapper downloads
-.gradle/
-.gradle-user-home/
-build/
-**/build/
-gradle-8.9/
-gradle-8.9-bin.zip
-
-# Local configuration files
-local.properties
-.idea/
-.vscode/
-*.iml
-
-# Android Studio / IntelliJ
-captures/
-.externalNativeBuild/
-.cxx/
-
-# Output files
-out/
+# Built application files
 *.apk
 *.ap_
 *.aab
 
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+build/
+app/build/
+
+# Gradle files
+.gradle/
+.gradle-user-home/
+local.properties
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# IntelliJ
+*.iml
+.idea/
+*.ipr
+*.iws
+
+# Android Studio
+.navigation/
+captures/
+output.json
+.externalNativeBuild
+.cxx/
+
+# Keystore files
+*.jks
+*.keystore
+debug.keystore
+
+# External native build folder
+.externalNativeBuild
+
+# Google Services
+google-services.json
+
+# Freeline
+freeline.zip
+freeline/
+freeline_project_description.json
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/readme.md
+
+# Version control
+*.bak
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Extracted APKs
+apk_extracted/
+
+# Gradle wrapper JAR (keep wrapper but not JAR)
+gradle-*.zip
+gradle-8.9/
+
+# VSCode
+.vscode/
+
 # Logs
 *.log
-
-# OS files
-.DS_Store
-Thumbs.db
+build_log.txt

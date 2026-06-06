@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mahalakshmi Rentals</string>
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="colorPrimary">#7A0000</item>
+        <item name="colorPrimaryDark">#4A0000</item>
+        <item name="colorAccent">#C9920A</item>
+        <item name="android:windowBackground">#4A0000</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+</resources>

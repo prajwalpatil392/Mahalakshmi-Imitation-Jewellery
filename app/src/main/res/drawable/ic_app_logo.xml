@@ -1,0 +1,39 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="192dp"
+    android:height="192dp"
+    android:viewportWidth="192"
+    android:viewportHeight="192">
+  <!-- Main diamond shape in gold -->
+  <path
+      android:pathData="M96,20L140,80L96,130L52,80Z"
+      android:fillColor="#D4AF37"/>
+  <!-- Right half gradient effect -->
+  <path
+      android:pathData="M96,20L96,130L140,80Z"
+      android:fillColor="#FFA500"/>
+  <!-- Left half -->
+  <path
+      android:pathData="M96,20L52,80L96,130Z"
+      android:fillColor="#FFD700"/>
+  <!-- Shine effect on upper right -->
+  <path
+      android:pathData="M75,60L85,75L96,65Z"
+      android:fillColor="#FFFFFF"
+      android:fillAlpha="0.5"/>
+  <!-- Shine effect on lower right -->
+  <path
+      android:pathData="M100,90L115,100L105,105Z"
+      android:fillColor="#FFFFFF"
+      android:fillAlpha="0.3"/>
+  <!-- Decorative lines at bottom -->
+  <path
+      android:pathData="M75,145L117,145"
+      android:strokeColor="#D4AF37"
+      android:strokeWidth="2"
+      android:strokeLineCap="round"/>
+  <path
+      android:pathData="M70,160L122,160"
+      android:strokeColor="#FFA500"
+      android:strokeWidth="1.5"
+      android:strokeLineCap="round"/>
+</vector>

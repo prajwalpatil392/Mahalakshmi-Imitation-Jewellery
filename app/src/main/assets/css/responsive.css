@@ -1,0 +1,144 @@
+/* ══ RESPONSIVE DESIGN ══ */
+
+/* ══ TABLET (≥600px) ══ */
+@media (min-width: 600px) {
+  .app {
+    max-width: 600px;
+  }
+  
+  .header-text h1 {
+    font-size: 1.3rem;
+  }
+  
+  .nav {
+    height: 72px;
+  }
+  
+  .screen {
+    padding: 20px 18px 108px;
+  }
+}
+
+/* ══ TABLET LARGE (≥768px) ══ */
+@media (min-width: 768px) {
+  .app {
+    max-width: 768px;
+  }
+  
+  .header {
+    padding: 18px 24px;
+  }
+  
+  .header-inner {
+    padding: 18px 24px 15px;
+  }
+  
+  .header-gem {
+    width: 52px;
+    height: 52px;
+    font-size: 26px;
+  }
+  
+  .header-logo {
+    font-size: 18px;
+  }
+  
+  .header-text h1 {
+    font-size: 1.4rem;
+  }
+  
+  .nav {
+    height: 72px;
+  }
+  
+  .screen {
+    padding: 24px 20px 108px;
+  }
+  
+  .stats-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+}
+
+/* ══ DESKTOP (≥1024px) ══ */
+@media (min-width: 1024px) {
+  .app {
+    max-width: 1024px;
+  }
+  
+  .nav {
+    height: 72px;
+  }
+  
+  .screen {
+    padding: 28px 24px 108px;
+  }
+  
+  .record-item {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ══ LANDSCAPE MODE ══ */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Reduce padding for landscape */
+  .screen {
+    padding: 12px 14px 108px;
+  }
+  
+  .header-date {
+    gap: 3px;
+  }
+  
+  .hd-date {
+    font-size: 0.65rem;
+  }
+}
+
+/* ══ HIGH PIXEL DENSITY ══ */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Slightly adjust shadows for crisp rendering */
+  .nav {
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.25);
+  }
+  
+  .header {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* ══ TOUCH DEVICE OPTIMIZATIONS ══ */
+@media (hover: none) and (pointer: coarse) {
+  /* Slightly larger touch targets on mobile */
+  .nav-btn {
+    min-height: 72px;
+  }
+  
+  .add-big {
+    padding: 20px 18px;
+  }
+}
+
+/* ══ REDUCED MOTION ══ */
+@media (prefers-reduced-motion: reduce) {
+  .nav-btn,
+  .nav-btn .ni,
+  .nav-btn .nt {
+    transition: none;
+  }
+  
+  .screen {
+    animation: none;
+  }
+  
+  .add-big {
+    transition: none;
+  }
+}
+
+/* ══ DARK MODE (if implemented) ══ */
+@media (prefers-color-scheme: dark) {
+  /* Currently using light mode throughout */
+  /* Leave as-is for now */
+}

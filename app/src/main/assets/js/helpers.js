@@ -35,9 +35,14 @@ function buildWhatsAppMessage(record) {
     `Balance: Rs. ${record.balance || 0}` ,
     `Deposit: Rs. ${record.deposit || 0}` ,
     `Pickup: ${formatDateDisplay(record.from) || '-'}` ,
-    `Return: ${formatDateDisplay(record.to) || '-'}` ,
-    `User: ${record.user || 'User'}`
+    record.retDate ? `Expected Return: ${formatDateDisplay(record.to) || '-'}` : `Return: ${formatDateDisplay(record.to) || '-'}`
   ];
+
+  if (record.retDate) {
+    lines.push(`Actual Return: ${formatDateDisplay(record.retDate) || '-'}`);
+  }
+
+  lines.push(`User: ${record.user || 'User'}`);
 
   // ✅ PRIVACY: Don't send image links to customers
   // Just mention the photo count if photos exist
@@ -187,9 +192,16 @@ function printRecord() {
               </div>
               
               <div class="bill-row">
-                <span class="bill-key">Return Date:</span>
+                <span class="bill-key">${record.retDate ? 'Expected Return:' : 'Return Date:'}</span>
                 <span class="bill-value">${formatDateDisplay(record.to)}</span>
               </div>
+              
+              ${record.retDate ? `
+              <div class="bill-row">
+                <span class="bill-key">Actual Return:</span>
+                <span class="bill-value">${formatDateDisplay(record.retDate)}</span>
+              </div>
+              ` : ''}
               
               <div class="bill-divider"></div>
               <div class="section-title">💰 PAYMENT SUMMARY</div>

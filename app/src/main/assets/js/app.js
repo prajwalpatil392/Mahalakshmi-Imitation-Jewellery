@@ -24,7 +24,7 @@ function saveUserSession(userName) {
 // ============================================================================
 
 function initializeApp() {
-  log('🚀 Initializing Mahalakshmi Jewellery App');
+  log('🚀 Initializing Mahalaxmi Jewellery App');
 
   // 1. Critical Session Data
   loadUserSession();

@@ -21,7 +21,7 @@ function buildWhatsAppMessage(record) {
   const photoCount = photos.length;
 
   const lines = [
-    '*Mahalakshmi Rentals*',
+    '*Mahalaxmi Rentals*',
     '',
     'Rental Details',
     '',
@@ -50,7 +50,7 @@ function buildWhatsAppMessage(record) {
     lines.push('', `📷 ${photoCount} photo(s) attached in our records`);
   }
 
-  lines.push('', 'Thank you for choosing Mahalakshmi Rentals.');
+  lines.push('', 'Thank you for choosing Mahalaxmi Rentals.');
   return lines.join('\n');
 }
 
@@ -82,7 +82,7 @@ function shareWhatsApp(record) {
 }
 
 function shareApp() {
-  const appName = "💍 Mahalakshmi Jewellery Rentals";
+  const appName = "💍 Mahalaxmi Jewellery Rentals";
   const msg = `*${appName}*\nCheck out our jewellery rental management app!\n\nManage your bookings, photos, and receipts easily.`;
 
   if (window.AndroidCamera && typeof window.AndroidCamera.shareWhatsApp === 'function') {

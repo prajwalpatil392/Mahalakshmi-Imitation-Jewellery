@@ -315,8 +315,9 @@ function openDetail(id) {
   <hr style="border:0; border-top:1px solid #E8D8A0; margin:10px 0;"/>
 
   <div style="margin:8px 0;">
-    📅 Pickup: ${formatDateDisplay(r.from) || '-'}<br>
-    🔄 Return: ${formatDateDisplay(r.to) || 'Not returned'}
+    📅 Pickup Date: ${formatDateDisplay(r.from) || '-'}<br>
+    🔄 Return Date: ${formatDateDisplay(r.to) || '-'}<br>
+    ${r.retDate ? `✅ Returned Date: <b>${formatDateDisplay(r.retDate)}</b>` : ''}
   </div>
 
   <hr style="border:0; border-top:1px solid #E8D8A0; margin:10px 0;"/>

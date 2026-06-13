@@ -311,7 +311,10 @@ function cardHTML(r) {
       <div class="rcd"><div class="rv">₹${r.advance}</div><div class="rl">Advance</div></div>
       <div class="rcd"><div class="rv">₹${r.balance}</div><div class="rl">Balance</div></div>
     </div>
-    <div class="rcard-meta">📅 ${formatDateDisplay(r.from)} to ${formatDateDisplay(r.to)}</div>
+    <div class="rcard-meta">
+      📅 ${formatDateDisplay(r.from)} to ${formatDateDisplay(r.to)}
+      ${r.retDate ? `<br>🔄 Returned Date: ${formatDateDisplay(r.retDate)}` : ''}
+    </div>
     ${dueLine}
     <div class="rcard-time">🕒 ${r.createdTime || ''}</div>
     <div class="rcard-user">User: ${r.user}</div>

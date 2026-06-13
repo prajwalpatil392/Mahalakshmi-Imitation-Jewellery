@@ -312,6 +312,9 @@ async function apiGet(action, payload) {
       // ✅ FIXED: For 'delete', 'return', and 'permanentlyDelete' actions, extract ID as separate parameter
       if ((action === 'delete' || action === 'return' || action === 'permanentlyDelete') && typeof payload === 'object' && payload.id) {
         body.append('id', payload.id);
+        if (action === 'return' && payload.retDate) {
+          body.append('retDate', payload.retDate);
+        }
       } else {
         body.append('data', JSON.stringify(payload));
       }

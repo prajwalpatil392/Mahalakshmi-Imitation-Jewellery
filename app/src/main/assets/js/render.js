@@ -244,7 +244,25 @@ function cardHTML(r) {
   // Due days calculation
   let dueLine = '';
   if (st === STATUS.RETURNED) {
-    dueLine = `<div class="rcard-due due-returned">✅ Returned</div>`;
+    const toNorm = normalizeDate(r.to);
+    const retNorm = normalizeDate(r.retDate);
+    
+    if (toNorm && retNorm) {
+      const [toYear, toMonth, toDay] = toNorm.split('-').map(Number);
+      const [retYear, retMonth, retDay] = retNorm.split('-').map(Number);
+      
+      const toDate = new Date(toYear, toMonth - 1, toDay);
+      const retDate = new Date(retYear, retMonth - 1, retDay);
+      
+      const diffDays = Math.round((retDate - toDate) / 86400000);
+      if (diffDays > 0) {
+        dueLine = `<div class="rcard-due due-overdue">🔴 Returned Late by ${diffDays} day${diffDays !== 1 ? 's' : ''}</div>`;
+      } else {
+        dueLine = `<div class="rcard-due due-returned">✅ Returned on time</div>`;
+      }
+    } else {
+      dueLine = `<div class="rcard-due due-returned">✅ Returned</div>`;
+    }
   } else {
     const toNorm = normalizeDate(r.to);
     const fromNorm = normalizeDate(r.from);

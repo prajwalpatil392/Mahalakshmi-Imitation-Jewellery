@@ -223,9 +223,11 @@ async function doReturn() {
   }
 
   const record = records[recordIndex];
+  const today = getTodayInternal();
 
   // ✅ Step 1: Mark as returned locally (optimistic UI)
   records[recordIndex].status = 'returned';
+  records[recordIndex].retDate = today; // Set return date locally
   records[recordIndex]._syncing = true;
   records[recordIndex]._pendingAction = 'return';
   updateCache();
@@ -237,8 +239,8 @@ async function doReturn() {
   toast('✅ Marked as returned');
 
   try {
-    // ✅ Step 3: Sync with backend
-    const res = await apiGet('return', { id: pendRet });
+    // ✅ Step 3: Sync with backend (forward the actual return date)
+    const res = await apiGet('return', { id: pendRet, retDate: today });
     
     if (res.ok) {
       const returnedIndex = records.findIndex(r => String(r.id) === String(pendRet));

@@ -92,7 +92,7 @@ function handleRequest(e) {
       case "getDeleted":        return getDeletedRecords(archiveSheet);
       case "add":               return addRental(sheet, backupSheet, safeParse(e.parameter.data));
       case "edit":              return editRental(sheet, safeParse(e.parameter.data));
-      case "return":            return updateStatus(sheet, backupSheet, e.parameter.id, "returned");
+      case "return":            return updateStatus(sheet, backupSheet, e.parameter.id, "returned", e.parameter.retDate);
       case "updatePhoto":       return updatePhoto(sheet, safeParse(e.parameter.data));
       case "delete":            return archiveRecord(sheet, archiveSheet, e.parameter.id);
       case "restore": {
@@ -200,6 +200,7 @@ function getRentals(sheet) {
         note:      String(r[12] || ""),
         photoUrls: String(r[13] || ""),
         status:    status,
+        retDate:   formatDate(r[15]),
         user:      String(r[16] || "System")
       });
     }
@@ -295,7 +296,7 @@ function editRental(sheet, data) {
   }
 }
 
-function updateStatus(sheet, backupSheet, id, status) {
+function updateStatus(sheet, backupSheet, id, status, customRetDate) {
   try {
     if (!id) return jsonRes({ ok: false, error: "No ID provided" });
 
@@ -306,7 +307,9 @@ function updateStatus(sheet, backupSheet, id, status) {
     const rowData = sheet.getRange(row, 1, 1, 17).getValues()[0];
 
     sheet.getRange(row, 15).setValue(status);
-    sheet.getRange(row, 16).setValue(new Date());
+    
+    const retDateVal = customRetDate ? formatDate(customRetDate) : new Date();
+    sheet.getRange(row, 16).setValue(retDateVal);
 
     // Backup
     try {
@@ -402,6 +405,7 @@ function getDeletedRecords(archiveSheet) {
         note:      String(r[12] || ""),
         photoUrls: String(r[13] || ""),
         status:    String(r[14] || "deleted"),
+        retDate:   formatDate(r[15]),
         user:      String(r[16] || "System")
       });
     }

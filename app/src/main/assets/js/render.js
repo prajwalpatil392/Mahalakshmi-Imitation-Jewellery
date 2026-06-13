@@ -247,8 +247,20 @@ function cardHTML(r) {
     dueLine = `<div class="rcard-due due-returned">✅ Returned</div>`;
   } else {
     const toNorm = normalizeDate(r.to);
-    if (toNorm) {
-      const today = getTodayInternal();
+    const fromNorm = normalizeDate(r.from);
+    const today = getTodayInternal();
+    
+    if (fromNorm && fromNorm > today) {
+      // Advance Booking
+      const [fromYear, fromMonth, fromDay] = fromNorm.split('-').map(Number);
+      const [todayYear, todayMonth, todayDay] = today.split('-').map(Number);
+      
+      const fromDate = new Date(fromYear, fromMonth - 1, fromDay);
+      const todayDate = new Date(todayYear, todayMonth - 1, todayDay);
+      
+      const diffDays = Math.round((fromDate - todayDate) / 86400000);
+      dueLine = `<div class="rcard-due due-ok">🗓️ Starts in ${diffDays} day${diffDays !== 1 ? 's' : ''}</div>`;
+    } else if (toNorm) {
       const [toYear, toMonth, toDay] = toNorm.split('-').map(Number);
       const [todayYear, todayMonth, todayDay] = today.split('-').map(Number);
       

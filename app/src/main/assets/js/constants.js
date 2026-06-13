@@ -1,11 +1,6 @@
 // ============================================================================
 // ⚙️ CONSTANTS MODULE: Centralized reusable values
 // ============================================================================
-// Responsibility: Store all hardcoded values, thresholds, messages, durations
-// Prevents duplicate strings across codebase
-// Makes tuning easier (change once, affects everywhere)
-
-console.log('✅ constants.js loaded');
 
 // ============================================================================
 // 📊 RECORD STATUS VALUES
@@ -27,7 +22,8 @@ const FILTER = {
   TODAY: 'today',
   ACTIVE: 'active',
   RETURNED: 'returned',
-  OVERDUE: 'overdue'
+  OVERDUE: 'overdue',
+  ADVANCE: 'advance'
 };
 
 // ============================================================================
@@ -35,7 +31,7 @@ const FILTER = {
 // ============================================================================
 
 const LIMITS = {
-  MAX_PHOTOS: 10,
+  MAX_PHOTOS: 3,
   MAX_PHOTO_SIZE: 5242880, // 5MB in bytes
   MAX_COMPRESSED_SIZE: 512000, // 500KB target
   MAX_UPLOAD_RETRIES: 3
@@ -202,7 +198,8 @@ const PATTERNS = {
 
 const STORAGE = {
   CACHE_KEY: 'mahalakshmiRentalsCache',
-  LAST_SYNC_KEY: 'lastSyncTime'
+  LAST_SYNC_KEY: 'lastSyncTime',
+  USER_KEY: 'mlRentals_currentUser'
 };
 
 // ============================================================================
@@ -219,8 +216,10 @@ const ANIMATIONS = {
 // ⚙️ FEATURE FLAGS & DEFAULTS
 // ============================================================================
 
+const DEBUG = false; // ✅ Set to false for final release
+
 const DEFAULTS = {
-  USER_NAME: 'Worker',
+  USER_NAME: 'User',
   CURRENCY: '₹',
   CURRENCY_SYMBOL: 'Rs.',
   PHONE_COUNTRY_CODE: '+91',

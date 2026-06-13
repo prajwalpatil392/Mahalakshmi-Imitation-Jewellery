@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#6A0000">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; media-src *; img-src 'self' data: blob: https://res.cloudinary.com; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://api.cloudinary.com;">
 <title>💍 Mahalakshmi Jewellery</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/base.css">
@@ -16,94 +17,40 @@
 <link rel="stylesheet" href="css/photos.css">
 <link rel="stylesheet" href="css/responsive.css">
 <style>
-  /* ✅ Authentication Screen Animations */
-  @keyframes fadeInDown {
-    from {
-      opacity: 0;
-      transform: translateY(-30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  
+  /* Bounce animation for coming soon overlay icon */
   @keyframes bounce {
-    0%, 100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-  
-  /* Button hover effects */
-  #loginBtn:hover, #registerBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(218, 165, 32, 0.5) !important;
-  }
-  
-  #loginBtn:active, #registerBtn:active {
-    transform: translateY(0);
-  }
-  
-  /* Input focus effects */
-  input[type="text"]:focus, input[type="password"]:focus {
-    border-color: #B8860B !important;
-    box-shadow: 0 0 10px rgba(218, 165, 32, 0.3) !important;
-    outline: none;
-  }
-  
-  /* Toggle button hover */
-  #toggleRegisterBtn:hover, #toggleLoginBtn:hover {
-    color: #B8860B !important;
-    transform: scale(1.05);
-  }
-  
-  /* Hide nav and header during auth screen */
-  #s-auth.active ~ .nav {
-    display: none !important;
-  }
-  
-  #s-auth.active ~ .header {
-    display: none !important;
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
   }
 </style>
 </head>
 <body>
-<!-- ✅ VERSION 1.0: Premium 3D Splash Screen -->
+<!-- ✅ VERSION 1.0: Premium 3D Splash Screen with Progress Bar -->
 <div class="splash-screen" id="splashScreen">
   <div class="splash-gem">💍</div>
   <div class="splash-text">Mahalakshmi Jewellery</div>
+  <!-- ✅ GREEN PROGRESS BAR -->
+  <div class="splash-progress-container">
+    <div class="splash-progress-bar" id="splashProgressBar"></div>
+  </div>
   <div style="position:absolute;bottom:40px;font-size:16px;color:#fff;text-align:center;width:100%;font-weight:bold;letter-spacing:1px;text-shadow:2px 2px 4px rgba(0,0,0,0.7);">
     <div>Developed by</div>
     <div style="margin-top:6px;">Prajwal Patil | <a href="tel:9113581092" style="color:#fff;text-decoration:none;font-weight:bold;text-shadow:2px 2px 4px rgba(0,0,0,0.7);">9113581092</a></div>
   </div>
 </div>
 
-<div class="app">
+<div class="app" id="mainApp" style="opacity: 0; visibility: hidden;">
 
-  <div class="header">
+  <div class="header" style="display: none;" id="mainHeader">
     <div class="header-inner">
-      <div class="header-gem header-logo">ML</div>
+      <div class="header-gem header-logo" id="configBtn" style="cursor: pointer;">ML</div>
       <div class="header-text">
         <h1>Mahalakshmi Jewellery</h1>
         <p>✦ महालक्ष्मी ज्वेलरी ✦</p>
-        <p style="font-size:9px;color:#fff;margin:2px 0;font-style:italic;font-weight:500;">by Prajwal Patil | <a href="tel:9113581092" style="color:#fff;text-decoration:none;font-weight:600;">9113581092</a></p>
+        <p style="font-size:9px;color:#fff;margin:2px 0;font-style:italic;font-weight:500;">Developed by Prajwal Patil | <a href="tel:9113581092" style="color:#fff;text-decoration:none;font-weight:600;">9113581092</a></p>
       </div>
       <div class="header-date">
-        <div class="hd-date" id="headerDate"></div>
+        <div class="hd-date" id="headerDate"><span id="headerDateText"></span></div>
         <div class="hd-actions">
           <button class="hd-sync" id="syncBtn">⟳ Sync</button>
         </div>
@@ -111,81 +58,40 @@
     </div>
   </div>
 
-  <!-- LOGIN/REGISTER SCREEN -->
-  <div class="screen active" id="s-auth" style="background: linear-gradient(135deg, #1a0f0a 0%, #2d1810 50%, #1a0f0a 100%); display: flex; align-items: center; justify-content: center; padding: 0;">
-    <div style="width: 100%; max-width: 420px; padding: 40px 24px; text-align: center;">
-      
-      <!-- Header with Logo -->
-      <div style="margin-bottom: 50px;">
-        <div style="font-size: 64px; margin-bottom: 20px; animation: bounce 2s infinite;">💍</div>
-        <h1 style="color: #DAA520; margin: 0; font-size: 32px; letter-spacing: 2px; font-weight: 700; font-family: 'Cinzel', serif;">Mahalakshmi</h1>
-        <p style="color: #B8860B; font-size: 14px; margin: 8px 0 0; letter-spacing: 3px; font-family: 'Cinzel', serif;">JEWELLERY RENTALS</p>
-      </div>
+  <!-- LOGIN/REGISTER SCREEN - REMOVED -->
+  <!-- App now opens directly to home screen -->
 
-      <!-- Login Form -->
-      <div id="loginForm" style="animation: fadeInUp 0.5s ease;">
-        <div style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(218, 165, 32, 0.3); border-radius: 20px; padding: 32px 24px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
-          
-          <h2 style="color: #DAA520; font-size: 24px; margin: 0 0 28px; font-weight: 600; letter-spacing: 1px;">🔓 Login</h2>
-          
-          <div style="margin-bottom: 18px;">
-            <input class="fi" type="text" id="loginName" placeholder="Worker Name" style="width: 100%; padding: 14px 16px; border: 1px solid rgba(218, 165, 32, 0.5); border-radius: 10px; font-size: 15px; box-sizing: border-box; background: rgba(255, 255, 255, 0.08); color: #fff; transition: all 0.3s ease;" onfocus="this.style.borderColor='#DAA520';this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(218,165,32,0.5)';this.style.background='rgba(255,255,255,0.08)'">
-            <style>
-              input::placeholder { color: rgba(255, 255, 255, 0.5); }
-            </style>
-          </div>
-          
-          <div style="margin-bottom: 28px;">
-            <input class="fi" type="password" id="loginPass" placeholder="Password" style="width: 100%; padding: 14px 16px; border: 1px solid rgba(218, 165, 32, 0.5); border-radius: 10px; font-size: 15px; box-sizing: border-box; background: rgba(255, 255, 255, 0.08); color: #fff; transition: all 0.3s ease;" onfocus="this.style.borderColor='#DAA520';this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(218,165,32,0.5)';this.style.background='rgba(255,255,255,0.08)'">
-          </div>
-          
-          <button id="loginBtn" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #DAA520 0%, #B8860B 100%); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; margin-bottom: 16px; letter-spacing: 1px; box-shadow: 0 6px 20px rgba(218, 165, 32, 0.3);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(218, 165, 32, 0.5)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 6px 20px rgba(218, 165, 32, 0.3)'">LOGIN</button>
-          
-          <div style="text-align: center; font-size: 14px; color: rgba(255, 255, 255, 0.7);">
-            <span>New user? </span>
-            <button id="toggleRegisterBtn" style="background: none; border: none; color: #DAA520; cursor: pointer; font-weight: 700; font-size: 14px; padding: 0; transition: all 0.3s ease;" onmouseover="this.style.color='#FFD700'" onmouseout="this.style.color='#DAA520'">Create account</button>
-          </div>
+  <div class="nav" style="display: none;" id="mainNav">
+    <button class="nav-btn on" id="n-home" onclick="go('home')"><span class="ni">🏠</span><span class="nt">Home</span></button>
+    <button class="nav-btn" id="n-add" onclick="prepAdd()"><span class="ni">✍️</span><span class="nt">New</span></button>
+    <button class="nav-btn" id="n-backup"><span class="ni">💾</span><span class="nt">Backup</span></button>
+    <button class="nav-btn" id="logoutBtn"><span class="ni">🚪</span><span class="nt">Logout</span></button>
+  </div>
+
+  <!-- LOGIN SCREEN -->
+  <div class="screen" id="s-login" style="top: 0; bottom: 0; height: 100vh; padding: 0;">
+    <div style="display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; box-sizing: border-box; width: 100%;">
+      <div style="max-width: 380px; width: 100%; padding: 40px 24px; background: white; border-radius: 24px; text-align: center; border: 2px solid var(--gold-border); box-shadow: var(--shadow-premium); overflow: hidden; transform: none;">
+        <div style="font-size: 60px; margin-bottom: 20px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">👤</div>
+        <h2 style="color: var(--crimson); font-family: 'Cinzel', serif; margin: 0 0 10px; font-weight: 700; font-size: 1.6rem; letter-spacing: 1px;">User Login</h2>
+        <p style="color: var(--muted); font-size: 0.88rem; margin-bottom: 28px; line-height: 1.5; font-family: 'Lora', serif; font-style: italic;">Enter your name to access Mahalakshmi Rentals</p>
+        
+        <div class="fg" style="margin-bottom: 28px; text-align: left;">
+          <label class="fl" for="loginUsernameInput" style="font-weight: 600; color: var(--gold);">Operator Name (नाम)</label>
+          <input class="fi" type="text" id="loginUsernameInput" placeholder="Type your name here..."
+                 style="width: 100%; padding: 14px; border: 2px solid var(--gold-border); border-radius: 12px;
+                        font-size: 1.05rem; outline: none; text-align: center; box-sizing: border-box; font-weight: 600; transition: all 0.3s;">
         </div>
+        
+        <button class="save-btn" id="loginSubmitBtn" style="width: 100%; padding: 15px; font-size: 1.05rem; font-family: 'Cinzel', serif; font-weight: 700; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(106,0,0,0.2);">
+          Enter System (प्रवेश करें)
+        </button>
       </div>
-
-      <!-- Register Form (Hidden) -->
-      <div id="registerForm" style="display: none; animation: fadeInUp 0.5s ease;">
-        <div style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(218, 165, 32, 0.3); border-radius: 20px; padding: 32px 24px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
-          
-          <h2 style="color: #DAA520; font-size: 24px; margin: 0 0 28px; font-weight: 600; letter-spacing: 1px;">📝 Register</h2>
-          
-          <div style="margin-bottom: 18px;">
-            <input class="fi" type="text" id="regName" placeholder="Worker Name" style="width: 100%; padding: 14px 16px; border: 1px solid rgba(218, 165, 32, 0.5); border-radius: 10px; font-size: 15px; box-sizing: border-box; background: rgba(255, 255, 255, 0.08); color: #fff; transition: all 0.3s ease;" onfocus="this.style.borderColor='#DAA520';this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(218,165,32,0.5)';this.style.background='rgba(255,255,255,0.08)'">
-          </div>
-          
-          <div style="margin-bottom: 18px;">
-            <input class="fi" type="password" id="regPass" placeholder="Password" style="width: 100%; padding: 14px 16px; border: 1px solid rgba(218, 165, 32, 0.5); border-radius: 10px; font-size: 15px; box-sizing: border-box; background: rgba(255, 255, 255, 0.08); color: #fff; transition: all 0.3s ease;" onfocus="this.style.borderColor='#DAA520';this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(218,165,32,0.5)';this.style.background='rgba(255,255,255,0.08)'">
-          </div>
-          
-          <div style="margin-bottom: 28px;">
-            <input class="fi" type="password" id="regPass2" placeholder="Confirm Password" style="width: 100%; padding: 14px 16px; border: 1px solid rgba(218, 165, 32, 0.5); border-radius: 10px; font-size: 15px; box-sizing: border-box; background: rgba(255, 255, 255, 0.08); color: #fff; transition: all 0.3s ease;" onfocus="this.style.borderColor='#DAA520';this.style.background='rgba(255,255,255,0.12)'" onblur="this.style.borderColor='rgba(218,165,32,0.5)';this.style.background='rgba(255,255,255,0.08)'">
-          </div>
-          
-          <button id="registerBtn" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #DAA520 0%, #B8860B 100%); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.3s ease; margin-bottom: 16px; letter-spacing: 1px; box-shadow: 0 6px 20px rgba(218, 165, 32, 0.3);" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 28px rgba(218, 165, 32, 0.5)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 6px 20px rgba(218, 165, 32, 0.3)'">REGISTER</button>
-          
-          <div style="text-align: center; font-size: 14px; color: rgba(255, 255, 255, 0.7);">
-            <span>Already have account? </span>
-            <button id="toggleLoginBtn" style="background: none; border: none; color: #DAA520; cursor: pointer; font-weight: 700; font-size: 14px; padding: 0; transition: all 0.3s ease;" onmouseover="this.style.color='#FFD700'" onmouseout="this.style.color='#DAA520'">Login here</button>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 
-  <div class="nav">
-    <button class="nav-btn on" id="n-home" onclick="go('home')"><span class="ni">🏠</span><span class="nt">Home</span></button>
-    <button class="nav-btn" id="n-add" onclick="prepAdd()"><span class="ni">✍️</span><span class="nt">New</span></button>
-    <button class="nav-btn" id="n-logout" style="margin-left:auto;" onclick="logoutUser()"><span class="ni">🚪</span><span class="nt">Logout</span></button>
-  </div>
-
   <!-- HOME SCREEN -->
-  <div class="screen active" id="s-home">
+  <div class="screen" id="s-home">
     <div class="stats-row">
       <div class="stat-card gold-c">
         <div class="sv" id="cntToday">–</div>
@@ -208,17 +114,17 @@
     <div class="home-calendar-widget">
       <div class="cw-header">
         <div class="cw-title">Calendar</div>
-        <div class="cw-controls">
-          <button class="cw-nav" id="prevMonth" aria-label="Previous month">‹</button>
-          <button class="cw-nav" id="nextMonth" aria-label="Next month">›</button>
-        </div>
       </div>
       <div class="cw-month" id="calendarMonth"></div>
       <div class="cw-weekdays">
         <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
       </div>
       <div class="cw-days" id="calendarDays"></div>
-      <div class="cw-legend"><span><span class="cw-dot today"></span>Today</span><span><span class="cw-dot event"></span>Booking</span></div>
+      <div class="cw-legend"><span><span class="cw-dot today"></span>Today</span><span><span class="cw-dot event"></span>Booking Start</span></div>
+      <div class="cw-controls">
+        <button class="cw-nav" id="prevMonth" aria-label="Previous month">‹</button>
+        <button class="cw-nav" id="nextMonth" aria-label="Next month">›</button>
+      </div>
     </div>
 
     <button class="add-big" id="addBigBtn">✦ Add New Rental (नया रिकॉर्ड) ✦</button>
@@ -237,8 +143,10 @@
     </div>
     <button class="recycle-launch-btn" id="recycleBinBtn">🗑 Recycle Bin</button>
     <div id="homeList"></div>
-    <div style="text-align:center;padding:20px;border-top:1px solid #E8D8A0;margin-top:20px;font-size:10px;color:#7A0000;">
-      🔧 Developed by <strong>Prajwal Patil</strong> | <a href="tel:9113581092" style="color:#7A0000;text-decoration:none;font-weight:bold;">9113581092</a>
+    
+    <!-- Developer Credit -->
+    <div style="text-align:center;padding:20px 12px;border-top:2px solid var(--gold-border);margin-top:24px;font-size:11px;color:#7A5C2E;background:linear-gradient(180deg,transparent,rgba(201,146,10,0.05));border-radius:12px;">
+      🔧 Developed by <strong style="color:var(--crimson);">Prajwal Patil</strong> | <a href="tel:9113581092" style="color:var(--gold);text-decoration:none;font-weight:bold;transition:all 0.3s;">9113581092</a>
     </div>
   </div>
 
@@ -247,55 +155,57 @@
     <div class="form-title"><span>✍️</span>Add Entry (नया रिकॉर्ड)</div>
 
     <div class="fg">
-      <label class="fl" for="fUser">Worker Name (उपयोगकर्ता)</label>
-      <input class="fi" type="text" id="fUser" placeholder="e.g. Ramesh, Priya...">
-    </div>
-
-    <div class="fg">
-      <label class="fl" for="fName">Customer Name (नाम) *</label>
+      <label class="fl" for="fName">Customer Name (नाम) <span class="req">*</span></label>
       <input class="fi" type="text" id="fName" placeholder="Priya Sharma...">
     </div>
-    <div class="two-col fg">
-      <div><label class="fl" for="fPhone">Phone (फोन)</label><input class="fi" type="tel" id="fPhone" placeholder="98765..."></div>
-      <div><label class="fl" for="fReceipt">Receipt No (रसीद)</label><input class="fi" type="text" id="fReceipt" placeholder="Enter receipt number"></div>
-    </div>
+
     <div class="fg">
-      <label class="fl" for="fAddress">Address (पता)</label>
-      <input class="fi" type="text" id="fAddress" placeholder="Street, Colony...">
+      <label class="fl" for="fUser">User (उपयोगकर्ता) <span class="req">*</span></label>
+      <input class="fi" type="text" id="fUser" placeholder="Enter your name...">
+    </div>
+
+    <div class="two-col fg">
+      <div><label class="fl" for="fPhone">Phone (फोन) <span class="req">*</span></label><input class="fi" type="tel" id="fPhone" placeholder="98765..."></div>
+      <div><label class="fl" for="fReceipt">Receipt No (रसीद) <span class="req">*</span></label><input class="fi" type="text" id="fReceipt" placeholder="Enter receipt number"></div>
     </div>
 
     <div class="fg">
-      <label class="fl" for="fJewel">Jewellery (आभूषण) *</label>
+      <label class="fl" for="fAddress">Address (पता)</label>
+      <input class="fi" type="text" id="fAddress" placeholder="Customer address...">
+    </div>
+
+    <div class="fg">
+      <label class="fl" for="fJewel">Jewellery (आभूषण) <span class="req">*</span></label>
       <div class="jewel-grid" id="jewPick">
         <div class="jo sel" data-v="Necklace"><div class="ji">📿</div><div class="jn">Necklace</div></div>
         <div class="jo" data-v="Earrings"><div class="ji">💎</div><div class="jn">Earrings</div></div>
         <div class="jo" data-v="Bangles"><div class="ji">🌀</div><div class="jn">Bangles</div></div>
         <div class="jo" data-v="Full Set"><div class="ji">✨</div><div class="jn">Full Set</div></div>
       </div>
-      <input class="fi mt-6" type="text" id="fJewel" placeholder="Type custom item..." value="Necklace">
+      <input class="fi mt-6" type="text" id="fJewel" placeholder="" value="">
     </div>
 
     <div class="three-col fg">
-      <div><label class="fl" for="fTotal">Total (कुल)</label><input class="fi" type="number" id="fTotal"></div>
-      <div><label class="fl" for="fAdvance">Advance</label><input class="fi" type="number" id="fAdvance"></div>
+      <div><label class="fl" for="fTotal">Total (कुल) <span class="req">*</span></label><input class="fi" type="number" id="fTotal"></div>
+      <div><label class="fl" for="fAdvance">Advance <span class="req">*</span></label><input class="fi" type="number" id="fAdvance"></div>
       <div><label class="fl" for="fBalance">Balance</label><input class="fi readonly-field" type="number" id="fBalance" readonly></div>
     </div>
     <div class="fg"><label class="fl" for="fDeposit">Deposit (जमानत)</label><input class="fi" type="number" id="fDeposit"></div>
 
     <div class="two-col fg">
-      <div><label class="fl" for="fFrom">Pickup (से)</label><input class="fi" type="date" id="fFrom"></div>
-      <div><label class="fl" for="fTo">Return (तक)</label><input class="fi" type="date" id="fTo"></div>
+      <div><label class="fl" for="fFrom">Pickup (से) <span class="req">*</span></label><input class="fi" type="date" id="fFrom"></div>
+      <div><label class="fl" for="fTo">Return Date (तक) <span class="req">*</span></label><input class="fi" type="date" id="fTo"></div>
     </div>
 
     <div class="fg">
-      <span class="fl">Photos (फोटो) - Quick Capture</span>
+      <span class="fl">Photos (फोटो) - Optional</span>
       <div class="photo-section">
         <div id="addedPhotos" class="photo-gallery-preview"></div>
         <div class="photo-quick-actions">
           <button class="photo-action-btn camera-btn" id="cameraBtn">
             <div class="btn-icon">📷</div>
             <div class="btn-text">Camera</div>
-            <div class="btn-hint">Direct camera access</div>
+            <div class="btn-hint">Capture up to 3 photos</div>
           </button>
           <button class="photo-action-btn gallery-btn" id="galleryBtn">
             <div class="btn-icon">🖼️</div>
@@ -366,6 +276,12 @@
     <div style="padding:8px;border-bottom:1px solid #eee;">
       <input type="text" id="recycleBinSearch" placeholder="🔍 Search by name, receipt, or date..." style="width:100%;padding:8px;border:1px solid #ddd;border-radius:4px;font-size:14px;">
     </div>
+    <!-- ✅ DELETE ALL BUTTON -->
+    <div style="padding:8px;border-bottom:1px solid #eee;text-align:center;">
+      <button class="recycle-delete-all-btn" id="recycleBinDeleteAllBtn" style="padding:10px 20px;background:linear-gradient(135deg,#C41E3A,#8B0000);color:white;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(196,30,58,0.3);font-family:'Cinzel',serif;letter-spacing:1px;transition:all 0.3s;">
+        🗑️ Delete All Forever
+      </button>
+    </div>
     <div id="recycleBinList"></div>
     <div style="padding:12px;text-align:center;border-top:1px solid #E8D8A0;margin-top:12px;font-size:9px;color:#7A5C2E;">
       🔧 Developed by <strong>Prajwal Patil</strong> | <a href="tel:9113581092" style="color:#7A5C2E;text-decoration:none;font-weight:bold;">9113581092</a>
@@ -375,6 +291,16 @@
 
 <div class="ov-spin" id="ovSpin"><div class="ov-wheel"></div><div class="ov-spin-text">Processing...</div></div>
 <div class="toast" id="toastEl"></div>
+
+<!-- COMING SOON OVERLAY -->
+<div class="coming-soon-overlay" id="comingSoonOverlay">
+  <div class="coming-soon-content">
+    <div class="coming-soon-icon">🚀</div>
+    <h2 class="coming-soon-title">Coming Soon!</h2>
+    <p class="coming-soon-text">Backup & Restore feature will be available in the next version.</p>
+    <button class="coming-soon-close" id="comingSoonCloseBtn">Got It</button>
+  </div>
+</div>
 
 <!-- SETTINGS MODAL -->
 <div class="detail-modal" id="settingsModal">
@@ -404,7 +330,37 @@
   </div>
 </div>
 
-<script src="app.js"></script>
+<!-- ✅ MODULAR JAVASCRIPT ARCHITECTURE -->
+<!-- Core configuration and constants -->
+<script src="js/config.js"></script>
+<script src="js/constants.js"></script>
+<script src="js/state.js"></script>
+<script src="js/dom.js"></script>
+
+<!-- Subscription Management -->
+<script src="js/subscription.js"></script>
+
+<!-- Utilities -->
+<script src="js/utils.js"></script>
+
+<!-- API and data layer -->
+<script src="js/api.js"></script>
+
+<!-- UI rendering -->
+<script src="js/render.js"></script>
+<script src="js/photos.js"></script>
+<script src="js/forms.js"></script>
+<script src="js/modals.js"></script>
+<script src="js/calendar.js"></script>
+
+<!-- Event handlers -->
+<script src="js/events.js"></script>
+
+<!-- Helpers (WhatsApp, print) -->
+<script src="js/helpers.js"></script>
+
+<!-- Main app initialization (MUST BE LAST) -->
+<script src="js/app.js"></script>
 </body>
 </html>
 

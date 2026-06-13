@@ -27,14 +27,14 @@ const DOM = {
   get headerDate() { return document.getElementById('headerDate'); },
   get recycleBinBtn() { return document.getElementById('recycleBinBtn'); },
   
-  // Filter chips
-  get filterWrapper() { return document.querySelector('.filter-chips'); },
+  // Filter menu (chips live inside #filterMenuPanel)
+  get filterMenuPanel() { return document.getElementById('filterMenuPanel'); },
   
   // Calendar
   get calendarDays() { return document.getElementById('calendarDays'); },
   get prevMonthBtn() { return document.getElementById('prevMonth'); },
   get nextMonthBtn() { return document.getElementById('nextMonth'); },
-  get calendarMonthYear() { return document.getElementById('calendarMonthYear'); },
+  get calendarMonthYear() { return document.getElementById('calendarMonth'); },
   
   // Form inputs
   get nameInput() { return document.getElementById('fName'); },
@@ -45,9 +45,14 @@ const DOM = {
   get totalInput() { return document.getElementById('fTotal'); },
   get advanceInput() { return document.getElementById('fAdvance'); },
   get balanceInput() { return document.getElementById('fBalance'); },
+  get depositInput() { return document.getElementById('fDeposit'); },
   get fromInput() { return document.getElementById('fFrom'); },
   get toInput() { return document.getElementById('fTo'); },
   get userInput() { return document.getElementById('fUser'); },
+  
+  // Photo elements
+  get addedPhotos() { return document.getElementById('addedPhotos'); },
+  get upMsg() { return document.getElementById('upMsg'); },
   
   // Form buttons
   get saveBtn() { return document.getElementById('saveBtn'); },
@@ -58,7 +63,7 @@ const DOM = {
   get galleryBtn() { return document.getElementById('galleryBtn'); },
   get cameraInput() { return document.getElementById('cameraInput'); },
   get galleryInput() { return document.getElementById('galleryInput'); },
-  get photoGallery() { return document.getElementById('photoGallery'); },
+  get photoGallery() { return document.getElementById('addedPhotos'); },
   
   // Jewelry picker
   get jewelGrid() { return document.getElementById('jewPick'); },
@@ -86,9 +91,9 @@ const DOM = {
   get detailPrintBtn() { return document.getElementById('detailPrintBtn'); },
   
   // Count badges
-  get activeCountBadge() { return document.getElementById('activeCount'); },
-  get overdueCountBadge() { return document.getElementById('ovCount'); },
-  get todayCountBadge() { return document.getElementById('todayCount'); }
+  get activeCountBadge() { return document.getElementById('cntActive'); },
+  get overdueCountBadge() { return document.getElementById('cntOv'); },
+  get todayCountBadge() { return document.getElementById('cntToday'); }
 };
 
 // ============================================================================

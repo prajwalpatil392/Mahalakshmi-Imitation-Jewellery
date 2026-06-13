@@ -1,6 +1,9 @@
 /* ══ RENTAL CARDS ══ */
-.rcard{background:var(--cream);border:1.5px solid #E8D8A0;border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 3px 12px rgba(122,0,0,0.08);position:relative;overflow:hidden}
-.rcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--gold),var(--gold-bright))}
+.rcard{background:var(--cream);border:1.5px solid #E8D8A0;border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:0 3px 12px rgba(122,0,0,0.08);position:relative;overflow:hidden;transition:all 0.3s cubic-bezier(0.4,0,0.2,1)}
+.rcard:hover{box-shadow:0 6px 20px rgba(122,0,0,0.12);transform:translateY(-2px)}
+.rcard:active{transform:translateY(0)}
+.rcard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,var(--gold),var(--gold-bright));transition:width 0.3s ease}
+.rcard:hover::before{width:6px}
 .rcard.returned::before{background:linear-gradient(180deg,var(--green),#2A8A4A)}
 .rcard.returned{border-color:#C0E0C8;background:#FAFFF8}
 .rcard.overdue::before{background:linear-gradient(180deg,var(--crimson),#B00000)}
@@ -15,7 +18,9 @@
 .rcard-info{flex:1;min-width:0}
 .rcard-name-row{display:flex;align-items:center;gap:8px}
 .rcard-name{font-family:'Cinzel',serif;font-size:0.92rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.call-btn{background:var(--green-bg);color:var(--green);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;text-decoration:none;border:1px solid #A0D8B0}
+.call-btn{background:var(--green-bg);color:var(--green);width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.8rem;text-decoration:none;border:1px solid #A0D8B0;transition:all 0.3s cubic-bezier(0.4,0,0.2,1)}
+.call-btn:hover{background:var(--green);color:white;transform:scale(1.15);box-shadow:0 4px 12px rgba(26,92,46,0.3)}
+.call-btn:active{transform:scale(0.95)}
 .rcard-jewel{font-size:0.72rem;color:var(--muted);margin-top:2px;font-style:italic;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ══ BADGES ══ */
@@ -36,11 +41,16 @@
 
 /* ══ CARD ACTIONS ══ */
 .rcard-actions{display:flex;gap:8px;margin-top:10px;padding-left:8px}
-.ract{flex:1;padding:12px;border-radius:8px;border:1.5px solid transparent;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.8px;text-transform:uppercase;cursor:pointer;transition:all 0.15s;text-align:center;font-weight:600}
+.ract{flex:1;padding:12px;border-radius:8px;border:1.5px solid transparent;font-family:'Cinzel',serif;font-size:0.65rem;letter-spacing:0.8px;text-transform:uppercase;cursor:pointer;transition:all 0.3s cubic-bezier(0.4,0,0.2,1);text-align:center;font-weight:600}
 .ract.ret{background:var(--green-bg);color:var(--green);border-color:#A0D8B0}
-.ract.ret:active{background:#C8EDD8}
+.ract.ret:hover{background:var(--green);color:white;transform:translateY(-2px);box-shadow:0 4px 12px rgba(26,92,46,0.3)}
+.ract.ret:active{background:#C8EDD8;transform:translateY(0)}
+.ract.edit{background:linear-gradient(135deg,#E8F5FF,#D0E8FF);color:#0066CC;border-color:#80A8D8}
+.ract.edit:hover{background:#80A8D8;color:white;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,102,204,0.3)}
+.ract.edit:active{transform:translateY(0)}
 .ract.del{background:var(--red-bg);color:var(--crimson);border-color:#E0B0B0}
-.ract.del:active{background:#F0C8C8}
+.ract.del:hover{background:var(--crimson);color:white;transform:translateY(-2px);box-shadow:0 4px 12px rgba(122,0,0,0.3)}
+.ract.del:active{background:#F0C8C8;transform:translateY(0)}
 
 /* ══ RECYCLE BIN CARDS ══ */
 .bin-screen-empty{text-align:center;padding:50px 20px;color:var(--muted)}
@@ -61,3 +71,55 @@
 .bin-clear-btn{width:100%;padding:14px;background:var(--red-bg);color:var(--crimson);border:1.5px solid #E0B0B0;border-radius:var(--radius-sm);font-family:'Cinzel',serif;font-size:0.75rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:16px;transition:all 0.15s}
 .bin-clear-btn:active{background:#F0C8C8;transform:scale(0.98)}
 .bin-count{font-family:'Cinzel',serif;font-size:0.65rem;color:var(--muted);text-align:center;margin-bottom:12px;letter-spacing:1px;text-transform:uppercase}
+
+/* ══ NO PHOTO PLACEHOLDER ══ */
+.rcard-photo-placeholder{
+  background:linear-gradient(135deg,#F5F5F5,#E8E8E8);
+  border:2px dashed #C0C0C0;
+  border-radius:12px;
+  padding:32px 20px;
+  margin:12px 8px 8px 8px;
+  text-align:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:160px;
+  transition:all 0.3s ease;
+}
+
+.rcard-photo-placeholder:hover{
+  background:linear-gradient(135deg,#FAFAFA,#F0F0F0);
+  border-color:#A0A0A0;
+  transform:scale(1.01);
+}
+
+.placeholder-icon{
+  font-size:3rem;
+  opacity:0.4;
+  animation:pulse 2s ease-in-out infinite;
+}
+
+.placeholder-text{
+  font-family:'Cinzel',serif;
+  font-size:0.85rem;
+  font-weight:600;
+  color:#888;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  margin-top:4px;
+}
+
+.placeholder-subtext{
+  font-size:0.7rem;
+  color:#AAA;
+  font-style:italic;
+  margin-top:2px;
+}
+
+@keyframes pulse{
+  0%,100%{opacity:0.4}
+  50%{opacity:0.7}
+}
+

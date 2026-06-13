@@ -15,26 +15,25 @@ window.addEventListener('unhandledrejection', function(e) {
   logError('Unhandled Promise Error:', e.reason || e);
 });
 
-window.addEventListener('online', () => {
-  isOnline = true;
-  hideNetworkWarning();
-  toast('✅ Back online');
-  log('Network: Online');
-  syncPendingLocalChanges();
-});
-
-window.addEventListener('offline', () => {
-  isOnline = false;
-  showNetworkWarning();
-  toast('⚠️ No internet connection');
-  log('Network: Offline');
-});
 
 // ============================================================================
 // 📱 ANDROID BACK BUTTON HANDLER
 // ============================================================================
 
 window.handleBackButton = function() {
+  // Check if coming soon overlay is open
+  const comingSoonOverlay = document.getElementById('comingSoonOverlay');
+  if (comingSoonOverlay && comingSoonOverlay.classList.contains('open')) {
+    comingSoonOverlay.classList.remove('open');
+    return true;
+  }
+
+  // ✅ Subscription modal can only be closed by its own Close button — not back button
+  const subModal = document.getElementById('subscriptionDetailModal');
+  if (subModal) {
+    return true; // swallow back press, do nothing
+  }
+
   // Check if image viewer is open
   if (DOM.imageViewerModal && DOM.imageViewerModal.classList.contains(CLASSES.OPEN)) {
     closeImageViewer();
@@ -59,6 +58,15 @@ window.handleBackButton = function() {
     closeRecycleBin();
     return true;
   }
+
+  // Check if backup modal is open
+  const backupModal = document.getElementById('backupModal');
+  if (backupModal && backupModal.classList.contains(CLASSES.OPEN)) {
+    if (typeof closeBackupModal === 'function') {
+      closeBackupModal();
+    }
+    return true;
+  }
   
   // Check if any other modal is open
   if (DOM.returnModal && DOM.returnModal.classList.contains(CLASSES.OPEN)) {
@@ -76,6 +84,12 @@ window.handleBackButton = function() {
     go('home');
     return true;
   }
+
+  // Check if on login screen, swallow back action
+  const loginScreen = document.getElementById('s-login');
+  if (loginScreen && loginScreen.classList.contains(CLASSES.ACTIVE)) {
+    return true;
+  }
   
   // Let Android handle it (exit app)
   return false;
@@ -89,7 +103,19 @@ function setupEventListeners() {
   console.log('🎯 setupEventListeners() called');
   
   // ✅ SYNC BUTTON
-  if (DOM.syncBtn) DOM.syncBtn.addEventListener('click', syncData);
+  if (DOM.syncBtn) {
+    DOM.syncBtn.addEventListener('click', function() {
+      // Add rotation class
+      this.classList.add('rotating');
+      
+      // Remove class after animation completes
+      setTimeout(() => {
+        this.classList.remove('rotating');
+      }, 600);
+      
+      syncData();
+    });
+  }
 
   // ✅ SHARE APP BUTTON
   const shareAppBtn = document.getElementById('shareAppBtn');
@@ -120,16 +146,83 @@ function setupEventListeners() {
   const resetConfigBtn = document.getElementById('resetConfigBtn');
   if (resetConfigBtn) resetConfigBtn.addEventListener('click', resetConfig);
 
+  // ✅ LOGIN & LOGOUT LISTENERS
+  const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+  if (loginSubmitBtn) {
+    loginSubmitBtn.addEventListener('click', () => {
+      const usernameInput = document.getElementById('loginUsernameInput');
+      const username = usernameInput ? usernameInput.value.trim() : '';
+      if (!username) {
+        toast('⚠️ Please enter your name');
+        return;
+      }
+      if (typeof loginUser === 'function') loginUser(username);
+    });
+  }
+
+  const loginUsernameInput = document.getElementById('loginUsernameInput');
+  if (loginUsernameInput) {
+    loginUsernameInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const username = loginUsernameInput.value.trim();
+        if (!username) {
+          toast('⚠️ Please enter your name');
+          return;
+        }
+        if (typeof loginUser === 'function') loginUser(username);
+      }
+    });
+  }
+
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      // Close settings modal
+      const settingsModal = document.getElementById('settingsModal');
+      if (settingsModal) {
+        settingsModal.classList.remove('open');
+        document.body.classList.remove('modal-open');
+      }
+      if (typeof logoutUser === 'function') logoutUser();
+    });
+  }
+
   // ✅ NAVIGATION: Home & Add buttons
   if (DOM.homeBtn) DOM.homeBtn.addEventListener('click', () => go('home'));
   if (DOM.addBtn) DOM.addBtn.addEventListener('click', prepAdd);
+
+  // ✅ NAVIGATION: Backup button - show coming soon
+  const backupBtn = document.getElementById('n-backup');
+  if (backupBtn) {
+    backupBtn.addEventListener('click', (e) => {
+      e.stopPropagation(); // ✅ FIX: Prevent click bubbling to body handler that would immediately close the overlay
+      const overlay = document.getElementById('comingSoonOverlay');
+      if (overlay) overlay.classList.add('open');
+    });
+  }
+
+  // ✅ COMING SOON: Close button
+  const comingSoonCloseBtn = document.getElementById('comingSoonCloseBtn');
+  if (comingSoonCloseBtn) {
+    comingSoonCloseBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const overlay = document.getElementById('comingSoonOverlay');
+      if (overlay) overlay.classList.remove('open');
+    });
+  }
 
   const addBigBtn = document.getElementById('addBigBtn');
   if (addBigBtn) addBigBtn.addEventListener('click', prepAdd);
 
   // ✅ SEARCH INPUT
   if (DOM.searchInput) DOM.searchInput.addEventListener('input', debounceSearch);
-  if (DOM.recycleBinBtn) DOM.recycleBinBtn.addEventListener('click', openRecycleBin);
+  if (DOM.recycleBinBtn) {
+    DOM.recycleBinBtn.addEventListener('click', () => {
+      if (typeof openRecycleBin === 'function') {
+        openRecycleBin();
+      }
+    });
+  }
 
   // ✅ INITIAL CALENDAR RENDER
   renderCalendarWidget();
@@ -150,18 +243,48 @@ function setupEventListeners() {
     });
   }
 
-  // ✅ FILTER CHIPS (Today, All, Active, Returned)
-  if (DOM.filterWrapper) {
-    DOM.filterWrapper.addEventListener('click', (e) => {
+  // ✅ FILTER CHIPS inside filter menu panel
+  if (DOM.filterMenuPanel) {
+    DOM.filterMenuPanel.addEventListener('click', (e) => {
       const chip = e.target.closest('.fchip');
       if (!chip) return;
+      e.stopPropagation();
       setF(chip, chip.dataset.f);
     });
   }
 
-  // ✅ CALENDAR NAVIGATION (Previous/Next month)
+  // ✅ CALENDAR NAVIGATION (Both buttons AND finger swipe)
   if (DOM.prevMonthBtn) DOM.prevMonthBtn.addEventListener('click', () => changeCalendarMonth(-1));
   if (DOM.nextMonthBtn) DOM.nextMonthBtn.addEventListener('click', () => changeCalendarMonth(1));
+  
+  // ✅ CALENDAR SWIPE: Finger swipe support in addition to buttons
+  const calendarWidget = document.querySelector('.home-calendar-widget');
+  if (calendarWidget) {
+    let calendarSwipeStartX = 0;
+    let calendarSwipeStartY = 0;
+    
+    calendarWidget.addEventListener('touchstart', (e) => {
+      // Only handle swipes on the calendar body, not on date cells or buttons
+      if (e.target.closest('.cw-day') || e.target.closest('.cw-nav')) return;
+      calendarSwipeStartX = e.touches[0].clientX;
+      calendarSwipeStartY = e.touches[0].clientY;
+    }, { passive: true });
+    
+    calendarWidget.addEventListener('touchend', (e) => {
+      if (e.target.closest('.cw-day') || e.target.closest('.cw-nav')) return;
+      const dx = e.changedTouches[0].clientX - calendarSwipeStartX;
+      const dy = e.changedTouches[0].clientY - calendarSwipeStartY;
+      
+      // Ensure horizontal swipe is dominant and threshold is met
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0) {
+          changeCalendarMonth(-1); // Swipe right = previous month
+        } else {
+          changeCalendarMonth(1);  // Swipe left = next month
+        }
+      }
+    }, { passive: true });
+  }
 
   // ✅ CALENDAR DAY SELECTION
   if (DOM.calendarDays) {
@@ -243,6 +366,17 @@ function setupEventListeners() {
     });
   }
 
+  // ✅ DELETE ALL: Recycle bin delete all button
+  const recycleBinDeleteAllBtn = document.getElementById('recycleBinDeleteAllBtn');
+  if (recycleBinDeleteAllBtn) {
+    recycleBinDeleteAllBtn.addEventListener('click', deleteAllFromRecycleBin);
+  }
+
+  // ✅ BACKUP: Setup backup and restore event listeners
+  if (typeof setupBackupEventListeners === 'function') {
+    setupBackupEventListeners();
+  }
+
   // ✅ MODAL: Detail modal close buttons
   if (DOM.detailCloseBtn) DOM.detailCloseBtn.addEventListener('click', closeDetail);
   if (DOM.detailCloseActionBtn) DOM.detailCloseActionBtn.addEventListener('click', closeDetail);
@@ -276,8 +410,13 @@ function setupEventListeners() {
       if (photoGallery) {
         e.stopPropagation();
         const index = parseInt(photoGallery.dataset.index);
-        const photos = JSON.parse(photoGallery.dataset.photos.replace(/&#39;/g, "'"));
-        openImageGallery(index, photos);
+        try {
+          const photos = JSON.parse(photoGallery.dataset.photos.replace(/&#39;/g, "'"));
+          openImageGallery(index, photos);
+        } catch (err) {
+          console.warn('Could not parse photo data:', err);
+          toast('⚠️ Photo data unavailable. Try syncing.');
+        }
         return;
       }
 
@@ -289,9 +428,35 @@ function setupEventListeners() {
         return;
       }
 
-      // Card click - open detail
+      const cardDot = e.target.closest('.card-dot');
+      if (cardDot) {
+        e.stopPropagation();
+        handleCardDotClick(e);
+        return;
+      }
+
+      // Card slider: tap photo to open fullscreen gallery
+      const sliderImg = e.target.closest('.card-slide img');
+      if (sliderImg) {
+        e.stopPropagation();
+        const sliderContainer = sliderImg.closest('.card-slider-container');
+        const track = sliderContainer?.querySelector('.card-slider-track');
+        if (track && track.dataset.photos) {
+          try {
+            const photos = JSON.parse(track.dataset.photos.replace(/&#39;/g, "'"));
+            const idx = parseInt(sliderContainer.dataset.currentSlide || '0', 10);
+            openImageGallery(idx, photos);
+          } catch (err) {
+            console.warn('Could not parse slider photo data:', err);
+            toast('⚠️ Photo data unavailable. Try syncing.');
+          }
+        }
+        return;
+      }
+
+      // Card click - open detail (ignore slider area)
       const card = e.target.closest('.rcard');
-      if (card && !e.target.closest('.ract')) {
+      if (card && !e.target.closest('.ract') && !e.target.closest('.card-slider-container')) {
         const id = card.dataset.id;
         if (id) openDetail(id);
         return;
@@ -325,22 +490,56 @@ function setupEventListeners() {
         return;
       }
 
-      // ✅ CARD PHOTO SLIDER: Navigation arrows (prev/next photo)
-      const sliderNav = e.target.closest('[data-action="prev-photo"], [data-action="next-photo"]');
-      if (sliderNav) {
-        e.stopPropagation();
-        const recordId = sliderNav.dataset.id;
-        const direction = sliderNav.dataset.action === 'prev-photo' ? 'prev' : 'next';
-        navigateCardSlider(recordId, direction);
-        return;
-      }
+    });
 
-      // ✅ CARD PHOTO SLIDER: Dot clicks
-      const cardDot = e.target.closest('.card-dot');
-      if (cardDot) {
-        e.stopPropagation();
-        handleCardDotClick(e);
-        return;
+    // ✅ CARD PHOTO SLIDER: Improved touch handling for better scroll vs swipe detection
+    let sliderTouchStartX = 0;
+    let sliderTouchStartY = 0;
+    let sliderTouchMoved = false;
+    let isVerticalScroll = false;
+    
+    DOM.homeList.addEventListener('touchstart', (e) => {
+      const container = e.target.closest('.card-slider-container');
+      if (!container) return;
+      sliderTouchStartX = e.touches[0].clientX;
+      sliderTouchStartY = e.touches[0].clientY;
+      sliderTouchMoved = false;
+      isVerticalScroll = false;
+    }, { passive: true });
+    
+    DOM.homeList.addEventListener('touchmove', (e) => {
+      const container = e.target.closest('.card-slider-container');
+      if (!container) return;
+      
+      if (!sliderTouchMoved) {
+        // First move - determine if it's vertical or horizontal
+        const dx = e.touches[0].clientX - sliderTouchStartX;
+        const dy = e.touches[0].clientY - sliderTouchStartY;
+        
+        // If vertical movement is dominant, it's a scroll
+        if (Math.abs(dy) > Math.abs(dx)) {
+          isVerticalScroll = true;
+        }
+      }
+      
+      sliderTouchMoved = true;
+    }, { passive: true });
+
+    DOM.homeList.addEventListener('touchend', (e) => {
+      const container = e.target.closest('.card-slider-container');
+      if (!container || !sliderTouchMoved) return;
+      
+      // Don't trigger slider if user was scrolling vertically
+      if (isVerticalScroll) return;
+      
+      const dx = e.changedTouches[0].clientX - sliderTouchStartX;
+      const dy = e.changedTouches[0].clientY - sliderTouchStartY;
+      
+      // Only trigger slider navigation if horizontal swipe is dominant
+      // and threshold is met (60px minimum for better distinction)
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) {
+        const recordId = container.dataset.id;
+        navigateCardSlider(recordId, dx < 0 ? 'next' : 'prev');
       }
     });
   }
@@ -379,7 +578,13 @@ function setupEventListeners() {
     // View full photo in detail modal
     if (e.target.dataset.action === 'view-full-photo') {
       const url = e.target.dataset.url;
-      viewFullPhoto(url);
+      const index = parseInt(e.target.dataset.index) || 0;
+      try {
+        const photos = JSON.parse(e.target.dataset.photos.replace(/&#39;/g, "'"));
+        openImageGallery(index, photos);
+      } catch (err) {
+        viewFullPhoto(url);
+      }
       return;
     }
 
@@ -418,6 +623,53 @@ function setupEventListeners() {
       closePrintModal();
     }
   });
+
+  // ✅ TAP OUTSIDE TO CLOSE: All modals close when tapping the backdrop
+  document.body.addEventListener('click', (e) => {
+    // detail-modal (record detail, recycle bin, settings) — tap the dark backdrop
+    // The backdrop IS the .detail-modal element; inner content is .detail-box
+    if (e.target.classList.contains('detail-modal') && e.target.classList.contains('open')) {
+      const id = e.target.id;
+      if (id === 'detailModal')    { closeDetail();      return; }
+      if (id === 'recycleBinModal'){ closeRecycleBin();  return; }
+      if (id === 'settingsModal')  {
+        e.target.classList.remove('open');
+        document.body.classList.remove('modal-open');
+        return;
+      }
+    }
+
+    // modal-bg (return / delete confirmations) — tap the dark backdrop
+    if (e.target.classList.contains('modal-bg') && e.target.classList.contains('open')) {
+      // ✅ EXCEPTION: Do not auto-close subscription modal via backdrop click
+      if (e.target.id === 'subscriptionDetailModal') return;
+
+      e.target.classList.remove('open');
+      return;
+    }
+
+    // image viewer — tap anywhere outside the slider container
+    const imageViewer = document.getElementById('imageViewerModal');
+    if (imageViewer && imageViewer.classList.contains('open')) {
+      if (!e.target.closest('#imageSliderContainer') &&
+          !e.target.closest('#imageViewerClose') &&
+          !e.target.closest('#imageCounter') &&
+          !e.target.closest('#imageDots')) {
+        closeImageViewer();
+        return;
+      }
+    }
+
+    // coming soon overlay — tap outside the content box
+    const comingSoon = document.getElementById('comingSoonOverlay');
+    if (comingSoon && comingSoon.classList.contains('open')) {
+      if (!e.target.closest('.coming-soon-content')) {
+        comingSoon.classList.remove('open');
+        e.stopPropagation(); // ✅ FIX: Prevent click passing through to app underneath
+        return;
+      }
+    }
+  });
 }
 
 // ============================================================================
@@ -447,20 +699,10 @@ document.addEventListener('DOMContentLoaded', function() {
   loadRecycleBinCache();
   restoreHomeSnapshot();
 
-  console.log('App starting... Loading data from backend');
+  console.log('App starting...');
 
   // ✅ WIRING: Setup all event listeners
   setupEventListeners();
 
   // ✅ WIRING: Navigation via buttons (swipe disabled)
-
-  // ✅ WIRING: Load initial data from backend
-  loadData().then(() => {
-    console.log('Initial load complete');
-    curFilter = 'all';
-    // ✅ OPTIMIZATION: No renderHome() here - loadData() already calls it at line 183
-  }).catch((err) => {
-    console.error('Initial load failed:', err);
-    toast('⚠️ Failed to load initial data');
-  });
 });

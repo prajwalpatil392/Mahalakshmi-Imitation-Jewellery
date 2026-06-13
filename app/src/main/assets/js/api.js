@@ -26,6 +26,40 @@ function loadRecycleBinCache() {
   }
 }
 
+async function loadDeletedRecords() {
+  try {
+    log('🗑️ Loading deleted records from backend...');
+    
+    // Fetch deleted/archived records from the backend
+    const res = await apiGet('getDeleted');
+    if (res.ok && Array.isArray(res.data)) {
+      // Merge remote archived rows with local cache (deduplicated by ID)
+      const byId = new Map(recycleBinRecords.map(item => [String(item.id), item]));
+      
+      res.data.forEach(row => {
+        const id = String(row.id);
+        const prev = byId.get(id);
+        byId.set(id, {
+          ...(prev || {}),
+          ...row,
+          deletedAt: row.deletedAt || prev?.deletedAt || new Date().toISOString()
+        });
+      });
+      
+      recycleBinRecords = Array.from(byId.values()).slice(0, 100);
+      saveRecycleBinCache();
+      log(`✅ Recycle bin loaded from backend: ${recycleBinRecords.length} records`);
+      return true;
+    } else {
+      logError('❌ Failed to fetch deleted records from backend:', res.error);
+      return false;
+    }
+  } catch (e) {
+    logError('❌ Error loading deleted records:', e);
+    return false;
+  }
+}
+
 function getRecycleBinIdSet() {
   return new Set(recycleBinRecords.map(item => String(item.id)));
 }
@@ -93,6 +127,9 @@ function mergeServerDeletedIntoRecycleBin(allRows) {
   });
   recycleBinRecords = Array.from(byId.values()).slice(0, 100);
   saveRecycleBinCache();
+  if (typeof renderRecycleBinModal === 'function') {
+    renderRecycleBinModal();
+  }
 }
 
 function mergePendingLocalRecords(freshRecords, pendingRecords) {
@@ -117,7 +154,7 @@ function mergePendingLocalRecords(freshRecords, pendingRecords) {
     delete merged[index]._pendingError;
   });
 
-  return merged;
+   return merged;
 }
 
 function moveRecordToRecycleBin(record) {
@@ -272,8 +309,8 @@ async function apiGet(action, payload) {
     }
 
     if (payload) {
-      // ✅ FIXED: For 'delete' and 'return' actions, extract ID as separate parameter
-      if ((action === 'delete' || action === 'return') && typeof payload === 'object' && payload.id) {
+      // ✅ FIXED: For 'delete', 'return', and 'permanentlyDelete' actions, extract ID as separate parameter
+      if ((action === 'delete' || action === 'return' || action === 'permanentlyDelete') && typeof payload === 'object' && payload.id) {
         body.append('id', payload.id);
       } else {
         body.append('data', JSON.stringify(payload));
@@ -315,6 +352,10 @@ async function loadData(skipCache = false) {
 
       if (cacheLoaded) {
         log('🚀 Instant startup: v1 Cache restored');
+        // ✅ INSTANT UI: Render cached records and update stats boxes immediately
+        renderHome();
+        updateCounts();
+        if (typeof renderCalendarWidget === 'function') renderCalendarWidget(true);
       }
     }
 
@@ -337,9 +378,22 @@ async function loadData(skipCache = false) {
       const pendingRecords = records.filter(isPendingLocalRecord);
 
       // ✅ PERFORMANCE: Pre-compute search text for each record
+      // ✅ FIX: Recompute overdue status client-side so active/overdue filters
+      //    are always accurate regardless of when the backend was last synced.
+      const todayForStatus = getTodayInternal();
       const mappedRows = res.data.map(r => {
         const row = { ...r };
         normalizePhotoUrlsField(row);
+        // Recompute overdue: if to-date has passed and not returned, mark overdue
+        if (row.status !== 'returned') {
+          const toNorm = normalizeDate(row.to);
+          if (toNorm && toNorm < todayForStatus) {
+            row.status = 'overdue';
+          } else if (toNorm && toNorm >= todayForStatus && row.status === 'overdue') {
+            // to-date is still in the future but was previously marked overdue — reset to active
+            row.status = 'active';
+          }
+        }
         row._search = (
           (row.name || '') +
           (row.phone || '') +
@@ -371,12 +425,27 @@ async function loadData(skipCache = false) {
         records = recordsToRender;
         lastRecordCount = records.length;
 
+        // ✅ FIX: Strip any stale _syncing flags from freshly synced records
+        // (e.g. records added directly to the sheet won't have these, but
+        //  cached pending records merged in might — clear them all on a fresh sync)
+        records = records.map(r => {
+          if (r._syncing && !r._pendingAction) {
+            // _syncing without _pendingAction means it was never saved — strip it
+            const clean = { ...r };
+            delete clean._syncing;
+            return clean;
+          }
+          return r;
+        });
+
         // ✅ FIXED: Ensure selectedDate is set before rendering
         selectedDate = selectedDate || getTodayInternal();
 
         // Update UI with fresh data
         renderHome();
         updateCounts();
+        if (typeof lastCalendarRenderKey !== 'undefined') lastCalendarRenderKey = '';
+        if (typeof renderCalendarWidget === 'function') renderCalendarWidget(true);
       } else {
         log('✅ Cache was fresh - no UI update needed');
         // Silently update lastRecordCount without toast
@@ -384,6 +453,11 @@ async function loadData(skipCache = false) {
       }
 
       lastSyncTime = Date.now();
+
+      // ✅ FIX: Invalidate home snapshot so stale syncing badges don't reappear on restart
+      try {
+        localStorage.removeItem(CACHE_SNAPSHOT_KEY);
+      } catch (_) {}
 
       // ✅ OPTIMIZATION: Save fresh data to v1 cache for next startup
       try {
@@ -396,21 +470,28 @@ async function loadData(skipCache = false) {
       syncPendingLocalChanges();
       log(`✅ Background sync complete - ${records.length} records`);
     } else {
-      logError('loadData: Background sync failed:', res.error);
+      log('⚠️ Background sync failed:', res.error);
 
-      // Only show error if we don't have cached data
-      if (records.length === 0) {
+      // Only show error toast if:
+      // 1. User manually triggered sync (not background)
+      // 2. AND we don't have cached data
+      if (!skipCache && records.length === 0) {
         toast("⚠️ " + res.error);
-        // Still try to render existing data
+      }
+      
+      // Always render existing data even if sync fails
+      if (records.length > 0) {
         renderHome();
         updateCounts();
-      } else {
-        // Silent failure - user already has cached data
-        log('⚠️ Background sync failed but cache is available');
       }
     }
   } catch (e) {
-    logError('loadData: Exception caught:', e);
+    log('⚠️ loadData exception:', e.message);
+    
+    // Only show error for manual sync attempts
+    if (!skipCache && records.length === 0) {
+      toast("⚠️ Connection error");
+    }
 
     // Only show error if we don't have any data
     if (records.length === 0) {

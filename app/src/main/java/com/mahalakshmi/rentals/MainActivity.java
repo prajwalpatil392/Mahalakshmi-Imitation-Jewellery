@@ -15,7 +15,6 @@ import android.content.Intent;
 import android.content.ClipData;
 import android.net.Uri;
 import android.webkit.PermissionRequest;
-import android.provider.MediaStore;
 import android.content.Context;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
@@ -23,19 +22,14 @@ import android.print.PrintManager;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
 import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
     private WebView webView;
     private ValueCallback<Uri[]> filePathCallback;
-    private Uri cameraPhotoUri;
-    private String currentPhotoPath; // ✅ Store actual file path
+    private String currentPhotoPath;
     private static final int FILE_CHOOSER_REQUEST_CODE = 1;
     private static final int CAMERA_REQUEST_CODE = 2;
     private static final int PERMISSION_REQUEST_CODE = 100;
@@ -63,14 +57,16 @@ public class MainActivity extends AppCompatActivity {
         webSettings.setAllowUniversalAccessFromFileURLs(true);
         webSettings.setAllowFileAccessFromFileURLs(true);
         
-        // ✅ Enable mixed content for HTTP/HTTPS
+        // Mixed content: HTTPS only — all backend endpoints (Google Apps Script, Cloudinary) are HTTPS
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+            webSettings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         }
 
-        // Enable WebView debugging
+        // Enable WebView debugging ONLY in debug builds
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            WebView.setWebContentsDebuggingEnabled(true);
+            if (0 != (getApplicationInfo().flags & android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)) {
+                WebView.setWebContentsDebuggingEnabled(true);
+            }
         }
 
         // Add JavaScript interface for native camera
@@ -144,33 +140,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void openNativeCamera() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-                currentPhotoPath = photoFile.getAbsolutePath(); // ✅ Store file path
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            
-            if (photoFile != null) {
-                cameraPhotoUri = FileProvider.getUriForFile(this,
-                        "com.mahalakshmi.rentals.fileprovider",
-                        photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, cameraPhotoUri);
-                startActivityForResult(takePictureIntent, CAMERA_REQUEST_CODE);
-            }
-        }
+        // ✅ Use in-app CameraX activity — guaranteed back camera on all OEMs
+        Intent cameraIntent = new Intent(this, CameraActivity.class);
+        startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE);
     }
 
-    private File createImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(null);
-        return File.createTempFile(imageFileName, ".jpg", storageDir);
-    }
-    
     // ✅ PERFORMANCE FIX: Compress image in Java BEFORE base64 conversion
     // This dramatically reduces memory usage by sending smaller base64 strings
     private String compressAndEncodeImage() {
@@ -335,23 +309,19 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         
         if (requestCode == CAMERA_REQUEST_CODE) {
-            if (resultCode == RESULT_OK && currentPhotoPath != null) {
-                try {
-                    // ✅ PERFORMANCE FIX: Compress in Java BEFORE base64 conversion
-                    // This reduces memory usage by 80-90% compared to raw base64
-                    // Image is resized to max 900px and compressed to 70% quality in Java
-                    // Then converted to smaller base64 string for JavaScript
+            if (resultCode == RESULT_OK && data != null) {
+                String path = data.getStringExtra(CameraActivity.EXTRA_PHOTO_PATH);
+                if (path != null) {
+                    currentPhotoPath = path;
                     String dataUrl = compressAndEncodeImage();
-                    
                     if (dataUrl != null) {
-                        // Trigger JavaScript callback with optimized data URL
                         webView.evaluateJavascript(
                             "if(window.handleCameraResult){window.handleCameraResult('" + dataUrl + "');}",
                             null
                         );
                         if (burstRemaining > 0) {
                             burstRemaining--;
-                            webView.postDelayed(this::openNativeCamera, 220);
+                            webView.postDelayed(this::openNativeCamera, 500);
                         }
                     } else {
                         webView.evaluateJavascript(
@@ -359,12 +329,6 @@ public class MainActivity extends AppCompatActivity {
                             null
                         );
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    webView.evaluateJavascript(
-                        "toast('❌ Failed to load photo');",
-                        null
-                    );
                 }
             } else {
                 burstRemaining = 0;

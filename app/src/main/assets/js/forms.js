@@ -4,26 +4,94 @@
 // ✅ Flag to track if we're in the middle of saving (to avoid unwanted confirmation)
 let isSaving = false;
 
+function formValue(id) {
+  const el = document.getElementById(id);
+  return el ? el.value : '';
+}
+
+function setFormValue(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value || '';
+}
+
 async function saveEntry(skipPhotos = false) {
-  // ✅ STEP 1: Validate form
-  const name = document.getElementById('fName').value.trim();
-  const user = document.getElementById('fUser').value.trim() || 'Worker';
-  if (!name) return toast("⚠️ Enter Name!");
+  // ✅ STEP 1: Full form validation — highlight ALL empty required fields at once
+
+  // Clear previous error states
+  document.querySelectorAll('.fi.field-error').forEach(el => el.classList.remove('field-error'));
+
+  const name     = formValue('fName').trim();
+  const user     = formValue('fUser').trim();
+  const phone    = formValue('fPhone').trim();
+  const address  = formValue('fAddress').trim();
+  const receiptNo = formValue('fReceipt').trim();
+  const jewel    = formValue('fJewel').trim();
+  const totalVal = formValue('fTotal').trim();
+  const advanceVal = formValue('fAdvance').trim();
+  const fromVal  = formValue('fFrom').trim();
+  const toVal    = formValue('fTo').trim();
+
+  // Collect all validation errors
+  const errors = [];
+
+  function markError(id, msg) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('field-error');
+    errors.push({ id, msg });
+  }
+
+  // Basic required fields
+  if (!name)     markError('fName',    '⚠️ Customer Name is required');
+  if (!receiptNo) markError('fReceipt','⚠️ Receipt No is required');
+  if (!user)     markError('fUser',    '⚠️ User Name is required');
+  if (!jewel)    markError('fJewel',   '⚠️ Jewellery type is required');
+  if (!fromVal)  markError('fFrom',    '⚠️ Pickup Date is required');
+  if (!toVal)    markError('fTo',      '⚠️ Return Date is required');
+
+  // Optional field logic checks (only if fields have values)
+  if (fromVal && toVal && toVal < fromVal) {
+    markError('fTo', '⚠️ Return Date cannot be before Pickup Date');
+  }
+  if (totalVal !== '' && (isNaN(Number(totalVal)) || Number(totalVal) < 0)) {
+    markError('fTotal', '⚠️ Total must be a valid positive number');
+  }
+  if (totalVal !== '' && advanceVal !== '' && Number(advanceVal) > Number(totalVal)) {
+    markError('fAdvance', '⚠️ Advance cannot exceed Total');
+  }
+
+  if (errors.length > 0) {
+    // Show the first error message as a toast
+    toast(errors[0].msg);
+    // Scroll to and focus the first invalid field
+    const firstEl = document.getElementById(errors[0].id);
+    if (firstEl) {
+      firstEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => firstEl.focus(), 300);
+    }
+    return;
+  }
+
+  // Clear error on input — auto-remove red border when user starts typing
+  ['fName','fPhone','fReceipt','fAddress','fUser','fJewel','fTotal','fAdvance','fFrom','fTo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', () => el.classList.remove('field-error'), { once: true });
+  });
 
   // ✅ STEP 2: Validate Receipt ID uniqueness (no duplicates allowed)
-  const receiptNo = document.getElementById('fReceipt').value.trim();
-  if (receiptNo) {
+  const receiptNoVal = formValue('fReceipt').trim();
+  if (receiptNoVal) {
     // Check if receipt ID already exists in other records
     const duplicateReceipt = records.find(r => {
       // Skip the current record being edited
-      if (currentEditId && r.id === currentEditId) return false;
+      if (currentEditId && String(r.id) === String(currentEditId)) return false;
       // Check if this record has the same receipt ID
-      return String(r.receiptNo || '').trim().toLowerCase() === receiptNo.toLowerCase();
+      return String(r.receiptNo || '').trim().toLowerCase() === receiptNoVal.toLowerCase();
     });
     
     if (duplicateReceipt) {
-      toast(`❌ Receipt #${receiptNo} already exists!`);
-      console.warn(`Duplicate receipt detected: ${receiptNo} (used by record: ${duplicateReceipt.name})`);
+      toast(`❌ Receipt #${receiptNoVal} already exists! (${duplicateReceipt.name})`);
+      const el = document.getElementById('fReceipt');
+      if (el) { el.classList.add('field-error'); el.focus(); }
       return;
     }
   }
@@ -31,7 +99,7 @@ async function saveEntry(skipPhotos = false) {
   // ✅ Set flag to prevent unwanted confirmation dialog during save
   isSaving = true;
 
-  const existingRecord = currentEditId ? records.find(x => x.id === currentEditId) : null;
+  const existingRecord = currentEditId ? records.find(x => String(x.id) === String(currentEditId)) : null;
   const clientRecordId = currentEditId || "R-" + Date.now();
   const hasQueuedPhotos = queuedPhotos.length > 0;
   const persistedExistingPhotoUrls = currentEditId ? editingExistingPhotos.join('|') : '';
@@ -69,16 +137,16 @@ async function saveEntry(skipPhotos = false) {
     id: clientRecordId,
     name,
     user,
-    phone: document.getElementById('fPhone').value,
-    address: document.getElementById('fAddress').value,
-    receiptNo: document.getElementById('fReceipt').value,
-    jewel: document.getElementById('fJewel').value,
-    total: document.getElementById('fTotal').value,
-    advance: document.getElementById('fAdvance').value,
-    balance: document.getElementById('fBalance').value,
-    deposit: document.getElementById('fDeposit').value,
-    from: document.getElementById('fFrom').value,
-    to: document.getElementById('fTo').value,
+    phone: formValue('fPhone'),
+    address: formValue('fAddress'),
+    receiptNo: formValue('fReceipt'),
+    jewel: formValue('fJewel'),
+    total: formValue('fTotal'),
+    advance: formValue('fAdvance'),
+    balance: formValue('fBalance'),
+    deposit: formValue('fDeposit'),
+    from: formValue('fFrom'),
+    to: formValue('fTo'),
     createdAt,
     createdTime,
     photoUrls: tempPhotoUrls, // ✅ Include existing + blob preview URLs for instant preview
@@ -87,9 +155,9 @@ async function saveEntry(skipPhotos = false) {
     _pendingAction: action,
     _search: (
       name +
-      document.getElementById('fPhone').value +
-      document.getElementById('fAddress').value +
-      document.getElementById('fReceipt').value
+      formValue('fPhone') +
+      formValue('fAddress') +
+      formValue('fReceipt')
     ).toLowerCase()
   };
 
@@ -102,7 +170,7 @@ async function saveEntry(skipPhotos = false) {
   } else {
     // ✅ FIX: For edits, update the existing record fields immediately in-place
     Object.assign(existingRecord, tempData);
-    tempRecordIndex = records.findIndex(x => x.id === clientRecordId);
+    tempRecordIndex = records.findIndex(x => String(x.id) === String(clientRecordId));
     log('✨ OPTIMISTIC: Updated existing record fields in UI');
   }
 
@@ -120,16 +188,16 @@ async function saveEntry(skipPhotos = false) {
   updateCache(); // Save to cache immediately
 
   // ✅ CRITICAL FIX: Capture form values BEFORE resetForm clears them
-  const savedPhone = document.getElementById('fPhone').value;
-  const savedAddress = document.getElementById('fAddress').value;
-  const savedReceipt = document.getElementById('fReceipt').value;
-  const savedJewel = document.getElementById('fJewel').value;
-  const savedTotal = document.getElementById('fTotal').value;
-  const savedAdvance = document.getElementById('fAdvance').value;
-  const savedBalance = document.getElementById('fBalance').value;
-  const savedDeposit = document.getElementById('fDeposit').value;
-  const savedFrom = document.getElementById('fFrom').value;
-  const savedTo = document.getElementById('fTo').value;
+  const savedPhone = formValue('fPhone');
+  const savedAddress = formValue('fAddress');
+  const savedReceipt = formValue('fReceipt');
+  const savedJewel = formValue('fJewel');
+  const savedTotal = formValue('fTotal');
+  const savedAdvance = formValue('fAdvance');
+  const savedBalance = formValue('fBalance');
+  const savedDeposit = formValue('fDeposit');
+  const savedFrom = formValue('fFrom');
+  const savedTo = formValue('fTo');
 
   // ✅ CRITICAL FIX: Switch to the date of the record so it's visible immediately
   if (savedFrom) {
@@ -180,17 +248,19 @@ async function saveEntry(skipPhotos = false) {
 
       // Update ID if backend returned a new one
       const savedRecordId = res.id || (res.data && res.data.id) || recordData.id;
-      if (savedRecordId !== recordData.id) {
-        log('🔁 Backend returned new ID:', savedRecordId);
-        recordData.id = savedRecordId;
-
-        // Update the record in the array
-        if (tempRecordIndex >= 0) {
-          records[tempRecordIndex].id = savedRecordId;
-        } else if (existingRecord) {
-          existingRecord.id = savedRecordId;
+      
+      // Safely locate the record in the current array using the client ID
+      const index = records.findIndex(r => String(r.id) === String(clientRecordId));
+      if (index !== -1) {
+        if (savedRecordId !== clientRecordId) {
+          log('🔁 Backend returned new ID:', savedRecordId);
+          records[index].id = savedRecordId;
         }
+        delete records[index]._syncing;
+        delete records[index]._pendingAction;
+        delete records[index]._pendingError;
         updateCache();
+        renderHome();
       }
 
       if (existingPhotosChanged) {
@@ -201,15 +271,6 @@ async function saveEntry(skipPhotos = false) {
         }).catch(err => {
           console.warn('Photo list sync error:', err);
         });
-      }
-
-      const syncedIndex = records.findIndex(r => String(r.id) === String(savedRecordId));
-      if (syncedIndex !== -1) {
-        delete records[syncedIndex]._syncing;
-        delete records[syncedIndex]._pendingAction;
-        delete records[syncedIndex]._pendingError;
-        updateCache();
-        renderHome();
       }
 
       // Upload photos in background if any
@@ -258,13 +319,23 @@ function resetForm(){
   // ✅ Reset saving flag
   isSaving = false;
 
-  ['fName','fPhone','fAddress','fReceipt','fTotal','fAdvance','fBalance','fDeposit','fUser','fJewel'].forEach(id=>{
+  // Clear all field values
+  ['fName','fPhone','fAddress','fReceipt','fTotal','fAdvance','fBalance','fDeposit','fUser'].forEach(id=>{
     const e=document.getElementById(id);
-    if(e && id !== 'fJewel') e.value='';
+    if(e) e.value='';
   });
-  document.getElementById('fJewel').value = 'Necklace';
+
+  // ✅ REPOPULATE USER: Use saved name from startup prompt
+  const savedUser = localStorage.getItem(STORAGE.USER_KEY) || '';
+  const userField = document.getElementById('fUser');
+  if (userField) userField.value = savedUser;
+
+  setFormValue('fJewel', '');
   document.querySelectorAll('.jo').forEach(x=>x.classList.remove('sel'));
-  document.querySelector('.jo[data-v="Necklace"]').classList.add('sel');
+  // No item selected by default
+
+  // Clear all error states
+  document.querySelectorAll('.fi.field-error').forEach(el => el.classList.remove('field-error'));
 
   // ✅ FIX: Clear edit mode - remove existing photos section
   const existingSection = document.getElementById('existingPhotosSection');
@@ -283,18 +354,23 @@ function resetForm(){
 // ✅ NEW: Render existing photos in edit mode (read-only preview above the add photo section)
 function prepAdd() {
   resetForm();
-  document.getElementById('fReceipt').value = "";
+  setFormValue('fReceipt', "");
+  setFormValue('fFrom', getTodayInternal());
+  setFormValue('fTo', "");
   go('add');
 }
 
 function calcBal(){
-  const t=document.getElementById('fTotal').value||0, a=document.getElementById('fAdvance').value||0;
-  document.getElementById('fBalance').value=t-a;
+  const t=formValue('fTotal')||0, a=formValue('fAdvance')||0;
+  setFormValue('fBalance', t-a);
 }
 
 function openEdit(id) {
-  const record = records.find(x => x.id === id);
-  if (!record) return;
+  const record = records.find(x => String(x.id) === String(id));
+  if (!record) {
+    console.warn('openEdit: Record not found for ID', id);
+    return;
+  }
   curDetailRecord = record;
   populateFormForEdit(record);
   closeDetail();
@@ -302,26 +378,37 @@ function openEdit(id) {
 }
 
 function populateFormForEdit(record) {
-  currentEditId = record.id;
-  document.getElementById('fName').value = record.name || '';
-  document.getElementById('fUser').value = record.user || 'Worker';
-  document.getElementById('fPhone').value = record.phone || '';
-  document.getElementById('fAddress').value = record.address || '';
-  document.getElementById('fReceipt').value = record.receiptNo || '';
-  document.getElementById('fJewel').value = record.jewel || 'Necklace';
-  document.querySelectorAll('.jo').forEach(x => x.classList.remove('sel'));
-  const jewelMatch = document.querySelector(`.jo[data-v="${record.jewel}"]`);
-  if (jewelMatch) {
-    jewelMatch.classList.add('sel');
-  } else {
-    document.querySelector('.jo[data-v="Necklace"]').classList.add('sel');
+  currentEditId = String(record.id); // Ensure it's a string
+  setFormValue('fName', record.name);
+
+  // ✅ USER PRESERVATION: Use record's user or fallback to current saved identity
+  const savedUser = localStorage.getItem(STORAGE.USER_KEY) || '';
+  setFormValue('fUser', record.user || savedUser);
+
+  setFormValue('fPhone', record.phone);
+  setFormValue('fAddress', record.address);
+  setFormValue('fReceipt', record.receiptNo);
+  setFormValue('fJewel', record.jewel || 'Necklace');
+  // ✅ SAFE JEWELRY MATCHING: Avoid selector syntax errors with special characters
+  const jewelItems = document.querySelectorAll('.jo');
+  jewelItems.forEach(el => el.classList.remove('sel'));
+  let matched = false;
+  jewelItems.forEach(el => {
+    if (el.dataset.v === record.jewel) {
+      el.classList.add('sel');
+      matched = true;
+    }
+  });
+  if (!matched) {
+    const necklace = document.querySelector('.jo[data-v="Necklace"]');
+    if (necklace) necklace.classList.add('sel');
   }
-  document.getElementById('fTotal').value = record.total || '';
-  document.getElementById('fAdvance').value = record.advance || '';
-  document.getElementById('fBalance').value = record.balance || '';
-  document.getElementById('fDeposit').value = record.deposit || '';
-  document.getElementById('fFrom').value = record.from || '';
-  document.getElementById('fTo').value = record.to || '';
+  setFormValue('fTotal', record.total);
+  setFormValue('fAdvance', record.advance);
+  setFormValue('fBalance', record.balance);
+  setFormValue('fDeposit', record.deposit);
+  setFormValue('fFrom', normalizeDate(record.from));
+  setFormValue('fTo', normalizeDate(record.to));
 
   // ✅ FIX: Clear queued photos but preserve existing photos for display
   clearPhoto();

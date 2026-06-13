@@ -4,6 +4,8 @@
 // Global photo state variables (queuedPhotos is in state.js)
 let currentImageGallery = [];
 let currentImageIndex = 0;
+let touchStartX = 0;
+let touchEndX = 0;
 
 // Compress image for upload
 async function compressImage(file) {
@@ -84,7 +86,20 @@ async function compressImage(file) {
 
 // Open camera directly - no file picker
 function openCamera() {
-  // Try Android Bridge first for better reliability
+  const maxPhotos = LIMITS.MAX_PHOTOS;
+  const remaining = maxPhotos - queuedPhotos.length;
+  if (remaining <= 0) {
+    toast(`⚠️ Maximum ${maxPhotos} photos reached`);
+    return;
+  }
+
+  // Try Android Bridge burst capture first (3 photos in one session)
+  if (window.AndroidCamera && typeof window.AndroidCamera.launchCameraBurst === 'function') {
+    log('📸 Launching camera burst via Android Bridge:', remaining);
+    window.AndroidCamera.launchCameraBurst(remaining);
+    return;
+  }
+
   if (window.AndroidCamera && typeof window.AndroidCamera.launchCamera === 'function') {
     log('📸 Launching camera via Android Bridge');
     window.AndroidCamera.launchCamera();
@@ -135,8 +150,8 @@ window.handleCameraResult = async function(dataUrl) {
     return;
   }
   
-  if (queuedPhotos.length >= 10) {
-    toast("⚠️ Maximum 10 photos reached");
+  if (queuedPhotos.length >= LIMITS.MAX_PHOTOS) {
+    toast(`⚠️ Maximum ${LIMITS.MAX_PHOTOS} photos reached`);
     return;
   }
   
@@ -167,7 +182,7 @@ window.handleCameraResult = async function(dataUrl) {
     // Update UI
     renderQueuedPhotos();
     setUpMsg(`✅ ${queuedPhotos.length} photo(s) ready`, "green");
-    toast(`✅ Photo ${queuedPhotos.length} captured!`);
+    toast(`✅ Photo ${queuedPhotos.length}/${LIMITS.MAX_PHOTOS} captured`);
     
   } catch (e) {
     console.error('❌ Failed to process camera photo:', e);
@@ -194,8 +209,8 @@ async function handleCameraPhoto(input) {
     return;
   }
   
-  if (queuedPhotos.length >= 10) {
-    toast("⚠️ Maximum 10 photos reached");
+  if (queuedPhotos.length >= LIMITS.MAX_PHOTOS) {
+    toast(`⚠️ Maximum ${LIMITS.MAX_PHOTOS} photos reached`);
     return;
   }
   
@@ -243,7 +258,7 @@ async function queueSelectedPhotos(fileList) {
     return;
   }
 
-  const maxPhotos = 10;
+  const maxPhotos = LIMITS.MAX_PHOTOS;
   if (queuedPhotos.length + files.length > maxPhotos) {
     const remaining = maxPhotos - queuedPhotos.length;
     if (remaining <= 0) {
@@ -305,79 +320,83 @@ async function uploadPhotosInBackground(recordId, photos, triggerWhatsApp = true
   toast(`📤 Uploading ${photos.length} photo(s) to Cloudinary...`);
 
   try {
-    const urls = await uploadPhotosWithConcurrency(photos, 2);
+    const uploadedResults = await uploadPhotosWithConcurrency(photos, 2);
 
     console.log('───────────────────────────────────────────────');
-    console.log(`📊 Upload Results: ${urls.length}/${photos.length} successful`);
+    console.log(`📊 Upload Results: ${uploadedResults.length}/${photos.length} successful`);
     console.log('───────────────────────────────────────────────');
 
-    if (urls.length > 0) {
-      const urlString = urls.join('|');
-      console.log('💾 Saving Cloudinary URLs to backend...');
-      console.log('   Record ID:', recordId);
-      console.log('   URLs:', urlString);
-      console.log('   Calling apiGet with action=updatePhoto');
-      
-      const updateRes = await apiGet('updatePhoto', { id: recordId, url: urlString });
-      
-      console.log('📡 Backend updatePhoto response:', updateRes);
-
-      if (updateRes.ok) {
-        console.log('✅ Photos saved to backend successfully!');
-        toast(`✅ ${urls.length} photo(s) uploaded!`);
+    if (uploadedResults.length > 0) {
+      const recordIndex = records.findIndex(r => r.id === recordId);
+      if (recordIndex !== -1) {
+        const record = records[recordIndex];
         
-        // ✅ MEMORY LEAK FIX: Clean up blob URLs to free memory after Cloudinary upload
-        let revokedCount = 0;
-        photos.forEach(photo => {
-          if (photo.previewUrl && photo.previewUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(photo.previewUrl);
-            revokedCount++;
-            log('🧹 Revoked blob URL after upload:', photo.name);
+        // Filter out uploads that the user deleted while in progress
+        const validUploadedUrls = [];
+        uploadedResults.forEach(u => {
+          if (record.photoUrls.includes(u.previewUrl)) {
+            validUploadedUrls.push(u.url);
+          } else {
+            console.log('🚫 Filtered out deleted upload URL:', u.url);
           }
         });
-        if (revokedCount > 0) {
-          log(`✅ Cleaned up ${revokedCount} blob URLs after Cloudinary upload`);
-        }
-        
-        const recordIndex = records.findIndex(r => r.id === recordId);
-        console.log('🔍 Looking for record with ID:', recordId, 'Found at index:', recordIndex);
-        
-        if (recordIndex !== -1) {
-          console.log('📝 Updating local record with Cloudinary URLs');
-          
-          // ✅ SMART UPDATE: Merge existing Cloudinary URLs with new ones
-          const existingUrls = records[recordIndex].photoUrls || '';
-          const existingCloudinaryUrls = existingUrls.split('|')
-            .filter(url => url.trim() && (url.startsWith('http://') || url.startsWith('https://')))
-            .filter(url => !url.includes('blob:'));
-          
-          // Combine existing Cloudinary URLs with new ones (remove duplicates)
-          const allCloudinaryUrls = [...new Set([...existingCloudinaryUrls, ...urls])];
-          
-          records[recordIndex].photoUrls = allCloudinaryUrls.join('|');
+
+        // Get existing Cloudinary URLs from the record
+        const existingUrls = record.photoUrls || '';
+        const existingCloudinaryUrls = existingUrls.split('|')
+          .filter(url => url.trim() && (url.startsWith('http://') || url.startsWith('https://')))
+          .filter(url => !url.includes('blob:'));
+
+        // Combine non-deleted new URLs with existing ones
+        const allCloudinaryUrls = [...new Set([...existingCloudinaryUrls, ...validUploadedUrls])];
+        const finalUrlString = allCloudinaryUrls.join('|');
+
+        console.log('💾 Saving Cloudinary URLs to backend...');
+        console.log('   Record ID:', recordId);
+        console.log('   URLs:', finalUrlString);
+        console.log('   Calling apiGet with action=updatePhoto');
+
+        const updateRes = await apiGet('updatePhoto', { id: recordId, url: finalUrlString });
+        console.log('📡 Backend updatePhoto response:', updateRes);
+
+        if (updateRes.ok) {
+          console.log('✅ Photos saved to backend successfully!');
+          toast(`✅ ${validUploadedUrls.length} photo(s) uploaded!`);
+
+          // Revoke blob URLs to free memory
+          let revokedCount = 0;
+          photos.forEach(photo => {
+            if (photo.previewUrl && photo.previewUrl.startsWith('blob:')) {
+              URL.revokeObjectURL(photo.previewUrl);
+              revokedCount++;
+              log('🧹 Revoked blob URL after upload:', photo.name);
+            }
+          });
+          if (revokedCount > 0) {
+            log(`✅ Cleaned up ${revokedCount} blob URLs after Cloudinary upload`);
+          }
+
+          // Update local record with final list of URLs
+          records[recordIndex].photoUrls = finalUrlString;
           normalizePhotoUrlsField(records[recordIndex]);
-          delete records[recordIndex]._hasPendingPhotos; // Remove pending flag
-          delete records[recordIndex]._syncing; // Remove syncing badge
-          
-          updateCache(); // ✅ Update cache with Cloudinary URLs (blob URLs excluded)
-          console.log('✅ Record updated with Cloudinary URLs:', records[recordIndex]);
-          
-          // ✅ INSTANT PHOTO DISPLAY: Re-render to show uploaded photos immediately
+          delete records[recordIndex]._hasPendingPhotos;
+          delete records[recordIndex]._syncing;
+
+          updateCache();
           renderHome();
           console.log('🔄 UI updated to show uploaded photos');
 
-          // Only trigger if requested (prevents double-sending if already sent at start)
           if (triggerWhatsApp) {
             console.log('📱 Opening WhatsApp...');
             setTimeout(() => shareWhatsApp(records[recordIndex]), 300);
           }
         } else {
-          console.error('❌ Record not found in local array! ID:', recordId);
-          console.error('   Available IDs:', records.map(r => r.id));
+          console.error('❌ Failed to save photo URLs to backend:', updateRes.error);
+          toast(`❌ Failed to save photos: ${updateRes.error}`);
         }
       } else {
-        console.error('❌ Failed to save photo URLs to backend:', updateRes.error);
-        toast(`❌ Failed to save photos: ${updateRes.error}`);
+        console.error('❌ Record not found in local array! ID:', recordId);
+        console.error('   Available IDs:', records.map(r => r.id));
       }
     } else {
       console.error('❌ ALL PHOTO UPLOADS FAILED - NO URLS RETURNED');
@@ -408,7 +427,7 @@ async function uploadPhotosWithConcurrency(photos, limit) {
       // ✅ Use retry logic instead of direct upload
       const url = await uploadWithRetry(photo);
       if (url) {
-        uploaded.push(url);
+        uploaded.push({ previewUrl: photo.previewUrl, url: url });
         console.log(`✅ Photo ${uploaded.length}/${photos.length} uploaded: ${url}`);
       } else {
         console.error(`❌ Photo ${currentIndex + 1} upload failed after all retries`);
@@ -467,7 +486,14 @@ async function uploadSinglePhoto(photo) {
       return '';
     }
 
-    const data = JSON.parse(responseText);
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseErr) {
+      console.error('❌ Cloudinary returned non-JSON response:', responseText.substring(0, 200));
+      toast('❌ Upload failed: unexpected server response');
+      return '';
+    }
     if (data.secure_url) {
       console.log('✅ Upload Successful:', data.secure_url);
       return data.secure_url;
@@ -630,6 +656,32 @@ function viewFullPhoto(url) {
   openImageViewer(url, [url]);
 }
 
+function handleTouchStart(e) {
+  touchStartX = e.changedTouches[0].screenX;
+}
+
+function handleTouchEnd(e) {
+  touchEndX = e.changedTouches[0].screenX;
+  handleSwipe();
+}
+
+function handleSwipe() {
+  const swipeThreshold = 50;
+  const diff = touchStartX - touchEndX;
+  
+  if (Math.abs(diff) > swipeThreshold) {
+    if (diff > 0 && currentImageIndex < currentImageGallery.length - 1) {
+      // Swipe left - next image
+      currentImageIndex++;
+      renderImageSlider();
+    } else if (diff < 0 && currentImageIndex > 0) {
+      // Swipe right - previous image
+      currentImageIndex--;
+      renderImageSlider();
+    }
+  }
+}
+
 function openImageViewer(url, allPhotos = [url]) {
   currentImageGallery = allPhotos;
   currentImageIndex = allPhotos.indexOf(url);
@@ -638,6 +690,13 @@ function openImageViewer(url, allPhotos = [url]) {
   renderImageSlider();
   document.getElementById('imageViewerModal').classList.add('open');
   document.body.classList.add('modal-open');
+  
+  // Attach touch events for swiping
+  const container = document.getElementById('imageSliderContainer');
+  if (container) {
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+  }
 }
 
 function renderImageSlider() {
@@ -737,6 +796,12 @@ function handleCardDotClick(event) {
 
 
 function closeImageViewer() {
+  const container = document.getElementById('imageSliderContainer');
+  if (container) {
+    container.removeEventListener('touchstart', handleTouchStart);
+    container.removeEventListener('touchend', handleTouchEnd);
+  }
+
   document.getElementById('imageViewerModal').classList.remove('open');
   document.body.classList.remove('modal-open');
   

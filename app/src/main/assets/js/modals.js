@@ -9,7 +9,35 @@ function closeM(id){
 // ✅ Return confirmation modal
 function openRet(id, n){
   pendRet = id;
-  document.getElementById('mRetMsg').textContent = n;
+  const record = records.find(r => String(r.id) === String(id));
+  let msg = n;
+  if (record) {
+    const toDateStr = normalizeDate(record.to);
+    const todayStr = getTodayInternal();
+    if (toDateStr && todayStr) {
+      const [toYear, toMonth, toDay] = toDateStr.split('-').map(Number);
+      const [todayYear, todayMonth, todayDay] = todayStr.split('-').map(Number);
+      
+      const toDate = new Date(toYear, toMonth - 1, toDay);
+      const todayDate = new Date(todayYear, todayMonth - 1, todayDay);
+      
+      const diffTime = todayDate - toDate;
+      const diffDays = Math.round(diffTime / 86400000);
+      
+      if (diffDays > 0) {
+        msg += `\n\n⚠️ Overdue by ${diffDays} extra day${diffDays === 1 ? '' : 's'}!`;
+      } else {
+        msg += `\n\n(On time — 0 extra days)`;
+      }
+    } else {
+      msg += `\n\n(Return date not specified)`;
+    }
+  }
+  
+  const msgEl = document.getElementById('mRetMsg');
+  if (msgEl) {
+    msgEl.innerText = msg;
+  }
   document.getElementById('mReturn').classList.add('open');
 }
 
@@ -44,8 +72,23 @@ async function doDelete() {
     toast('❌ No record selected');
     return;
   }
+  const normalizedDeleteId = typeof normalizeRecordId === 'function'
+    ? normalizeRecordId(pendDel)
+    : String(pendDel).trim();
+  if (!normalizedDeleteId) {
+    toast('❌ Invalid record ID');
+    closeM('mDelete');
+    pendDel = null;
+    pendDelRecord = null;
+    return;
+  }
 
-  const recordIndex = records.findIndex(r => String(r.id) === String(pendDel));
+  const recordIndex = records.findIndex(r => {
+    const recordId = typeof normalizeRecordId === 'function'
+      ? normalizeRecordId(r && r.id)
+      : String((r && r.id) || '').trim();
+    return recordId === normalizedDeleteId;
+  });
   if (recordIndex === -1) {
     toast('❌ Record not found');
     closeM('mDelete');
@@ -58,15 +101,25 @@ async function doDelete() {
   const record = records[recordIndex];
   const deletedRecord = {
     ...record,
+    id: normalizedDeleteId,
     deletedAt: new Date().toISOString(),
     _syncing: true,
+    _pendingAction: 'delete',
     _deleteInitiator: 'user'
   };
 
   // STEP 3: LOCAL OPTIMISTIC UPDATE (instant UI feedback)
   try {
-    // 3a: Move to recycle bin
-    recycleBinRecords.unshift(deletedRecord);
+    // 3a: Move to recycle bin (deduplicated by normalized ID)
+    recycleBinRecords = [
+      deletedRecord,
+      ...recycleBinRecords.filter(item => {
+        const itemId = typeof normalizeRecordId === 'function'
+          ? normalizeRecordId(item && item.id)
+          : String((item && item.id) || '').trim();
+        return itemId !== normalizedDeleteId;
+      })
+    ].slice(0, 100);
     saveRecycleBinCache();
 
     // 3b: Remove from main records
@@ -87,20 +140,46 @@ async function doDelete() {
   }
 
   // STEP 4: BACKEND SYNC (async, non-blocking)
+  const deletedId = normalizedDeleteId; // capture before cleanup in STEP 5
   try {
-    const syncRes = await apiGet('delete', { id: pendDel });
-    
+    const syncRes = await apiGet('delete', { id: deletedId });
+
+    // ✅ Check if a restore already happened while we were waiting —
+    //    if the record is back in main records[], the delete/restore cancelled out.
+    //    Don't touch the recycle bin or show errors in that case.
+    const alreadyRestored = records.some(r => {
+      const recordId = typeof normalizeRecordId === 'function'
+        ? normalizeRecordId(r && r.id)
+        : String((r && r.id) || '').trim();
+      return recordId === deletedId;
+    });
+    if (alreadyRestored) {
+      // Both ops cancel each other — nothing more to do
+      pendDel = null;
+      pendDelRecord = null;
+      return;
+    }
+
     if (syncRes.ok) {
-      // Sync success: cleanup syncing flag
-      const binIndex = recycleBinRecords.findIndex(r => String(r.id) === String(pendDel));
+      const binIndex = recycleBinRecords.findIndex(r => {
+        const recordId = typeof normalizeRecordId === 'function'
+          ? normalizeRecordId(r && r.id)
+          : String((r && r.id) || '').trim();
+        return recordId === deletedId;
+      });
       if (binIndex !== -1) {
         delete recycleBinRecords[binIndex]._syncing;
         delete recycleBinRecords[binIndex]._syncError;
+        delete recycleBinRecords[binIndex]._pendingAction;
       }
       saveRecycleBinCache();
     } else {
-      // Sync failed: mark with error flag (record stays in bin)
-      const binIndex = recycleBinRecords.findIndex(r => String(r.id) === String(pendDel));
+      const binIndex = recycleBinRecords.findIndex(r => {
+        const recordId = typeof normalizeRecordId === 'function'
+          ? normalizeRecordId(r && r.id)
+          : String((r && r.id) || '').trim();
+        return recordId === deletedId;
+      });
       if (binIndex !== -1) {
         recycleBinRecords[binIndex]._syncing = false;
         recycleBinRecords[binIndex]._syncError = syncRes.error || 'Backend sync failed';
@@ -109,8 +188,12 @@ async function doDelete() {
       console.warn('Delete sync failed:', syncRes.error);
     }
   } catch (networkError) {
-    // Network error: mark for retry
-    const binIndex = recycleBinRecords.findIndex(r => String(r.id) === String(pendDel));
+    const binIndex = recycleBinRecords.findIndex(r => {
+      const recordId = typeof normalizeRecordId === 'function'
+        ? normalizeRecordId(r && r.id)
+        : String((r && r.id) || '').trim();
+      return recordId === deletedId;
+    });
     if (binIndex !== -1) {
       recycleBinRecords[binIndex]._syncing = false;
       recycleBinRecords[binIndex]._syncError = networkError.message || 'Network error';
@@ -120,6 +203,7 @@ async function doDelete() {
   }
 
   // STEP 5: CLEANUP STATE
+  renderRecycleBinModal();
   pendDel = null;
   pendDelRecord = null;
 }
@@ -190,7 +274,7 @@ async function doReturn() {
 
 // ✅ Detail record viewer modal
 function openDetail(id) {
-  const r = records.find(x => x.id === id);
+  const r = records.find(x => String(x.id) === String(id));
   if (!r) return;
   
   curDetailRecord = r;  // Store for WhatsApp sharing
@@ -214,7 +298,7 @@ function openDetail(id) {
 
   <div style="margin:8px 0;">
     🧾 Receipt: <b>${r.receiptNo || '-'}</b><br>
-    👨‍💼 Handled By: ${r.user || '-'}
+    👤 User: ${r.user || '-'}
   </div>
 
   <hr style="border:0; border-top:1px solid #E8D8A0; margin:10px 0;"/>
@@ -239,7 +323,7 @@ function openDetail(id) {
     📸 Photos:
     <div style="position:relative;">
       <div class="img-slider" style="margin-top:6px;" onscroll="updateSliderDots(this)">
-        ${photos.map(p => `<img src="${p}" style="width:100%; height:200px; object-fit:cover; border-radius:8px; scroll-snap-align:center;" loading="lazy" data-action="view-full-photo" data-url="${p.replace(/"/g, '&quot;')}">`).join('')}
+        ${photos.map((p, idx) => `<img src="${p}" style="width:100%; height:200px; object-fit:cover; border-radius:8px; scroll-snap-align:center;" loading="lazy" data-action="view-full-photo" data-url="${p.replace(/"/g, '&quot;')}" data-index="${idx}" data-photos='${JSON.stringify(photos).replace(/'/g, "&#39;")}'>`).join('')}
       </div>
       ${photos.length > 1 ? `<div class="slider-dots">${photos.map((_, i) => `<div class="s-dot ${i === 0 ? 'active' : ''}"></div>`).join('')}</div>` : ''}
     </div>
@@ -261,18 +345,39 @@ function closeDetail() {
   document.body.classList.remove('modal-open');
 }
 
+// ✅ Update slider dots when detail modal horizontal photo slider is scrolled
+function updateSliderDots(el) {
+  const index = Math.round(el.scrollLeft / el.offsetWidth);
+  const dots = el.parentElement.querySelectorAll('.s-dot');
+  if (dots.length > 0) {
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+    });
+  }
+}
+
 // ✅ PERFORMANCE: Recycle bin pagination state
 let recycleBinPage = 0;
 const RECYCLE_BIN_PAGE_SIZE = 10;
 
 function openRecycleBin() {
   recycleBinPage = 0; // Reset to first page
+  
+  // ✅ INSTANT LOAD: Render cached data immediately
   renderRecycleBinModal();
+  
   const modal = document.getElementById('recycleBinModal');
   if (modal) {
     modal.classList.add('open');
     document.body.classList.add('modal-open');
   }
+  
+  // ✅ BACKGROUND REFRESH: Load from backend without blocking UI
+  loadDeletedRecords().then(() => {
+    renderRecycleBinModal(); // Re-render with fresh data
+  }).catch(err => {
+    console.error('Failed to load deleted records:', err);
+  });
 }
 
 function closeRecycleBin() {
@@ -292,6 +397,12 @@ function renderRecycleBinModal() {
   const binList = typeof isRecordSoftDeleted === 'function'
     ? recycleBinRecords.filter(isRecordSoftDeleted)
     : recycleBinRecords.slice();
+
+  // ✅ UPDATE: Show/hide Delete All button based on content
+  const deleteAllBtn = document.getElementById('recycleBinDeleteAllBtn');
+  if (deleteAllBtn) {
+    deleteAllBtn.style.display = binList.length > 0 ? 'inline-block' : 'none';
+  }
 
   if (!binList.length) {
     list.innerHTML = `
@@ -323,20 +434,39 @@ function renderRecycleBinModal() {
 
   let html = `
     <div class="recycle-list">
-      ${pageItems.map(record => `
-        <div class="recycle-item">
-          <div class="recycle-item-title">${record.name || 'Unnamed Record'}</div>
-          <div class="recycle-item-meta">
-            🧾 ${record.receiptNo || 'No receipt'}<br>
-            📅 ${formatDateDisplay(record.from) || '-'}<br>
-            🕒 Deleted ${new Date(record.deletedAt || Date.now()).toLocaleString('en-IN')}
+      ${pageItems.map(record => {
+        // Get photos for this deleted record
+        const photos = getPhotosFromRecord(record);
+        const photoPreview = photos.length > 0 
+          ? `<div class="recycle-photo-preview">
+              <img src="${photos[0]}" alt="Photo" loading="lazy" onerror="this.style.display='none'">
+              ${photos.length > 1 ? `<span class="photo-count-badge">+${photos.length - 1}</span>` : ''}
+             </div>`
+          : '<div class="recycle-photo-placeholder">📷</div>';
+        
+        return `
+          <div class="recycle-item">
+            ${photoPreview}
+            <div class="recycle-item-content">
+              <div class="recycle-item-title">${record.name || 'Unnamed Record'}</div>
+              <div class="recycle-item-meta">
+                🧾 ${record.receiptNo || 'No receipt'}<br>
+                💍 ${record.jewel || 'Item'}<br>
+                📅 ${formatDateDisplay(record.from) || '-'}<br>
+                🕒 Deleted ${new Date(record.deletedAt || Date.now()).toLocaleString('en-IN')}
+              </div>
+              <div class="recycle-item-actions">
+                ${record._syncing
+                  ? '<span style="color:#666;font-size:12px;font-weight:600;">⌛ Processing...</span>'
+                  : `
+                    <button class="recycle-restore-btn" data-action="restore-recycled-record" data-id="${record.id}">Restore</button>
+                    <button class="recycle-delete-btn" data-action="purge-recycled-record" data-id="${record.id}">Delete Forever</button>
+                  `}
+              </div>
+            </div>
           </div>
-          <div class="recycle-item-actions">
-            <button class="recycle-restore-btn" data-action="restore-recycled-record" data-id="${record.id}">Restore</button>
-            <button class="recycle-delete-btn" data-action="purge-recycled-record" data-id="${record.id}">Delete Forever</button>
-          </div>
-        </div>
-      `).join('')}
+        `;
+      }).join('')}
     </div>
   `;
 
@@ -371,86 +501,237 @@ function recycleBinNextPage(totalPages) {
 }
 
 async function restoreDeletedRecord(recordId) {
-  const record = recycleBinRecords.find(item => String(item.id) === String(recordId));
+  const normalizedRecordId = typeof normalizeRecordId === 'function'
+    ? normalizeRecordId(recordId)
+    : String(recordId || '').trim();
+  if (!normalizedRecordId) {
+    toast('⚠️ Invalid record ID');
+    return;
+  }
+
+  const record = recycleBinRecords.find(item => {
+    const itemId = typeof normalizeRecordId === 'function'
+      ? normalizeRecordId(item && item.id)
+      : String((item && item.id) || '').trim();
+    return itemId === normalizedRecordId;
+  });
   if (!record) {
+    const alreadyActive = records.some(item => {
+      const itemId = typeof normalizeRecordId === 'function'
+        ? normalizeRecordId(item && item.id)
+        : String((item && item.id) || '').trim();
+      return itemId === normalizedRecordId;
+    });
+    if (alreadyActive) {
+      removeRecordFromRecycleBin(normalizedRecordId);
+      renderRecycleBinModal();
+      return;
+    }
     toast('⚠️ Record not found in recycle bin');
     return;
   }
 
-  // ✅ FIXED: Simplified restore logic
-  // Single source of truth: deletedAt timestamp
-  // If a record is in recycle bin, it was previously synced to backend
-  const restoredRecord = { ...record };
-  delete restoredRecord.deletedAt;  // Remove soft-delete marker
-  delete restoredRecord.deleted;    // Remove old deleted flag
-  
-  // Set pending action for backend sync
-  restoredRecord._syncing = true;
-  restoredRecord._pendingAction = 'edit';  // Always use edit since it was synced before
-  restoredRecord._pendingError = '';
+  // ✅ RACE CONDITION FIX:
+  // If the delete backend call is still in-flight (pendingAction = 'delete'),
+  // the record hasn't been archived yet on the server.
+  // Restoring now = the two calls cancel each other out.
+  // Just put the record back locally and fire NO backend calls at all.
+  const deleteIsPending = record._pendingAction === 'delete';
 
-  // Optimistic UI: Add to home immediately
-  records.unshift(restoredRecord);
-  removeRecordFromRecycleBin(recordId);
+  // ✅ INSTANT: Restore locally right away
+  const restoredRecord = { ...record };
+  restoredRecord.id = normalizedRecordId;
+  delete restoredRecord.deletedAt;
+  delete restoredRecord._syncing;
+  delete restoredRecord._pendingAction;
+  delete restoredRecord._pendingError;
+  const existingActiveIndex = records.findIndex(item => {
+    const itemId = typeof normalizeRecordId === 'function'
+      ? normalizeRecordId(item && item.id)
+      : String((item && item.id) || '').trim();
+    return itemId === normalizedRecordId;
+  });
+  if (existingActiveIndex === -1) {
+    records.unshift(restoredRecord);
+  } else {
+    records[existingActiveIndex] = {
+      ...records[existingActiveIndex],
+      ...restoredRecord,
+      id: normalizedRecordId
+    };
+  }
+
+  removeRecordFromRecycleBin(normalizedRecordId);
   updateCache();
   renderHome();
   updateCounts();
   renderRecycleBinModal();
-  toast('♻️ Restoring record...');
+  toast('✅ Record restored');
 
-  try {
-    // Send to backend to remove soft-delete marker
-    const basePayload = cleanRecordForBackend(restoredRecord);
-    const res = await apiGet('edit', basePayload);
-    
-    if (res.ok) {
-      // Success - update the local record ID if backend provided one
-      const savedRecordId = res.id || (res.data && res.data.id) || restoredRecord.id;
-      const restoredIndex = records.findIndex(item => String(item.id) === String(restoredRecord.id));
-      if (restoredIndex !== -1) {
-        records[restoredIndex].id = savedRecordId;
-        delete records[restoredIndex]._syncing;
-        delete records[restoredIndex]._pendingAction;
-        delete records[restoredIndex]._pendingError;
+  // If delete was still pending, both operations cancel — nothing to do on backend
+  if (deleteIsPending) return;
+
+  // ✅ BACKGROUND: Sync to backend silently — UI is already updated
+  apiGet('restore', { id: normalizedRecordId }).then(res => {
+    if (!res.ok) {
+      const idx = records.findIndex(item => {
+        const itemId = typeof normalizeRecordId === 'function'
+          ? normalizeRecordId(item && item.id)
+          : String((item && item.id) || '').trim();
+        return itemId === normalizedRecordId;
+      });
+      if (idx !== -1) {
+        records[idx]._pendingAction = 'restore';
+        records[idx]._pendingError = res.error || 'Restore sync failed';
+        updateCache();
       }
-      updateCache();
-      renderHome();
-      updateCounts();
-      toast('✅ Record restored');
-    } else {
-      // Sync failed but record is in home (optimistic)
-      const restoredIndex = records.findIndex(item => String(item.id) === String(restoredRecord.id));
-      if (restoredIndex !== -1) {
-        records[restoredIndex]._pendingError = res.error || 'Restore sync failed';
-      }
-      updateCache();
-      toast('⚠️ Restored locally, backend sync pending');
     }
-  } catch (e) {
-    console.error('Restore record error:', e);
-    const restoredIndex = records.findIndex(item => String(item.id) === String(restoredRecord.id));
-    if (restoredIndex !== -1) {
-      records[restoredIndex]._pendingError = e.message || 'Restore sync failed';
+  }).catch(() => {
+    const idx = records.findIndex(item => {
+      const itemId = typeof normalizeRecordId === 'function'
+        ? normalizeRecordId(item && item.id)
+        : String((item && item.id) || '').trim();
+      return itemId === normalizedRecordId;
+    });
+    if (idx !== -1) {
+      records[idx]._pendingAction = 'restore';
+      updateCache();
     }
-    updateCache();
-    toast('⚠️ Restored locally, backend sync pending');
-  }
+  });
 }
 
 async function permanentlyDeleteFromRecycleBin(recordId) {
-  if (!confirm('Delete this record forever from recycle bin?')) return;
-  const record = recycleBinRecords.find(item => String(item.id) === String(recordId));
-  if (record && typeof apiCall === 'function') {
-    const res = await apiCall('delete', recordId, RECYCLE_SHEET_ID);
-    if (!res.ok) {
-      toast('Delete sync failed. Try again online.');
-      // ✅ FIXED: No need to update _pending* fields, just rely on fresh load
-      return;
-    }
+  const normalizedRecordId = typeof normalizeRecordId === 'function'
+    ? normalizeRecordId(recordId)
+    : String(recordId || '').trim();
+  if (!normalizedRecordId) {
+    toast('⚠️ Invalid record ID');
+    return;
   }
-  removeRecordFromRecycleBin(recordId);
+
+  const binIndex = recycleBinRecords.findIndex(item => {
+    const itemId = typeof normalizeRecordId === 'function'
+      ? normalizeRecordId(item && item.id)
+      : String((item && item.id) || '').trim();
+    return itemId === normalizedRecordId;
+  });
+  const activeIndex = records.findIndex(item => {
+    const itemId = typeof normalizeRecordId === 'function'
+      ? normalizeRecordId(item && item.id)
+      : String((item && item.id) || '').trim();
+    return itemId === normalizedRecordId;
+  });
+
+  if (binIndex === -1 && activeIndex === -1) {
+    renderRecycleBinModal();
+    return;
+  }
+  if (!confirm('Delete this record forever? This cannot be undone.')) return;
+
+  // ✅ INSTANT: Remove from UI immediately — no waiting for backend
+  removeRecordFromRecycleBin(normalizedRecordId);
+  records = records.filter(item => {
+    const itemId = typeof normalizeRecordId === 'function'
+      ? normalizeRecordId(item && item.id)
+      : String((item && item.id) || '').trim();
+    return itemId !== normalizedRecordId;
+  });
+  updateCache();
+  renderHome();
+  updateCounts();
   renderRecycleBinModal();
-  toast('🗑️ Permanently deleted');
+  toast('🗑️ Deleted forever');
+
+  // ✅ BACKGROUND: Sync to backend silently
+  apiGet('permanentlyDelete', { id: normalizedRecordId }).catch(() => {
+    // Silent fail — record is gone locally, backend will be consistent on next full sync
+  });
+}
+
+// ✅ DELETE ALL: Permanently delete all records from recycle bin
+async function deleteAllFromRecycleBin() {
+  // ✅ STEP 1: Validate recycle bin has records
+  const binList = typeof isRecordSoftDeleted === 'function'
+    ? recycleBinRecords.filter(isRecordSoftDeleted)
+    : recycleBinRecords.slice();
+
+  if (!binList.length) {
+    toast('ℹ️ Recycle bin is already empty');
+    return;
+  }
+
+  // ✅ STEP 2: Confirmation with count
+  const confirmMsg = `⚠️ WARNING: This will permanently delete ALL ${binList.length} record${binList.length !== 1 ? 's' : ''} from the recycle bin.\n\nThis action CANNOT be undone!\n\nAre you absolutely sure?`;
+  
+  if (!confirm(confirmMsg)) {
+    return;
+  }
+
+  // ✅ STEP 3: Double confirmation for safety
+  if (!confirm('🚨 FINAL CONFIRMATION: Delete all records forever?')) {
+    return;
+  }
+
+  // ✅ STEP 4: Show loading state
+  const spinner = document.getElementById('ovSpin');
+  if (spinner) spinner.classList.add('show');
+  
+  const deleteAllBtn = document.getElementById('recycleBinDeleteAllBtn');
+  if (deleteAllBtn) {
+    deleteAllBtn.disabled = true;
+    deleteAllBtn.textContent = '🗑️ Deleting...';
+  }
+  
+  toast('🗑️ Deleting all records...');
+
+  // ✅ STEP 5: Store IDs for backend deletion
+  const idsToDelete = binList.map(r => r.id);
+  console.log('🗑️ Deleting IDs from Archive sheet:', idsToDelete);
+
+  // ✅ STEP 6: Mark all for deletion locally (optimistic UI)
+  const previousBinRecords = [...recycleBinRecords];
+  recycleBinRecords = recycleBinRecords.map(r => ({ ...r, _syncing: true, _pendingAction: 'permanentlyDelete' }));
+  renderRecycleBinModal();
+
+  // ✅ STEP 7: Permanently delete all archived rows from backend using a single batch action
+  if (navigator.onLine) {
+    console.log('🌐 Requesting backend to clear entire archive...');
+    try {
+      const res = await apiGet('clearArchive', {});
+      if (res.ok) {
+        console.log('✅ Backend archive cleared successfully');
+        recycleBinRecords = []; // Success: clear local bin
+        saveRecycleBinCache();
+        toast(`✅ Successfully deleted all ${binList.length} records permanently`);
+      } else {
+        console.warn('⚠️ Backend archive clear failed:', res.error);
+        recycleBinRecords = previousBinRecords; // Rollback
+        saveRecycleBinCache();
+        toast('❌ Backend failed to clear');
+      }
+    } catch (e) {
+      console.warn('⚠️ Backend archive clear error:', e);
+      recycleBinRecords = previousBinRecords; // Rollback
+      saveRecycleBinCache();
+      toast('⚠️ Connection error. Please try again later.');
+    }
+  } else {
+    console.log('📡 Offline - cannot clear archive');
+    recycleBinRecords = previousBinRecords; // Rollback
+    saveRecycleBinCache();
+    toast('⚠️ Cannot delete all records while offline');
+  }
+
+  // ✅ STEP 8: Hide loading
+  if (spinner) spinner.classList.remove('show');
+  
+  if (deleteAllBtn) {
+    deleteAllBtn.disabled = false;
+    deleteAllBtn.textContent = '🗑️ Delete All Forever';
+  }
+  
+  // ✅ STEP 9: Update UI
+  renderRecycleBinModal();
 }
 
 // ✅ Delete photo from record

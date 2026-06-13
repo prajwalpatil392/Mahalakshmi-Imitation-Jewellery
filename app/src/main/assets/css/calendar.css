@@ -1,10 +1,11 @@
 /* ══ CALENDAR WIDGET ══ */
-.home-calendar-widget{background:var(--cream);border:1.5px solid var(--gold-border);border-radius:var(--radius);padding:16px;margin-bottom:18px;box-shadow:var(--shadow)}
+.home-calendar-widget{position:relative;background:var(--cream);border:1.5px solid var(--gold-border);border-radius:var(--radius);padding:16px;padding-bottom:50px;margin-bottom:18px;box-shadow:var(--shadow)}
 .cw-header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
 .cw-title{font-family:'Cinzel',serif;font-size:0.85rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--crimson)}
-.cw-controls{display:flex;gap:8px}
-.cw-nav{width:34px;height:34px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--gold-light),var(--gold));color:var(--text);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,0.12);transition:transform 0.15s}
+.cw-controls{position:absolute;bottom:10px;right:10px;display:flex;gap:6px}
+.cw-nav{width:34px;height:34px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--gold-light),var(--gold));color:var(--text);font-size:1.3rem;font-weight:bold;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,0.12);transition:transform 0.15s}
 .cw-nav:active{transform:scale(0.96)}
+.cw-nav:hover{box-shadow:0 6px 14px rgba(0,0,0,0.18);transform:translateY(-1px)}
 .cw-month{font-family:'Cinzel',serif;font-size:0.95rem;font-weight:700;color:var(--text);margin-bottom:10px}
 .cw-weekdays,.cw-days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
 .cw-weekdays span{text-align:center;font-size:0.68rem;text-transform:uppercase;color:var(--muted)}

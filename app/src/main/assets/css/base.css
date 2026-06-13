@@ -114,6 +114,70 @@ html.modal-open,body.modal-open{overflow:hidden;height:100vh}
   animation:slideInUp 0.8s ease-out 0.2s both;
 }
 
+/* ✅ GREEN PROGRESS BAR */
+.splash-progress-container{
+  position:absolute;
+  bottom:120px;
+  left:50%;
+  transform:translateX(-50%);
+  width:70%;
+  max-width:300px;
+  height:6px;
+  background:rgba(255,255,255,0.2);
+  border-radius:10px;
+  overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+
+.splash-progress-bar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#2ecc71,#27ae60,#2ecc71);
+  background-size:200% 100%;
+  border-radius:10px;
+  animation:progressLoad 1.2s ease-out forwards, progressShine 2s ease-in-out infinite;
+  box-shadow:0 0 12px rgba(46,204,113,0.8);
+}
+
+@keyframes progressLoad{
+  0%{width:0%}
+  100%{width:100%}
+}
+
+@keyframes progressShine{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+/* ✅ SMOOTH SCREEN TRANSITIONS */
+.screen{
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              visibility 0s linear 0.4s;
+  transform: translateY(0);
+}
+
+.screen.active{
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              visibility 0s linear 0s;
+}
+
+/* Fade transition for other screens */
+.screen-fade-in{
+  animation: fadeIn 0.3s ease-in forwards;
+}
+
+@keyframes fadeIn{
+  from{
+    opacity: 0;
+  }
+  to{
+    opacity: 1;
+  }
+}
+
 /* ══ UTILITIES ══ */
 .hidden{display:none!important}
 .mt-6{margin-top:6px}
@@ -121,3 +185,10 @@ html.modal-open,body.modal-open{overflow:hidden;height:100vh}
 .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
 .sec-title{font-family:'Cinzel',serif;font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--crimson);margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .sec-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--gold-border),transparent)}
+
+/* ══ DUE DAYS PILL (on record cards) ══ */
+.rcard-due{display:inline-block;margin:4px 0 2px;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;letter-spacing:0.5px}
+.due-ok{background:#EAF5EE;color:#1A5C2E;border:1px solid #9fcfb0}
+.due-today{background:#FFF3CD;color:#856404;border:1px solid #ffc107;animation:pulse 1.2s ease-in-out infinite}
+.due-overdue{background:#FDF0F0;color:#9B1C1C;border:1px solid #f5c6c6}
+.due-returned{background:#F0F0F0;color:#555;border:1px solid #ccc}

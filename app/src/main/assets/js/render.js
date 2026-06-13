@@ -9,9 +9,15 @@ function updateCounts() {
   const todayStr = getTodayInternal();
   const todayCount = homeRows.filter(r => isRecordOnStartDate(r, todayStr)).length;
 
-  document.getElementById('cntActive').textContent = activeCount;
-  document.getElementById('cntOv').textContent = ovCount;
-  document.getElementById('cntToday').textContent = todayCount;
+  const totalEl = document.getElementById('cntTotal');
+  const activeEl = document.getElementById('cntActive');
+  const ovEl = document.getElementById('cntOv');
+  const todayEl = document.getElementById('cntToday');
+
+  if (totalEl) totalEl.textContent = homeRows.length;
+  if (activeEl) activeEl.textContent = activeCount;
+  if (ovEl) ovEl.textContent = ovCount;
+  if (todayEl) todayEl.textContent = todayCount;
 
   if (typeof saveHomeSnapshot === 'function') {
     saveHomeSnapshot();
@@ -36,10 +42,10 @@ function renderHome() {
   // ✅ CRITICAL FIX: Header ALWAYS shows TODAY's date (never changes)
   // Selected date is shown in filter area only
   try {
-    const headerEl = document.getElementById('headerDate');
-    if (headerEl) {
+    const headerDateText = document.getElementById('headerDateText');
+    if (headerDateText) {
       const todayStr = getTodayInternal();
-      headerEl.textContent = formatDateDisplay(todayStr); // Always show today
+      headerDateText.textContent = formatDateDisplay(todayStr);
     }
   } catch (e) {
     console.warn('Failed to update header date:', e);
@@ -66,23 +72,34 @@ function renderHome() {
     : records.slice();
 
   // Status chip filters work globally across all dates.
-  if (curFilter === FILTER.ACTIVE || curFilter === FILTER.OVERDUE || curFilter === FILTER.RETURNED) {
+  if (curFilter === FILTER.ACTIVE) {
+    // Active means anything that has NOT been returned yet
+    filtered = filtered.filter(r => r.status === STATUS.ACTIVE || r.status === STATUS.OVERDUE);
+  } else if (curFilter === FILTER.OVERDUE || curFilter === FILTER.RETURNED) {
     filtered = filtered.filter(r => r.status === curFilter);
   }
 
-  // ✅ DATE FILTERING: Show only records where START date (from) matches selected date
-  // This ensures no records from end date ranges are shown
+  if (curFilter === FILTER.ADVANCE) {
+    filtered = filtered.filter(r => typeof isAdvanceBooking === 'function' && isAdvanceBooking(r));
+  }
+
+  // Date filters
   let activeDate = null;
   if (curFilter === FILTER.TODAY) {
     activeDate = getTodayInternal();
+    filtered = filtered.filter(r => isRecordOnStartDate(r, activeDate));
   } else if (curFilter === FILTER.DATE) {
     activeDate = selectedDate;
+    filtered = filtered.filter(r => typeof isRecordActiveOnDate === 'function' && isRecordActiveOnDate(r, activeDate));
   }
 
-  if (activeDate) {
-    // Only match records where the "from" date equals the active date (exact match)
-    filtered = filtered.filter(r => isRecordOnStartDate(r, activeDate));
-  }
+  // ✅ SORT: Display records by receipt number descending (highest/latest first)
+  // Natural sort handles both numeric ("100" > "9") and alphanumeric ("RCP-100" > "RCP-9")
+  filtered.sort((a, b) => {
+    const ra = String(a.receiptNo || '');
+    const rb = String(b.receiptNo || '');
+    return rb.localeCompare(ra, undefined, { numeric: true, sensitivity: 'base' });
+  });
 
   // DEBUG
   log('Filtered Records:', filtered);
@@ -110,8 +127,11 @@ function renderHome() {
     } else if (curFilter === STATUS.RETURNED) {
       msg = MESSAGES.NO_RETURNED;
       sub = MESSAGES.NO_RETURNED_SUB;
+    } else if (curFilter === FILTER.ADVANCE) {
+      msg = '🗓 No Advance Bookings';
+      sub = 'No upcoming rentals found. Try "All" to see every record.';
     } else if (curFilter === FILTER.DATE && activeDate) {
-      msg = `📅 No Rentals Starting on ${formatDateDisplay(activeDate)}`;
+      msg = `📅 No Rentals on ${formatDateDisplay(activeDate)}`;
       sub = 'Select another date or click "All" to see all records.';
     }
 
@@ -125,12 +145,31 @@ function renderHome() {
   const homeList = document.getElementById('homeList');
 
   if (homeList) {
-    // ✅ OPTIMIZATION: Compare with current innerHTML instead of storing in dataset
-    // This avoids memory waste from storing large HTML strings
-    if (homeList.innerHTML !== html) {
-      homeList.innerHTML = html;
+    // ✅ FILTER RESULT COUNT: Show how many records match the current filter
+    const totalVisible = records.filter(r => !isRecordSoftDeleted(r)).length;
+    const isFiltered = curFilter !== FILTER.ALL || q;
+    let countBar = '';
+    if (isFiltered) {
+      const filterLabel =
+        curFilter === FILTER.TODAY    ? '📅 Today' :
+        curFilter === FILTER.ACTIVE   ? '💍 Active' :
+        curFilter === FILTER.OVERDUE  ? '⚠️ Overdue' :
+        curFilter === FILTER.RETURNED ? '✅ Returned' :
+        curFilter === FILTER.ADVANCE  ? '🗓 Advance' :
+        curFilter === FILTER.DATE     ? `📅 ${formatDateDisplay(selectedDate)}` :
+        q ? `🔍 "${q}"` : '';
+      countBar = `<div style="padding:6px 14px 2px;font-size:12px;color:#7A5C2E;font-weight:600;">
+        ${filterLabel} — <span style="color:#6A0000;">${filtered.length}</span> record${filtered.length !== 1 ? 's' : ''} found
+        <span style="color:#aaa;font-weight:400;">&nbsp;/&nbsp;${totalVisible} total</span>
+      </div>`;
     }
-    renderCalendarWidget();
+
+    const newHTML = countBar + html;
+    // ✅ OPTIMIZATION: Compare with current innerHTML instead of storing in dataset
+    if (homeList.innerHTML !== newHTML) {
+      homeList.innerHTML = newHTML;
+    }
+    if (typeof updateCalendarSelection === 'function') updateCalendarSelection();
     log('renderHome: Showing', filtered.length, 'records for date:', selectedDate);
 
     if (typeof saveHomeSnapshot === 'function') {
@@ -169,20 +208,20 @@ function cardHTML(r) {
     if (photos.length === 1) {
       // Single photo: just show it
       photoHTML = `<div class="rcard-photo-single" data-action="open-gallery" data-index="0" data-photos='${JSON.stringify(photos).replace(/'/g, "&#39;")}'>
-        <img src="${photos[0]}" alt="Photo" loading="lazy" onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22200%22 height=%22200%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22%3EImage%20error%3C/text%3E%3C/svg%3E'">
+        <img src="${photos[0]}" alt="Photo" loading="lazy" onerror="handleImageError(this, '${r.id}')">
       </div>`;
     } else {
       // Multiple photos: show slider with navigation
       const photosJson = JSON.stringify(photos).replace(/'/g, "&#39;");
       const sliderPhotos = photos.map((photo, idx) => 
-        `<div class="card-slide" data-idx="${idx}"><img src="${photo}" alt="Photo ${idx + 1}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22%3E%3Crect fill=%22%23f0f0f0%22 width=%22200%22 height=%22200%22/%3E%3C/svg%3E'"></div>`
+        `<div class="card-slide" data-idx="${idx}"><img src="${photo}" alt="Photo ${idx + 1}" loading="lazy" onerror="handleImageError(this, '${r.id}')"></div>`
       ).join('');
       
       const sliderDots = photos.map((_, idx) => 
         `<div class="card-dot${idx === 0 ? ' active' : ''}" data-idx="${idx}"></div>`
       ).join('');
       
-      photoHTML = `<div class="card-slider-container" data-id="${r.id}">
+      photoHTML = `<div class="rcard-photo-slider"><div class="card-slider-container" data-id="${r.id}">
         <div class="card-slider-track" data-photos='${photosJson}'>
           ${sliderPhotos}
         </div>
@@ -190,10 +229,40 @@ function cardHTML(r) {
           ${sliderDots}
         </div>
         <div class="card-slider-counter">${photos.length > 1 ? `1/${photos.length}` : ''}</div>
-        ${photos.length > 1 ? `<div class="card-slider-nav prev" data-id="${r.id}" data-action="prev-photo">‹</div>` : ''}
-        ${photos.length > 1 ? `<div class="card-slider-nav next" data-id="${r.id}" data-action="next-photo">›</div>` : ''}
         ${hasBlobPhotos ? `<div class="photo-upload-badge">📤 Uploading...</div>` : ''}
-      </div>`;
+      </div></div>`;
+    }
+  } else {
+    // No photos available - show default placeholder
+    photoHTML = `<div class="rcard-photo-placeholder">
+      <div class="placeholder-icon">📷</div>
+      <div class="placeholder-text">No Images Uploaded</div>
+      <div class="placeholder-subtext">Add photos to see them here</div>
+    </div>`;
+  }
+
+  // Due days calculation
+  let dueLine = '';
+  if (st === STATUS.RETURNED) {
+    dueLine = `<div class="rcard-due due-returned">✅ Returned</div>`;
+  } else {
+    const toNorm = normalizeDate(r.to);
+    if (toNorm) {
+      const today = getTodayInternal();
+      const [toYear, toMonth, toDay] = toNorm.split('-').map(Number);
+      const [todayYear, todayMonth, todayDay] = today.split('-').map(Number);
+      
+      const toDate = new Date(toYear, toMonth - 1, toDay);
+      const todayDate = new Date(todayYear, todayMonth - 1, todayDay);
+      
+      const diffDays = Math.round((toDate - todayDate) / 86400000);
+      if (diffDays > 0) {
+        dueLine = `<div class="rcard-due due-ok">⏳ ${diffDays} day${diffDays !== 1 ? 's' : ''} left</div>`;
+      } else if (diffDays === 0) {
+        dueLine = `<div class="rcard-due due-today">🔔 Due Today!</div>`;
+      } else {
+        dueLine = `<div class="rcard-due due-overdue">🔴 ${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''} overdue</div>`;
+      }
     }
   }
 
@@ -213,13 +282,14 @@ function cardHTML(r) {
       <div class="rcd"><div class="rv">₹${r.balance}</div><div class="rl">Balance</div></div>
     </div>
     <div class="rcard-meta">📅 ${formatDateDisplay(r.from)} to ${formatDateDisplay(r.to)}</div>
+    ${dueLine}
     <div class="rcard-time">🕒 ${r.createdTime || ''}</div>
     <div class="rcard-user">User: ${r.user}</div>
     ${photoHTML}
     <div class="rcard-actions">
       ${st!==STATUS.RETURNED && !r._syncing ? `<button class="ract ret" data-id="${r.id}">Return</button>` : ''}
       ${!r._syncing ? `<button class="ract edit" data-id="${r.id}">Edit</button>` : ''}
-      ${!r._syncing ? `<button class="ract del" data-id="${r.id}">Delete</button>` : ''}
+      <button class="ract del" data-id="${r.id}">Delete</button>
     </div>
   </div>`;
 }
@@ -313,63 +383,14 @@ function optimizeCloudinaryUrl(url) {
 
 function isRecordOnStartDate(record, dateStr) {
   if (!record) return false;
-  if (!dateStr) return true;
+  if (!dateStr) return false;
 
   const from = normalizeDate(record.from);
 
-  // Keep legacy records visible if their dates are malformed instead of dropping them silently.
-  if (!from) {
-    return true;
-  }
+  // ✅ FIX: Records with missing/invalid dates should NOT appear under Today filter.
+  // Returning true here caused malformed records to always show in Today view.
+  if (!from) return false;
 
   return from === dateStr;
 }
 
-function renderCalendarWidget() {
-  const monthLabel = calendarDate.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
-  document.getElementById('calendarMonth').textContent = monthLabel;
-
-  const start = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
-  const weekdayOffset = start.getDay();
-  const daysInMonth = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate();
-  const totalCells = Math.ceil((weekdayOffset + daysInMonth) / 7) * 7;
-  const todayStr = getTodayInternal();
-  const calRows = typeof isRecordSoftDeleted === 'function'
-    ? records.filter(r => !isRecordSoftDeleted(r))
-    : records.slice();
-  const eventDates = new Set(
-    calRows.map(r => normalizeDate(r.from)).filter(Boolean)
-  );
-
-  const cells = [];
-  for (let i = 0; i < totalCells; i++) {
-    const dayNumber = i - weekdayOffset + 1;
-
-    // ✅ FIX: Create timezone-safe date string (YYYY-MM-DD format)
-    // Avoid using new Date().toISOString() which converts to UTC and can shift dates
-    const year = calendarDate.getFullYear();
-    const month = String(calendarDate.getMonth() + 1).padStart(2, '0');
-    const day = String(dayNumber).padStart(2, '0');
-    const cellKey = `${year}-${month}-${day}`;
-
-    const isCurrentMonth = dayNumber >= 1 && dayNumber <= daysInMonth;
-    const classes = ['cw-day'];
-
-    if (!isCurrentMonth) {
-      classes.push('other-month');
-    }
-    if (cellKey === todayStr && isCurrentMonth) {
-      classes.push('today');
-    }
-    if (isCurrentMonth && eventDates.has(cellKey)) {
-      classes.push('event');
-    }
-    if (isCurrentMonth && selectedDate === cellKey) {
-      classes.push('selected');
-    }
-
-    cells.push(`<div class="${classes.join(' ')}" ${isCurrentMonth ? `data-date="${cellKey}"` : ''}>${isCurrentMonth ? dayNumber : ''}</div>`);
-  }
-
-  document.getElementById('calendarDays').innerHTML = cells.join('');
-}

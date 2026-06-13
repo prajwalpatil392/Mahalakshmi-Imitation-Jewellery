@@ -36,7 +36,7 @@ function buildWhatsAppMessage(record) {
     `Deposit: Rs. ${record.deposit || 0}` ,
     `Pickup: ${formatDateDisplay(record.from) || '-'}` ,
     `Return: ${formatDateDisplay(record.to) || '-'}` ,
-    `Handled By: ${record.user || 'Worker'}`
+    `User: ${record.user || 'User'}`
   ];
 
   // ✅ PRIVACY: Don't send image links to customers
@@ -143,7 +143,7 @@ function printRecord() {
               </div>
               
               <div class="bill-row">
-                <span class="bill-key">Handled By:</span>
+                <span class="bill-key">User:</span>
                 <span class="bill-value">${record.user || 'System'}</span>
               </div>
               

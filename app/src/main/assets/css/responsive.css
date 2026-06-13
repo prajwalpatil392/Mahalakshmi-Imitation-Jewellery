@@ -1,9 +1,25 @@
 /* ══ RESPONSIVE DESIGN ══ */
 
-/* ══ TABLET (≥600px) ══ */
+/* ══ BASE: Center app on large screens ══ */
 @media (min-width: 600px) {
+  body {
+    display: flex;
+    justify-content: center;
+    background: linear-gradient(135deg, #2C0000 0%, #4A0000 50%, #2C0000 100%);
+  }
+  
   .app {
     max-width: 600px;
+    margin: 0 auto;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .header {
+    max-width: 600px;
+    left: 50%;
+    transform: translateX(-50%);
   }
   
   .header-text h1 {
@@ -11,18 +27,45 @@
   }
   
   .nav {
-    height: 72px;
+    max-width: 600px;
+    left: 50%;
+    transform: translateX(-50%);
   }
   
   .screen {
-    padding: 20px 18px 108px;
+    padding: 20px 18px 120px;
+  }
+  
+  /* 3 columns for cards on tablet and above */
+  #homeList {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  
+  .rcard {
+    margin-bottom: 0;
   }
 }
 
 /* ══ TABLET LARGE (≥768px) ══ */
 @media (min-width: 768px) {
   .app {
-    max-width: 768px;
+    max-width: 900px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .header {
+    max-width: 900px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .nav {
+    max-width: 900px;
+    left: 50%;
+    transform: translateX(-50%);
   }
   
   .header {
@@ -47,36 +90,102 @@
     font-size: 1.4rem;
   }
   
-  .nav {
-    height: 72px;
-  }
-  
   .screen {
-    padding: 24px 20px 108px;
+    padding: 24px 20px 120px;
   }
   
   .stats-row {
     grid-template-columns: repeat(4, 1fr);
     gap: 12px;
   }
+  
+  /* Keep 3 columns for cards */
+  #homeList {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
 }
 
 /* ══ DESKTOP (≥1024px) ══ */
 @media (min-width: 1024px) {
   .app {
-    max-width: 1024px;
+    max-width: 1100px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .header {
+    max-width: 1100px;
+    left: 50%;
+    transform: translateX(-50%);
   }
   
   .nav {
-    height: 72px;
+    max-width: 1100px;
+    height: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .nav-btn {
+    min-height: 90px;
   }
   
   .screen {
-    padding: 28px 24px 108px;
+    padding: 28px 24px 120px;
   }
   
-  .record-item {
-    grid-template-columns: repeat(2, 1fr);
+  /* Keep 3 columns for cards on desktop */
+  #homeList {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+  
+  /* Make stats cards more compact */
+  .stats-row {
+    gap: 16px;
+  }
+  
+  .stat-card {
+    padding: 16px;
+  }
+  
+  /* Wider modals on desktop */
+  .modal-box,
+  .detail-box {
+    max-width: 500px;
+    border-radius: 16px;
+  }
+  
+  .coming-soon-content {
+    max-width: 500px;
+  }
+}
+
+/* ══ LARGE DESKTOP (≥1280px) ══ */
+@media (min-width: 1280px) {
+  .app {
+    max-width: 1300px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .header {
+    max-width: 1300px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .nav {
+    max-width: 1300px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  /* 4 columns on very large tablets/screens */
+  #homeList {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
   }
 }
 
@@ -112,7 +221,7 @@
 @media (hover: none) and (pointer: coarse) {
   /* Slightly larger touch targets on mobile */
   .nav-btn {
-    min-height: 72px;
+    min-height: 84px;
   }
   
   .add-big {

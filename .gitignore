@@ -41,6 +41,7 @@ output.json
 *.jks
 *.keystore
 debug.keystore
+keystore.properties
 
 # External native build folder
 .externalNativeBuild

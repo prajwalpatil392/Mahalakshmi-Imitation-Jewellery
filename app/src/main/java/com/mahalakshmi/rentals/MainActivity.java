@@ -19,10 +19,16 @@ import android.content.Context;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
+import android.provider.Settings;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
@@ -136,6 +142,88 @@ public class MainActivity extends AppCompatActivity {
         @JavascriptInterface
         public void printPage() {
             runOnUiThread(() -> printCurrentPage());
+        }
+
+        @JavascriptInterface
+        public String getAppVersionName() {
+            try {
+                return getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            } catch (Exception e) {
+                return "1.0";
+            }
+        }
+
+        @JavascriptInterface
+        public void triggerUpdate(final String urlStr) {
+            runOnUiThread(() -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    if (!getPackageManager().canRequestPackageInstalls()) {
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                        intent.setData(Uri.parse("package:" + getPackageName()));
+                        startActivity(intent);
+                        android.widget.Toast.makeText(MainActivity.this, "Please enable permission to install updates, then check for updates again.", android.widget.Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
+                new Thread(() -> downloadAndInstallApk(urlStr)).start();
+            });
+        }
+    }
+
+    private void downloadAndInstallApk(String urlStr) {
+        try {
+            runOnUiThread(() -> webView.evaluateJavascript("if(typeof onUpdateProgress === 'function') onUpdateProgress('Downloading...');", null));
+            
+            URL url = new URL(urlStr);
+            HttpURLConnection c = (HttpURLConnection) url.openConnection();
+            c.setRequestMethod("GET");
+            c.connect();
+
+            File cacheDir = getCacheDir();
+            final File apkFile = new File(cacheDir, "update.apk");
+            if (apkFile.exists()) {
+                apkFile.delete();
+            }
+
+            InputStream is = c.getInputStream();
+            FileOutputStream fos = new FileOutputStream(apkFile);
+
+            byte[] buffer = new byte[4096];
+            int len;
+            while ((len = is.read(buffer)) != -1) {
+                fos.write(buffer, 0, len);
+            }
+            fos.close();
+            is.close();
+
+            runOnUiThread(() -> webView.evaluateJavascript("if(typeof onUpdateProgress === 'function') onUpdateProgress('Installing...');", null));
+            runOnUiThread(() -> installApk(apkFile));
+        } catch (final Exception e) {
+            runOnUiThread(() -> {
+                android.widget.Toast.makeText(MainActivity.this, "Update failed: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
+                webView.evaluateJavascript("if(typeof onUpdateProgress === 'function') onUpdateProgress('Failed');", null);
+            });
+        }
+    }
+
+    private void installApk(File apkFile) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                Uri apkUri = FileProvider.getUriForFile(
+                    this,
+                    getPackageName() + ".fileprovider",
+                    apkFile
+                );
+                intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            } else {
+                intent.setDataAndType(Uri.fromFile(apkFile), "application/vnd.android.package-archive");
+            }
+            startActivity(intent);
+        } catch (Exception e) {
+            android.widget.Toast.makeText(this, "Failed to start installer: " + e.getMessage(), android.widget.Toast.LENGTH_LONG).show();
         }
     }
 

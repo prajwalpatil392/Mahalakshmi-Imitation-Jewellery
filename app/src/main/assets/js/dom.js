@@ -20,6 +20,7 @@ const DOM = {
   get homeBtn() { return document.getElementById('n-home'); },
   get addBtn() { return document.getElementById('n-add'); },
   get syncBtn() { return document.getElementById('syncBtn'); },
+  get updateCheckBtn() { return document.getElementById('updateCheckBtn'); },
   
   // Home screen
   get homeList() { return document.getElementById('homeList'); },

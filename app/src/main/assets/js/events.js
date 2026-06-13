@@ -117,6 +117,17 @@ function setupEventListeners() {
     });
   }
 
+  // ✅ UPDATE BUTTON
+  if (DOM.updateCheckBtn) {
+    DOM.updateCheckBtn.addEventListener('click', function() {
+      if (typeof checkUpdatesManual === 'function') {
+        checkUpdatesManual();
+      } else {
+        toast('⚠️ Update module not loaded yet.');
+      }
+    });
+  }
+
   // ✅ SHARE APP BUTTON
   const shareAppBtn = document.getElementById('shareAppBtn');
   if (shareAppBtn) shareAppBtn.addEventListener('click', shareApp);
